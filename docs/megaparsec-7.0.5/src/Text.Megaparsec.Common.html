@@ -1,0 +1,43 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-- |</span><span>
+</span><a name="line-2"></a><span class="hs-comment">-- Module      :  Text.Megaparsec.Common</span><span>
+</span><a name="line-3"></a><span class="hs-comment">-- Copyright   :  &#169; 2018&#8211;2019 Megaparsec contributors</span><span>
+</span><a name="line-4"></a><span class="hs-comment">-- License     :  FreeBSD</span><span>
+</span><a name="line-5"></a><span class="hs-comment">--</span><span>
+</span><a name="line-6"></a><span class="hs-comment">-- Maintainer  :  Mark Karpov &lt;markkarpov92@gmail.com&gt;</span><span>
+</span><a name="line-7"></a><span class="hs-comment">-- Stability   :  experimental</span><span>
+</span><a name="line-8"></a><span class="hs-comment">-- Portability :  portable</span><span>
+</span><a name="line-9"></a><span class="hs-comment">--</span><span>
+</span><a name="line-10"></a><span class="hs-comment">-- Common token combinators. This module is not public, the functions from</span><span>
+</span><a name="line-11"></a><span class="hs-comment">-- it are re-exported in &quot;Text.Megaparsec.Byte&quot; and &quot;Text.Megaparsec.Char&quot;.</span><span>
+</span><a name="line-12"></a><span class="hs-comment">--</span><span>
+</span><a name="line-13"></a><span class="hs-comment">-- @since 7.0.0</span><span>
+</span><a name="line-14"></a><span>
+</span><a name="line-15"></a><span class="hs-pragma">{-# LANGUAGE FlexibleContexts #-}</span><span>
+</span><a name="line-16"></a><span>
+</span><a name="line-17"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Text.Megaparsec.Common</span><span>
+</span><a name="line-18"></a><span>  </span><span class="hs-special">(</span><span> </span><a href="Text.Megaparsec.Common.html#string"><span class="hs-identifier hs-var">string</span></a><span>
+</span><a name="line-19"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Text.Megaparsec.Common.html#string%27"><span class="hs-identifier hs-var">string'</span></a><span> </span><span class="hs-special">)</span><span>
+</span><a name="line-20"></a><span class="hs-keyword">where</span><span>
+</span><a name="line-21"></a><span>
+</span><a name="line-22"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Function</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">on</span><span class="hs-special">)</span><span>
+</span><a name="line-23"></a><span class="hs-keyword">import</span><span> </span><a href="Text.Megaparsec.html"><span class="hs-identifier">Text.Megaparsec</span></a><span>
+</span><a name="line-24"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data.CaseInsensitive</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">CI</span><span>
+</span><a name="line-25"></a><span>
+</span><a name="line-26"></a><span class="hs-comment">-- | A synonym for 'chunk'.</span><span>
+</span><a name="line-27"></a><span>
+</span><a name="line-28"></a><span class="hs-identifier">string</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Text.Megaparsec.Class.html#MonadParsec"><span class="hs-identifier hs-type">MonadParsec</span></a><span> </span><a href="#local-6989586621679101038"><span class="hs-identifier hs-type">e</span></a><span> </span><a href="#local-6989586621679101039"><span class="hs-identifier hs-type">s</span></a><span> </span><a href="#local-6989586621679101040"><span class="hs-identifier hs-type">m</span></a><span> </span><span class="hs-glyph">=&gt;</span><span> </span><a href="Text.Megaparsec.Stream.html#Tokens"><span class="hs-identifier hs-type">Tokens</span></a><span> </span><a href="#local-6989586621679101039"><span class="hs-identifier hs-type">s</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-6989586621679101040"><span class="hs-identifier hs-type">m</span></a><span> </span><span class="hs-special">(</span><a href="Text.Megaparsec.Stream.html#Tokens"><span class="hs-identifier hs-type">Tokens</span></a><span> </span><a href="#local-6989586621679101039"><span class="hs-identifier hs-type">s</span></a><span class="hs-special">)</span><span>
+</span><a name="line-29"></a><a name="string"><a href="Text.Megaparsec.Common.html#string"><span class="hs-identifier">string</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Text.Megaparsec.html#chunk"><span class="hs-identifier hs-var">chunk</span></a><span>
+</span><a name="line-30"></a><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">string</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><a name="line-31"></a><span>
+</span><a name="line-32"></a><span class="hs-comment">-- | The same as 'string', but case-insensitive. On success returns string</span><span>
+</span><a name="line-33"></a><span class="hs-comment">-- cased as actually parsed input.</span><span>
+</span><a name="line-34"></a><span class="hs-comment">--</span><span>
+</span><a name="line-35"></a><span class="hs-comment">-- &gt;&gt;&gt; parseTest (string' &quot;foobar&quot;) &quot;foObAr&quot;</span><span>
+</span><a name="line-36"></a><span class="hs-comment">-- &quot;foObAr&quot;</span><span>
+</span><a name="line-37"></a><span>
+</span><a name="line-38"></a><span class="hs-identifier">string'</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><a href="Text.Megaparsec.Class.html#MonadParsec"><span class="hs-identifier hs-type">MonadParsec</span></a><span> </span><a href="#local-6989586621679100797"><span class="hs-identifier hs-type">e</span></a><span> </span><a href="#local-6989586621679100798"><span class="hs-identifier hs-type">s</span></a><span> </span><a href="#local-6989586621679100799"><span class="hs-identifier hs-type">m</span></a><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">CI.FoldCase</span><span> </span><span class="hs-special">(</span><a href="Text.Megaparsec.Stream.html#Tokens"><span class="hs-identifier hs-type">Tokens</span></a><span> </span><a href="#local-6989586621679100798"><span class="hs-identifier hs-type">s</span></a><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-39"></a><span>  </span><span class="hs-glyph">=&gt;</span><span> </span><a href="Text.Megaparsec.Stream.html#Tokens"><span class="hs-identifier hs-type">Tokens</span></a><span> </span><a href="#local-6989586621679100798"><span class="hs-identifier hs-type">s</span></a><span>
+</span><a name="line-40"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-6989586621679100799"><span class="hs-identifier hs-type">m</span></a><span> </span><span class="hs-special">(</span><a href="Text.Megaparsec.Stream.html#Tokens"><span class="hs-identifier hs-type">Tokens</span></a><span> </span><a href="#local-6989586621679100798"><span class="hs-identifier hs-type">s</span></a><span class="hs-special">)</span><span>
+</span><a name="line-41"></a><a name="string%27"><a href="Text.Megaparsec.Common.html#string%27"><span class="hs-identifier">string'</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Text.Megaparsec.Class.html#tokens"><span class="hs-identifier hs-var">tokens</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="hs-operator hs-var">==</span><span class="hs-special">)</span><span> </span><span class="hs-special">`</span><span class="hs-identifier hs-var">on</span><span class="hs-special">`</span><span> </span><span class="hs-identifier hs-var">CI.mk</span><span class="hs-special">)</span><span>
+</span><a name="line-42"></a><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">string'</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><a name="line-43"></a></pre></body></html>

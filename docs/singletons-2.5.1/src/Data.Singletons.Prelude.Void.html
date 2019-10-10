@@ -1,0 +1,56 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DataKinds #-}</span><span>
+</span><a name="line-2"></a><span class="hs-pragma">{-# LANGUAGE EmptyCase #-}</span><span>
+</span><a name="line-3"></a><span class="hs-pragma">{-# LANGUAGE GADTs #-}</span><span>
+</span><a name="line-4"></a><span class="hs-pragma">{-# LANGUAGE PolyKinds #-}</span><span>
+</span><a name="line-5"></a><span class="hs-pragma">{-# LANGUAGE ScopedTypeVariables #-}</span><span>
+</span><a name="line-6"></a><span class="hs-pragma">{-# LANGUAGE TemplateHaskell #-}</span><span>
+</span><a name="line-7"></a><span class="hs-pragma">{-# LANGUAGE TypeFamilies #-}</span><span>
+</span><a name="line-8"></a><span class="hs-pragma">{-# LANGUAGE UndecidableInstances #-}</span><span>
+</span><a name="line-9"></a><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><a name="line-10"></a><span class="hs-comment">-- |</span><span>
+</span><a name="line-11"></a><span class="hs-comment">-- Module      :  Data.Singletons.Prelude.Void</span><span>
+</span><a name="line-12"></a><span class="hs-comment">-- Copyright   :  (C) 2017 Ryan Scott</span><span>
+</span><a name="line-13"></a><span class="hs-comment">-- License     :  BSD-style (see LICENSE)</span><span>
+</span><a name="line-14"></a><span class="hs-comment">-- Maintainer  :  Ryan Scott</span><span>
+</span><a name="line-15"></a><span class="hs-comment">-- Stability   :  experimental</span><span>
+</span><a name="line-16"></a><span class="hs-comment">-- Portability :  non-portable</span><span>
+</span><a name="line-17"></a><span class="hs-comment">--</span><span>
+</span><a name="line-18"></a><span class="hs-comment">-- Defines functions and datatypes relating to the singleton for 'Void',</span><span>
+</span><a name="line-19"></a><span class="hs-comment">-- including a singleton version of all the definitions in @Data.Void@.</span><span>
+</span><a name="line-20"></a><span class="hs-comment">--</span><span>
+</span><a name="line-21"></a><span class="hs-comment">-- Because many of these definitions are produced by Template Haskell,</span><span>
+</span><a name="line-22"></a><span class="hs-comment">-- it is not possible to create proper Haddock documentation. Please look</span><span>
+</span><a name="line-23"></a><span class="hs-comment">-- up the corresponding operation in @Data.Void@. Also, please excuse</span><span>
+</span><a name="line-24"></a><span class="hs-comment">-- the apparent repeated variable names. This is due to an interaction</span><span>
+</span><a name="line-25"></a><span class="hs-comment">-- between Template Haskell and Haddock.</span><span>
+</span><a name="line-26"></a><span class="hs-comment">--</span><span>
+</span><a name="line-27"></a><span class="hs-comment">----------------------------------------------------------------------------</span><span>
+</span><a name="line-28"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Data.Singletons.Prelude.Void</span><span> </span><span class="hs-special">(</span><span>
+</span><a name="line-29"></a><span>  </span><span class="hs-comment">-- * The 'Void' singleton</span><span>
+</span><a name="line-30"></a><span>  </span><a href="Data.Singletons.Internal.html#Sing"><span class="hs-identifier hs-type">Sing</span></a><span class="hs-special">,</span><span>
+</span><a name="line-31"></a><span>  </span><span class="hs-comment">-- | Just as 'Void' has no constructors, the 'Sing' instance above also has</span><span>
+</span><a name="line-32"></a><span>  </span><span class="hs-comment">-- no constructors.</span><span>
+</span><a name="line-33"></a><span>
+</span><a name="line-34"></a><span>  </span><a href="Data.Singletons.Prelude.Instances.html#SVoid"><span class="hs-identifier hs-type">SVoid</span></a><span class="hs-special">,</span><span>
+</span><a name="line-35"></a><span>  </span><span class="hs-comment">-- | 'SVoid' is a kind-restricted synonym for 'Sing':</span><span>
+</span><a name="line-36"></a><span>  </span><span class="hs-comment">-- @type SVoid (a :: Void) = Sing a@</span><span>
+</span><a name="line-37"></a><span>
+</span><a name="line-38"></a><span>  </span><span class="hs-comment">-- * Singletons from @Data.Void@</span><span>
+</span><a name="line-39"></a><span>  </span><a href="Data.Singletons.Prelude.Void.html#Absurd"><span class="hs-identifier hs-type">Absurd</span></a><span class="hs-special">,</span><span> </span><a href="Data.Singletons.Prelude.Void.html#sAbsurd"><span class="hs-identifier hs-var">sAbsurd</span></a><span class="hs-special">,</span><span>
+</span><a name="line-40"></a><span>
+</span><a name="line-41"></a><span>  </span><span class="hs-comment">-- * Defunctionalization symbols</span><span>
+</span><a name="line-42"></a><span>  </span><a href="Data.Singletons.Prelude.Void.html#AbsurdSym0"><span class="hs-identifier hs-type">AbsurdSym0</span></a><span class="hs-special">,</span><span> </span><a href="Data.Singletons.Prelude.Void.html#AbsurdSym1"><span class="hs-identifier hs-type">AbsurdSym1</span></a><span>
+</span><a name="line-43"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-44"></a><span>
+</span><a name="line-45"></a><span class="hs-keyword">import</span><span> </span><a href="Data.Singletons.Internal.html"><span class="hs-identifier">Data.Singletons.Internal</span></a><span>
+</span><a name="line-46"></a><span class="hs-keyword">import</span><span> </span><a href="Data.Singletons.Prelude.Instances.html"><span class="hs-identifier">Data.Singletons.Prelude.Instances</span></a><span>
+</span><a name="line-47"></a><span class="hs-keyword">import</span><span> </span><a href="Data.Singletons.Single.html"><span class="hs-identifier">Data.Singletons.Single</span></a><span>
+</span><a name="line-48"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Void</span><span>
+</span><a name="line-49"></a><span>
+</span><a name="line-50"></a><span class="hs-special">$(</span><a href="#local-6989586621679375779"><span class="hs-identifier hs-var">singletonsOnly</span></a><span> </span><span class="hs-special">[d|</span><span>
+</span><a name="line-51"></a><span>  </span><span class="hs-comment">-- -| Since 'Void' values logically don't exist, this witnesses the</span><span>
+</span><a name="line-52"></a><span>  </span><span class="hs-comment">-- logical reasoning tool of \&quot;ex falso quodlibet\&quot;.</span><span>
+</span><a name="line-53"></a><span>  </span><a href="#local-6989586621679375779"><span class="hs-identifier hs-var">absurd</span></a><span> </span><span class="hs-glyph">::</span><span> </span><a href="#local-6989586621679375779"><span class="hs-identifier hs-var">Void</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-6989586621679375779"><span class="hs-identifier hs-var">a</span></a><span>
+</span><a name="line-54"></a><span>  </span><a href="#local-6989586621679375779"><span class="hs-identifier hs-var">absurd</span></a><span> </span><a href="#local-6989586621679375779"><span class="hs-identifier hs-var">a</span></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><a href="#local-6989586621679375779"><span class="hs-identifier hs-var">a</span></a><span> </span><span class="hs-keyword">of</span><span> </span><span class="hs-special">{</span><span class="hs-special">}</span><span>
+</span><a name="line-55"></a><span>  </span><span class="hs-special">|]</span><span class="hs-special">)</span><span>
+</span><a name="line-56"></a></pre></body></html>

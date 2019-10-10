@@ -1,0 +1,62 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-- | API for test runners</span><span>
+</span><a name="line-2"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Test.Tasty.Runners</span><span>
+</span><a name="line-3"></a><span>  </span><span class="hs-special">(</span><span>
+</span><a name="line-4"></a><span>    </span><span class="hs-comment">-- * Working with the test tree</span><span>
+</span><a name="line-5"></a><span>    </span><a href="Test.Tasty.Core.html#TestTree"><span class="hs-identifier hs-type">TestTree</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-6"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.Core.html#foldTestTree"><span class="hs-identifier hs-var">foldTestTree</span></a><span>
+</span><a name="line-7"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.Core.html#TreeFold"><span class="hs-identifier hs-type">TreeFold</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-8"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.Core.html#trivialFold"><span class="hs-identifier hs-var">trivialFold</span></a><span>
+</span><a name="line-9"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.Core.html#ResourceSpec"><span class="hs-identifier hs-type">ResourceSpec</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-10"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">module</span><span> </span><a href="Test.Tasty.Runners.Reducers.html"><span class="hs-identifier">Test.Tasty.Runners.Reducers</span></a><span>
+</span><a name="line-11"></a><span>    </span><span class="hs-comment">-- * Ingredients</span><span>
+</span><a name="line-12"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.Ingredients.html#Ingredient"><span class="hs-identifier hs-type">Ingredient</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-13"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.Core.html#Time"><span class="hs-identifier hs-type">Time</span></a><span>
+</span><a name="line-14"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.Ingredients.html#tryIngredients"><span class="hs-identifier hs-var">tryIngredients</span></a><span>
+</span><a name="line-15"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.Ingredients.html#ingredientOptions"><span class="hs-identifier hs-var">ingredientOptions</span></a><span>
+</span><a name="line-16"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.Ingredients.html#ingredientsOptions"><span class="hs-identifier hs-var">ingredientsOptions</span></a><span>
+</span><a name="line-17"></a><span>    </span><span class="hs-comment">-- * Standard console ingredients</span><span>
+</span><a name="line-18"></a><span>    </span><span class="hs-comment">-- | NOTE: the exports in this section are deprecated and will be</span><span>
+</span><a name="line-19"></a><span>    </span><span class="hs-comment">-- removed in the future. Please import &quot;Test.Tasty.Ingredients.Basic&quot;</span><span>
+</span><a name="line-20"></a><span>    </span><span class="hs-comment">-- if you need them.</span><span>
+</span><a name="line-21"></a><span>
+</span><a name="line-22"></a><span>    </span><span class="hs-comment">-- ** Console test reporter</span><span>
+</span><a name="line-23"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.Ingredients.ConsoleReporter.html#consoleTestReporter"><span class="hs-identifier hs-var">consoleTestReporter</span></a><span>
+</span><a name="line-24"></a><span>    </span><span class="hs-comment">-- ** Tests list</span><span>
+</span><a name="line-25"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.Ingredients.ListTests.html#listingTests"><span class="hs-identifier hs-var">listingTests</span></a><span>
+</span><a name="line-26"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.Ingredients.ListTests.html#ListTests"><span class="hs-identifier hs-type">ListTests</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-27"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.Ingredients.ListTests.html#testsNames"><span class="hs-identifier hs-var">testsNames</span></a><span>
+</span><a name="line-28"></a><span>    </span><span class="hs-comment">-- * Command line handling</span><span>
+</span><a name="line-29"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.CmdLine.html#optionParser"><span class="hs-identifier hs-var">optionParser</span></a><span>
+</span><a name="line-30"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.CmdLine.html#suiteOptionParser"><span class="hs-identifier hs-var">suiteOptionParser</span></a><span>
+</span><a name="line-31"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.CmdLine.html#defaultMainWithIngredients"><span class="hs-identifier hs-var">defaultMainWithIngredients</span></a><span>
+</span><a name="line-32"></a><span>    </span><span class="hs-comment">-- * Running tests</span><span>
+</span><a name="line-33"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.Run.html#Status"><span class="hs-identifier hs-type">Status</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-34"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.Core.html#Result"><span class="hs-identifier hs-type">Result</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-35"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.Core.html#Outcome"><span class="hs-identifier hs-type">Outcome</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-36"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.Core.html#FailureReason"><span class="hs-identifier hs-type">FailureReason</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-37"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.Core.html#resultSuccessful"><span class="hs-identifier hs-var">resultSuccessful</span></a><span>
+</span><a name="line-38"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.Core.html#Progress"><span class="hs-identifier hs-type">Progress</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-39"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.Run.html#StatusMap"><span class="hs-identifier hs-type">StatusMap</span></a><span>
+</span><a name="line-40"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.Run.html#launchTestTree"><span class="hs-identifier hs-var">launchTestTree</span></a><span>
+</span><a name="line-41"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.Options.Core.html#NumThreads"><span class="hs-identifier hs-type">NumThreads</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-42"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.Run.html#DependencyException"><span class="hs-identifier hs-type">DependencyException</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-43"></a><span>    </span><span class="hs-comment">-- * Options</span><span>
+</span><a name="line-44"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.Ingredients.html#suiteOptions"><span class="hs-identifier hs-var">suiteOptions</span></a><span>
+</span><a name="line-45"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.Options.Core.html#coreOptions"><span class="hs-identifier hs-var">coreOptions</span></a><span>
+</span><a name="line-46"></a><span>    </span><span class="hs-comment">-- ** Patterns</span><span>
+</span><a name="line-47"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">module</span><span> </span><a href="Test.Tasty.Patterns.html"><span class="hs-identifier">Test.Tasty.Patterns</span></a><span>
+</span><a name="line-48"></a><span>    </span><span class="hs-comment">-- * Utilities</span><span>
+</span><a name="line-49"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">module</span><span> </span><a href="Test.Tasty.Runners.Utils.html"><span class="hs-identifier">Test.Tasty.Runners.Utils</span></a><span>
+</span><a name="line-50"></a><span>  </span><span class="hs-special">)</span><span>
+</span><a name="line-51"></a><span>  </span><span class="hs-keyword">where</span><span>
+</span><a name="line-52"></a><span>
+</span><a name="line-53"></a><span class="hs-keyword">import</span><span> </span><a href="Test.Tasty.Core.html"><span class="hs-identifier">Test.Tasty.Core</span></a><span>
+</span><a name="line-54"></a><span class="hs-keyword">import</span><span> </span><a href="Test.Tasty.Run.html"><span class="hs-identifier">Test.Tasty.Run</span></a><span>
+</span><a name="line-55"></a><span class="hs-keyword">import</span><span> </span><a href="Test.Tasty.Ingredients.html"><span class="hs-identifier">Test.Tasty.Ingredients</span></a><span>
+</span><a name="line-56"></a><span class="hs-keyword">import</span><span> </span><a href="Test.Tasty.Options.Core.html"><span class="hs-identifier">Test.Tasty.Options.Core</span></a><span>
+</span><a name="line-57"></a><span class="hs-keyword">import</span><span> </span><a href="Test.Tasty.Patterns.html"><span class="hs-identifier">Test.Tasty.Patterns</span></a><span>
+</span><a name="line-58"></a><span class="hs-keyword">import</span><span> </span><a href="Test.Tasty.CmdLine.html"><span class="hs-identifier">Test.Tasty.CmdLine</span></a><span>
+</span><a name="line-59"></a><span class="hs-keyword">import</span><span> </span><a href="Test.Tasty.Ingredients.Basic.html"><span class="hs-identifier">Test.Tasty.Ingredients.Basic</span></a><span>
+</span><a name="line-60"></a><span class="hs-keyword">import</span><span> </span><a href="Test.Tasty.Runners.Reducers.html"><span class="hs-identifier">Test.Tasty.Runners.Reducers</span></a><span>
+</span><a name="line-61"></a><span class="hs-keyword">import</span><span> </span><a href="Test.Tasty.Runners.Utils.html"><span class="hs-identifier">Test.Tasty.Runners.Utils</span></a><span>
+</span><a name="line-62"></a></pre></body></html>
