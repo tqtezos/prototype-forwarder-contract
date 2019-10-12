@@ -11,7 +11,7 @@ extra-deps:
 - base58-bytestring-0.1.0
 - hex-text-0.1.0.0
 - show-type-0.1.1
-# - qm-interpolated-string-0.3.0.0
+- qm-interpolated-string-0.3.0.0
 
 - git:
     https://gitlab.com/morley-framework/morley.git
@@ -23,12 +23,12 @@ extra-deps:
     - indigo
     - lorentz-contracts
     - prelude
-# - git:
-#     git@github.com:tqtezos/morley-dstoken.git
-#   commit:
-#     c4ac0a80d2a6bf97ee88600cd575f63af0e26676 # master
-#   subdirs:
-#     - .
+- git:
+    git@github.com:tqtezos/morley-dstoken.git
+  commit:
+    c4ac0a80d2a6bf97ee88600cd575f63af0e26676 # master
+  subdirs:
+    - .
 
 nix:
   shell-file: shell.nix

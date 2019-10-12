@@ -28,6 +28,8 @@ dependencies:
 - text
 - constraints
 - lorentz-contracts
+- morley-dstoken
+- vinyl
 
 library:
   source-dirs: src
