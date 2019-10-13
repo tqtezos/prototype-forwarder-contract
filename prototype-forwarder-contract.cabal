@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 55e5af481ad7903164354301115b0aaa7545f7931e6b3c673b95a2d6adeb13c6
+-- hash: 1b967d61a3e0b7fc16f20ea7a4a362631af6a3173958af9c34fb203ba7016d3e
 
 name:           prototype-forwarder-contract
 version:        0.1.0.0
@@ -45,7 +45,7 @@ library
     , vinyl
   default-language: Haskell2010
 
-executable prototype-forwarder-contract-exe
+executable dstoken-forwarder-contract
   main-is: Main.hs
   other-modules:
       Paths_prototype_forwarder_contract
@@ -55,13 +55,16 @@ executable prototype-forwarder-contract-exe
   build-depends:
       base >=4.7 && <5
     , constraints
+    , fmt
     , lorentz-contracts
     , morley
     , morley-dstoken
     , named
+    , optparse-applicative
     , prototype-forwarder-contract
     , singletons
     , text
+    , universum
     , vinyl
   default-language: Haskell2010
 

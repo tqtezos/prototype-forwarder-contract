@@ -35,7 +35,7 @@ library:
   source-dirs: src
 
 executables:
-  prototype-forwarder-contract-exe:
+  dstoken-forwarder-contract:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
@@ -46,6 +46,10 @@ executables:
     - prototype-forwarder-contract
     - morley
     # - morley-prelude
+    - morley-dstoken
+    - fmt
+    - optparse-applicative
+    - universum
 
 tests:
   prototype-forwarder-contract-test:

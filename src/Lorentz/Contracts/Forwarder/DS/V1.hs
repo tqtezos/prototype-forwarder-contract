@@ -19,20 +19,22 @@
 
 module Lorentz.Contracts.Forwarder.DS.V1 where
 
+import Lorentz.Base (analyzeLorentz)
 import Michelson.Text
 import Michelson.Typed.T
 import Lorentz
 import qualified Lorentz.Contracts.Upgradeable.Common as Upgradeable
-import Michelson.Typed.Haskell.Instr.Sum
-import Michelson.Typed.Haskell.Value
+-- import Michelson.Typed.Haskell.Instr.Sum
+-- import Michelson.Typed.Haskell.Value
 import Michelson.Typed.Value
 import Michelson.Typed.Instr (Instr)
+import Michelson.Analyzer (AnalyzerRes)
 
 import qualified Lorentz.Contracts.DS.V1 as DS
 import qualified Lorentz.Contracts.DS.V1.Registry.Types as Registry
 import qualified Lorentz.Contracts.DS.V1.Token.Types as Token
 
-import GHC.TypeLits (KnownSymbol, Symbol)
+-- import GHC.TypeLits (KnownSymbol, Symbol)
 import Prelude (Show(..), Enum(..), ($), id)
 
 import Data.Vinyl.Derived (Label)
@@ -135,4 +137,12 @@ forwarderContract = do
   dip nil
   cons
   pair
+
+forwarderCompilationWay :: LorentzCompilationWay Parameter Storage
+forwarderCompilationWay = lcwDumb
+
+-- forwarderDocumentation :: LText
+
+analyzeForwarder :: AnalyzerRes
+analyzeForwarder = analyzeLorentz forwarderContract
 
