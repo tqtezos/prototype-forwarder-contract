@@ -34,7 +34,7 @@ import qualified Lorentz.Contracts.DS.V1 as DS
 import qualified Lorentz.Contracts.DS.V1.Registry.Types as Registry
 import qualified Lorentz.Contracts.DS.V1.Token.Types as Token
 
--- import GHC.TypeLits (KnownSymbol, Symbol)
+import GHC.TypeLits (KnownSymbol, Symbol)
 import Prelude (Show(..), Enum(..), ($), id)
 
 import Data.Vinyl.Derived (Label)

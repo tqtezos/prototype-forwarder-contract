@@ -27,11 +27,13 @@ import Universum.String
 import Universum.Lifted
 import Universum.Exception
 
+import qualified Lorentz.Contracts.Forwarder.DS.V1.Specialized as DS
 import qualified Lorentz.Contracts.Forwarder.DS.V1 as DS
 import qualified Lorentz.Contracts.DS.V1 as DSToken
 
 data CmdLnArgs
   = Print !(Maybe FilePath) !Bool
+  | PrintSpecialized !Address !(L.ContractAddr DSToken.Parameter) !(Maybe FilePath) !Bool
   | InitialStorage !Address !(L.ContractAddr DSToken.Parameter) !(Maybe FilePath)
   | Document !(Maybe FilePath)
   | Analyze
@@ -39,6 +41,7 @@ data CmdLnArgs
 argParser :: Opt.Parser CmdLnArgs
 argParser = Opt.subparser $ mconcat
   [ printSubCmd
+  , printSpecializedSubCmd
   , initialStorageSubCmd
   , documentSubCmd
   , analyzeSubCmd
@@ -53,6 +56,16 @@ argParser = Opt.subparser $ mconcat
       mkCommandParser "print"
       (Print <$> outputOption <*> onelineOption)
       "Dump DS Token Forwarder contract in the form of Michelson code"
+
+    printSpecializedSubCmd =
+      mkCommandParser "print-specialized"
+      (PrintSpecialized <$>
+        addressOption "central-wallet" "Address of central wallet" <*>
+        (L.ContractAddr <$> addressOption "dstoken-address" "Address of DS Token contract") <*>
+        outputOption <*>
+        onelineOption
+      )
+      "Dump DS Token Forwarder contract, specialized to paricular addresses, in the form of Michelson code"
 
     initialStorageSubCmd =
       mkCommandParser "initial-storage"
@@ -139,6 +152,10 @@ main = do
       Print mOutput forceOneline ->
         writeFunc mOutput $
           L.printLorentzContract forceOneline DS.forwarderCompilationWay DS.forwarderContract
+      PrintSpecialized centralWalletAddr' dsTokenContractAddr' mOutput forceOneline ->
+        writeFunc mOutput $
+          L.printLorentzContract forceOneline DS.specializedForwarderCompilationWay $
+            DS.specializedForwarderContract centralWalletAddr' dsTokenContractAddr'
       InitialStorage centralWalletAddr dsTokenAddr mOutput -> do
         writeFunc mOutput $ L.printLorentzValue True $ DS.Storage dsTokenAddr centralWalletAddr
       -- Document mOutput -> do
