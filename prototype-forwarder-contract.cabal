@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8c74595cb9c1e33fd4dda331cdae7b043ff4c4f35e4502950d2769edede5b49a
+-- hash: 001775dbe982faf6a91a04212dc95fc368691ccb1398629f7516b8c66c652d34
 
 name:           prototype-forwarder-contract
 version:        0.1.0.0
@@ -56,6 +56,7 @@ executable dstoken-forwarder-contract
   build-depends:
       base >=4.7 && <5
     , constraints
+    , containers
     , fmt
     , lorentz-contracts
     , morley

@@ -2,23 +2,43 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ApplicativeDo #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications #-}
+
+{-# LANGUAGE ScopedTypeVariables #-}
+-- {-# LANGUAGE PolyKinds #-}
+-- {-# LANGUAGE TypeOperators #-}
+-- {-# LANGUAGE TypeFamilies #-}
+-- {-# LANGUAGE GADTs #-}
+-- {-# LANGUAGE DataKinds #-}
+-- {-# LANGUAGE RankNTypes #-}
+-- {-# LANGUAGE KindSignatures #-}
+-- {-# LANGUAGE NoImplicitPrelude #-}
+-- {-# LANGUAGE ScopedTypeVariables #-}
+-- {-# LANGUAGE TypeApplications #-}
+-- {-# LANGUAGE FlexibleInstances #-}
+-- {-# LANGUAGE RebindableSyntax #-}
+-- {-# LANGUAGE OverloadedLabels #-}
+-- {-# LANGUAGE FlexibleContexts #-}
 
 module Main where
 
 import Control.Monad
-import System.IO hiding (putStrLn)
+import System.IO hiding (putStrLn, print)
 import Data.String
-import Prelude hiding (putStrLn)
+import Prelude hiding (putStrLn, show, print)
 
 -- import Data.Version (showVersion)
 import Fmt (pretty, fmt, build, nameF)
 import qualified Options.Applicative as Opt
 import Options.Applicative.Help.Pretty (Doc, linebreak)
 import qualified Data.Text.Lazy as LT
+import qualified Data.Map as Map
+import Data.Singletons
 
 -- import Michelson.Text (MText, mkMText, mt)
 -- import Paths_morley_dstoken (version)
-import Tezos.Address (Address, parseAddress)
+import Tezos.Address (Address, parseAddress, formatAddress)
+import Tezos.Crypto
 import qualified Lorentz as L
 import Michelson.Analyzer (AnalyzerRes)
 import Util.IO (appendFileUtf8, hSetTranslit, writeFileUtf8)
@@ -27,6 +47,12 @@ import Universum.String
 import Universum.Lifted
 import Universum.Exception
 
+import Michelson.Macro
+import Michelson.Runtime
+import Michelson.TypeCheck
+import qualified Michelson.Untyped.Type as U
+import Michelson.Untyped.Annotation (noAnn)
+import Michelson.Typed.T
 import qualified Lorentz.Contracts.Forwarder.DS.V1.Specialized as DS
 import qualified Lorentz.Contracts.Forwarder.DS.V1 as DS
 import qualified Lorentz.Contracts.DS.V1 as DSToken
@@ -37,6 +63,8 @@ data CmdLnArgs
   | InitialStorage !Address !(L.ContractAddr DSToken.Parameter) !(Maybe FilePath)
   | Document !(Maybe FilePath)
   | Analyze
+  | Parse !Address !(L.ContractAddr DSToken.Parameter) !(Maybe FilePath)
+  deriving (Show)
 
 argParser :: Opt.Parser CmdLnArgs
 argParser = Opt.subparser $ mconcat
@@ -45,6 +73,7 @@ argParser = Opt.subparser $ mconcat
   , initialStorageSubCmd
   , documentSubCmd
   , analyzeSubCmd
+  , parseSubCmd
   ]
   where
     mkCommandParser commandName parser desc =
@@ -85,6 +114,15 @@ argParser = Opt.subparser $ mconcat
       mkCommandParser "analyze"
       (pure Analyze)
       "Analyze DS Token Forwarder contract and print information about it"
+
+    parseSubCmd =
+      mkCommandParser "parse"
+      (Parse <$>
+        addressOption "central-wallet" "Address of central wallet" <*>
+        (L.ContractAddr <$> addressOption "dstoken-address" "Address of DS Token contract") <*>
+        outputOption
+      )
+      "Parse and verify a copy of the contract"
 
     outputOption = Opt.optional $ Opt.strOption $ mconcat
       [ Opt.short 'o'
@@ -129,6 +167,22 @@ usageDoc = Just $ mconcat
    , "  morley-dstoken-forwarder-contract print --help", linebreak
    ]
 
+toUT :: T -> U.T
+toUT (Tc ct) = U.Tc ct
+toUT TKey = U.TKey
+toUT TUnit = U.TUnit
+toUT TSignature = U.TSignature
+toUT TOperation = U.TOperation
+toUT (TOption t) = U.TOption noAnn $ toUT t `U.Type` noAnn
+toUT (TList t) = U.TList $ toUT t `U.Type` noAnn
+toUT (TSet ct) = U.TSet $ U.Comparable ct noAnn
+toUT (TContract t) = U.TContract $ toUT t `U.Type` noAnn
+toUT (TPair s t) = U.TPair noAnn noAnn (toUT s `U.Type` noAnn) (toUT t `U.Type` noAnn)
+toUT (TOr s t) = U.TOr noAnn noAnn (toUT s `U.Type` noAnn) (toUT t `U.Type` noAnn)
+toUT (TLambda s t) = U.TLambda (toUT s `U.Type` noAnn) (toUT t `U.Type` noAnn)
+toUT (TMap s t) = U.TMap (U.Comparable s noAnn) (toUT t `U.Type` noAnn)
+toUT (TBigMap s t) = U.TBigMap (U.Comparable s noAnn) (toUT t `U.Type` noAnn)
+
 main :: IO ()
 main = do
   hSetTranslit stdout
@@ -167,4 +221,18 @@ main = do
             putTextLn $ fmt $ nameF (build name) $ build res
 
         printItem ("DS Token Forwarder Contract", DS.analyzeForwarder)
+      xs@(Parse centralWalletAddr' contractAddr' mInput) -> do
+        uContract <- expandContract <$> readAndParseContract mInput
+        let tcContracts' =
+              Map.singleton
+                (case contractAddr' of {L.ContractAddr addr' -> addr'})
+                (U.Type (toUT (fromSing expectedContractParamT)) noAnn)
+        case typeCheckContract tcContracts' uContract of
+          Left err -> die $ "Failed to type check contract: " <> show err
+          Right typeCheckedContract ->
+            case DS.verifyForwarderContract centralWalletAddr' contractAddr' typeCheckedContract of
+              Left err -> die err
+              Right () -> putStrLn ("Contract verified successfully!" :: Text)
 
+    expectedContractParamT :: Sing (L.ToT DSToken.Parameter)
+    expectedContractParamT = sing -- sing @(L.ToT DSToken.Parameter))

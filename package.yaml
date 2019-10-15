@@ -50,6 +50,7 @@ executables:
     - fmt
     - optparse-applicative
     - universum
+    - containers
 
 tests:
   prototype-forwarder-contract-test:

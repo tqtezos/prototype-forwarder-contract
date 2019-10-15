@@ -14,22 +14,26 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE OverloadedLabels #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 {-# OPTIONS -Wall -Wno-unused-do-bind -Wno-orphans #-}
 
 module Lorentz.Contracts.Forwarder.DS.V1.Specialized where
 
-import Lorentz
+import Lorentz hiding (SomeContract(..))
 import Lorentz.Base (analyzeLorentz)
--- import Lorentz.CompileExts
 import Michelson.Analyzer (AnalyzerRes)
 import Michelson.Optimizer
 import Michelson.Typed.Instr (toFullContract)
+import qualified Michelson.Typed.Instr as Instr
+import Michelson.TypeCheck.Types
 
 import qualified Lorentz.Contracts.DS.V1 as DS
 import Lorentz.Contracts.Forwarder.DS.V1 (toTransferParameter)
 
-import Prelude (Enum(..), ($))
+import Data.Type.Equality
+import Data.Typeable
+import Prelude (Enum(..), Eq(..), ($), String, show)
 
 
 -- | The number of sub-tokens to forward
@@ -61,7 +65,9 @@ specializedForwarderContract centralWalletAddr' contractAddr' = do
   dip unit
   pair
 
-specializedForwarderCompilationWay :: LorentzCompilationWay Parameter Storage
+-- specializedForwarderCompilationWay :: LorentzCompilationWay Parameter Storage
+specializedForwarderCompilationWay :: (KnownValue cp, KnownValue st, NoOperation cp, NoOperation st, NoBigMap cp, CanHaveBigMap st)
+                                   => LorentzCompilationWay cp st
 specializedForwarderCompilationWay =
   LorentzCompilationWay (toFullContract . optimize . compileLorentzContract)
 
@@ -70,4 +76,29 @@ specializedForwarderCompilationWay =
 analyzeSpecializedForwarder :: Address -> ContractAddr DS.Parameter -> AnalyzerRes
 analyzeSpecializedForwarder centralWalletAddr' contractAddr' =
   analyzeLorentz $ specializedForwarderContract centralWalletAddr' contractAddr'
+
+makeI :: Instr.Contract a b -> Contract (Value a) (Value b)
+makeI = I
+
+verifyForwarderContract :: Address -> ContractAddr DS.Parameter -> SomeContract -> Either String ()
+verifyForwarderContract centralWalletAddr' dsTokenContractAddr' (SomeContract (contract' :: Instr.Contract cp st) _ _) =
+  case eqT @cp @(ToT Parameter) of
+    Nothing -> Left $ "Unexpected parameter type: " <> show (typeRep (Proxy @cp))
+    Just Refl ->
+      case eqT @st @(ToT Storage) of
+        Nothing -> Left $ "Unexpected storage type: " <> show (typeRep (Proxy @st))
+        Just Refl ->
+          let givenContract = printLorentzContract forceOneline specializedForwarderCompilationWay (makeI contract')
+           in case givenContract == expectedContract of
+                True -> return ()
+                False -> Left "The contracts have the same type, but different implementations"
+  where
+    forceOneline = True
+    expectedContract =
+      printLorentzContract
+           forceOneline
+           specializedForwarderCompilationWay
+           (specializedForwarderContract
+              centralWalletAddr'
+              dsTokenContractAddr')
 
