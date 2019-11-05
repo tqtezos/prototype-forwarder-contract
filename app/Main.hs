@@ -37,7 +37,7 @@ import Data.Singletons
 
 -- import Michelson.Text (MText, mkMText, mt)
 -- import Paths_morley_dstoken (version)
-import Tezos.Address (Address, parseAddress, formatAddress)
+import Tezos.Address (Address(ContractAddress), parseAddress, formatAddress)
 import Tezos.Crypto
 import qualified Lorentz as L
 import Michelson.Analyzer (AnalyzerRes)
@@ -60,10 +60,10 @@ import qualified Lorentz.Contracts.DS.V1 as DSToken
 data CmdLnArgs
   = Print !(Maybe FilePath) !Bool
   | PrintSpecialized !Address !(L.ContractAddr DSToken.Parameter) !(Maybe FilePath) !Bool
-  | InitialStorage !Address !(L.ContractAddr DSToken.Parameter) !(Maybe FilePath)
+  | InitialStorage !Address !Address !(Maybe FilePath)
   | Document !(Maybe FilePath)
   | Analyze
-  | Parse !Address !(L.ContractAddr DSToken.Parameter) !(Maybe FilePath)
+  | Parse !Address !Address !(Maybe FilePath)
   deriving (Show)
 
 argParser :: Opt.Parser CmdLnArgs
@@ -100,7 +100,7 @@ argParser = Opt.subparser $ mconcat
       mkCommandParser "initial-storage"
       (InitialStorage <$>
         addressOption "central-wallet" "Address of central wallet" <*>
-        (L.ContractAddr <$> addressOption "dstoken-address" "Address of DS Token contract") <*>
+        addressOption "dstoken-address" "Address of DS Token contract" <*>
         outputOption
       )
       "Dump initial storage value"
@@ -119,7 +119,7 @@ argParser = Opt.subparser $ mconcat
       mkCommandParser "parse"
       (Parse <$>
         addressOption "central-wallet" "Address of central wallet" <*>
-        (L.ContractAddr <$> addressOption "dstoken-address" "Address of DS Token contract") <*>
+        addressOption "dstoken-address" "Address of DS Token contract" <*>
         outputOption
       )
       "Parse and verify a copy of the contract"
@@ -225,12 +225,12 @@ main = do
         uContract <- expandContract <$> readAndParseContract mInput
         let tcContracts' =
               Map.singleton
-                (case contractAddr' of {L.ContractAddr addr' -> addr'})
+                (case contractAddr' of {ContractAddress addr' -> addr'; _ -> error ("Expected ContractAddress, but got: " <> show contractAddr')})
                 (U.Type (toUT (fromSing expectedContractParamT)) noAnn)
         case typeCheckContract tcContracts' uContract of
           Left err -> die $ "Failed to type check contract: " <> show err
           Right typeCheckedContract ->
-            case DS.verifyForwarderContract centralWalletAddr' contractAddr' typeCheckedContract of
+            case DS.verifyForwarderContract centralWalletAddr' (L.ContractAddr contractAddr') typeCheckedContract of
               Left err -> die err
               Right () -> putStrLn ("Contract verified successfully!" :: Text)
 

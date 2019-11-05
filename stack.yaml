@@ -17,7 +17,7 @@ extra-deps:
     https://gitlab.com/morley-framework/morley.git
     # ^ CI cannot use ssh, so we use http clone here
   commit:
-    0f5d400a5d66b2b84b18b2d9dee72bf3eb48db58  # master
+    5eb1a3f70b5fe9524b400f114a7f96d6767e6503 # master
   subdirs:
     - .
     - indigo
@@ -26,9 +26,13 @@ extra-deps:
 - git:
     git@github.com:tqtezos/morley-dstoken.git
   commit:
-    c4ac0a80d2a6bf97ee88600cd575f63af0e26676 # master
+    bcfc68a0a01c68291bd053a53e25b0c79c9c730e # master
   subdirs:
     - .
+
+# asked for by stack (new morley dependencies?)
+- constraints-0.11.2@sha256:d028005d93f891b48b61ff0c82c6f868859eb728010dea3e355b0c55d0f57cf9
+- type-equality-1@sha256:aeb9c44abf5d2edf52caff114a7da565d8328fa84bbe194828e4355ea85bf5b3
 
 nix:
   shell-file: shell.nix

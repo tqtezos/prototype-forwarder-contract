@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE GADTs #-}
@@ -26,7 +27,9 @@ import Michelson.Analyzer (AnalyzerRes)
 import Michelson.Optimizer
 import Michelson.Typed.Instr (toFullContract)
 import qualified Michelson.Typed.Instr as Instr
+import Michelson.Typed.Scope
 import Michelson.TypeCheck.Types
+import Michelson.Text
 
 import qualified Lorentz.Contracts.DS.V1 as DS
 import Lorentz.Contracts.Forwarder.DS.V1 (toTransferParameter)
@@ -46,12 +49,16 @@ type Storage = ()
 
 -- changed
 runSpecializedTransfer :: Address -> ContractAddr DS.Parameter -> (Natural & s) :-> (Operation & s)
-runSpecializedTransfer centralWalletAddr' contractAddr' = do
+runSpecializedTransfer centralWalletAddr' (ContractAddr contractAddr') = do
   push centralWalletAddr'
   toTransferParameter
   dip $ do
     push contractAddr'
-    push (toEnum 0 :: Mutez)
+    contract @DS.Parameter
+    ifNone
+      (failUnexpected (mkMTextUnsafe "not DS"))
+      (push (toEnum 0 :: Mutez))
+    -- push (toEnum 0 :: Mutez)
   transferTokens
 
 -- | Forwarder contract: forwards the given number of sub-tokens
@@ -66,7 +73,7 @@ specializedForwarderContract centralWalletAddr' contractAddr' = do
   pair
 
 -- specializedForwarderCompilationWay :: LorentzCompilationWay Parameter Storage
-specializedForwarderCompilationWay :: (KnownValue cp, KnownValue st, NoOperation cp, NoOperation st, NoBigMap cp, CanHaveBigMap st)
+specializedForwarderCompilationWay :: (KnownValue cp, NoOperation cp, NoBigMap cp, ProperStorageBetterErrors (ToT st), IsoValue st)
                                    => LorentzCompilationWay cp st
 specializedForwarderCompilationWay =
   LorentzCompilationWay (toFullContract . optimize . compileLorentzContract)

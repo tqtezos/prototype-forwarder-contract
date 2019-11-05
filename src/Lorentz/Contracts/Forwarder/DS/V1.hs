@@ -1,4 +1,5 @@
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE DataKinds #-}
@@ -45,9 +46,9 @@ instance IsoValue (Value' Instr a) where
   toVal = id
   fromVal = id
 
-deriving instance (Show a, Show r) => Show (View a r)
-deriving instance Show a => Show (ContractAddr a)
-deriving instance Show (Upgradeable.Parameter entries)
+-- deriving instance (Show a, Show r) => Show (View a r)
+-- deriving instance Show a => Show (ContractAddr a)
+-- deriving instance Show (Upgradeable.Parameter entries)
 
 -- | Construct a 'UParam' safely. See `mkUParam`.
 toUParam
@@ -70,11 +71,11 @@ type Parameter = Natural
 -- - The sub-token contract, assumed to accept `DS.Parameter`
 -- - The central wallet to transfer sub-tokens to
 data Storage = Storage
-  { subTokenContract :: ContractAddr DS.Parameter
+  { subTokenContract :: Address -- ContractAddr DS.Parameter
   , centralWallet :: Address
   }
   deriving stock Eq
-  deriving stock Show
+  -- deriving stock Show
   deriving stock Generic
   deriving anyclass IsoValue
 
@@ -125,7 +126,10 @@ runTransfer = do
   toTransferParameter
   dip $ do
     getField #subTokenContract
-    push (toEnum 0 :: Mutez)
+    contract
+    ifNone
+      (failUnexpected (mkMTextUnsafe "not a DSToken"))
+      (push (toEnum 0 :: Mutez))
   transferTokens
 
 -- | Forwarder contract: forwards the given number of sub-tokens

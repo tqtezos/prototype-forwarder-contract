@@ -26,8 +26,8 @@ import qualified Lorentz.Contracts.ManagedLedger.Types as Athens
 import Prelude (Show(..), Enum(..))
 
 deriving instance Show Athens.Parameter
-deriving instance (Show a, Show r) => Show (View a r)
-deriving instance Show a => Show (ContractAddr a)
+-- deriving instance (Show a, Show r) => Show (View a r)
+-- deriving instance Show a => Show (ContractAddr a)
 
 -- | We need the addresses of:
 -- - The sub-token contract, assumed to accept `Athens.Parameter`
