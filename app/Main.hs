@@ -3,6 +3,7 @@
 {-# LANGUAGE ApplicativeDo #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE StandaloneDeriving #-}
 
 {-# LANGUAGE ScopedTypeVariables #-}
 -- {-# LANGUAGE PolyKinds #-}
@@ -37,7 +38,7 @@ import Data.Singletons
 
 -- import Michelson.Text (MText, mkMText, mt)
 -- import Paths_morley_dstoken (version)
-import Tezos.Address (Address(ContractAddress), parseAddress, formatAddress)
+import Tezos.Address (Address(..), parseAddress, formatAddress)
 import Tezos.Crypto
 import qualified Lorentz as L
 import Michelson.Analyzer (AnalyzerRes)
@@ -57,9 +58,11 @@ import qualified Lorentz.Contracts.Forwarder.DS.V1.Specialized as DS
 import qualified Lorentz.Contracts.Forwarder.DS.V1 as DS
 import qualified Lorentz.Contracts.DS.V1 as DSToken
 
+deriving instance Show (L.FutureContract p)
+
 data CmdLnArgs
   = Print !(Maybe FilePath) !Bool
-  | PrintSpecialized !Address !(L.ContractAddr DSToken.Parameter) !(Maybe FilePath) !Bool
+  | PrintSpecialized !Address !(L.FutureContract DSToken.Parameter) !(Maybe FilePath) !Bool
   | InitialStorage !Address !Address !(Maybe FilePath)
   | Document !(Maybe FilePath)
   | Analyze
@@ -90,7 +93,7 @@ argParser = Opt.subparser $ mconcat
       mkCommandParser "print-specialized"
       (PrintSpecialized <$>
         addressOption "central-wallet" "Address of central wallet" <*>
-        (L.ContractAddr <$> addressOption "dstoken-address" "Address of DS Token contract") <*>
+        (L.FutureContract <$> addressOption "dstoken-address" "Address of DS Token contract") <*>
         outputOption <*>
         onelineOption
       )
@@ -173,7 +176,7 @@ toUT TKey = U.TKey
 toUT TUnit = U.TUnit
 toUT TSignature = U.TSignature
 toUT TOperation = U.TOperation
-toUT (TOption t) = U.TOption noAnn $ toUT t `U.Type` noAnn
+toUT (TOption t) = U.TOption $ toUT t `U.Type` noAnn
 toUT (TList t) = U.TList $ toUT t `U.Type` noAnn
 toUT (TSet ct) = U.TSet $ U.Comparable ct noAnn
 toUT (TContract t) = U.TContract $ toUT t `U.Type` noAnn
@@ -205,11 +208,17 @@ main = do
     run = \case
       Print mOutput forceOneline ->
         writeFunc mOutput $
-          L.printLorentzContract forceOneline DS.forwarderCompilationWay DS.forwarderContract
-      PrintSpecialized centralWalletAddr' dsTokenContractAddr' mOutput forceOneline ->
+          L.printLorentzContract
+            forceOneline
+            -- DS.forwarderCompilationWay
+            DS.forwarderContract
+      PrintSpecialized centralWalletAddr' dsTokenContractRef' mOutput forceOneline ->
         writeFunc mOutput $
-          L.printLorentzContract forceOneline DS.specializedForwarderCompilationWay $
-            DS.specializedForwarderContract centralWalletAddr' dsTokenContractAddr'
+          L.printLorentzContract
+            forceOneline $
+            -- DS.specializedForwarderCompilationWay $
+            DS.specializedForwarderContract centralWalletAddr' $
+            L.toContractRef dsTokenContractRef'
       InitialStorage centralWalletAddr dsTokenAddr mOutput -> do
         writeFunc mOutput $ L.printLorentzValue True $ DS.Storage dsTokenAddr centralWalletAddr
       -- Document mOutput -> do
@@ -230,7 +239,8 @@ main = do
         case typeCheckContract tcContracts' uContract of
           Left err -> die $ "Failed to type check contract: " <> show err
           Right typeCheckedContract ->
-            case DS.verifyForwarderContract centralWalletAddr' (L.ContractAddr contractAddr') typeCheckedContract of
+            case DS.verifyForwarderContract centralWalletAddr' (L.toContractRef contractAddr') typeCheckedContract of
+              -- ContractRef
               Left err -> die err
               Right () -> putStrLn ("Contract verified successfully!" :: Text)
 
