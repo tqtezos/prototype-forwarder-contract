@@ -22,12 +22,14 @@ description:         Please see the README on GitHub at <https://github.com/tqte
 dependencies:
 - base >= 4.7 && < 5
 - morley
-# - morley-prelude
 - named
 - singletons
 - text
 - constraints
-- lorentz-contracts
+- morley-ledgers
+- morley-upgradeable
+- constraints
+
 - morley-dstoken
 - vinyl
 

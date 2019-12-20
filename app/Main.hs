@@ -4,22 +4,26 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE TupleSections #-}
 
 {-# LANGUAGE ScopedTypeVariables #-}
--- {-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE PolyKinds #-}
 -- {-# LANGUAGE TypeOperators #-}
 -- {-# LANGUAGE TypeFamilies #-}
 -- {-# LANGUAGE GADTs #-}
--- {-# LANGUAGE DataKinds #-}
--- {-# LANGUAGE RankNTypes #-}
--- {-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE KindSignatures #-}
 -- {-# LANGUAGE NoImplicitPrelude #-}
--- {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 -- {-# LANGUAGE TypeApplications #-}
 -- {-# LANGUAGE FlexibleInstances #-}
 -- {-# LANGUAGE RebindableSyntax #-}
 -- {-# LANGUAGE OverloadedLabels #-}
 -- {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE MonoLocalBinds #-}
 
 module Main where
 
@@ -28,13 +32,13 @@ import System.IO hiding (putStrLn, print)
 import Data.String
 import Prelude hiding (putStrLn, show, print)
 
--- import Data.Version (showVersion)
 import Fmt (pretty, fmt, build, nameF)
 import qualified Options.Applicative as Opt
 import Options.Applicative.Help.Pretty (Doc, linebreak)
 import qualified Data.Text.Lazy as LT
 import qualified Data.Map as Map
 import Data.Singletons
+import Data.Constraint
 
 -- import Michelson.Text (MText, mkMText, mt)
 -- import Paths_morley_dstoken (version)
@@ -54,6 +58,8 @@ import Michelson.TypeCheck
 import qualified Michelson.Untyped.Type as U
 import Michelson.Untyped.Annotation (noAnn)
 import Michelson.Typed.T
+import Michelson.Typed.Scope
+import Michelson.Typed.Instr (FullContract(..))
 import qualified Lorentz.Contracts.Forwarder.DS.V1.Specialized as DS
 import qualified Lorentz.Contracts.Forwarder.DS.V1 as DS
 import qualified Lorentz.Contracts.DS.V1 as DSToken
@@ -93,7 +99,7 @@ argParser = Opt.subparser $ mconcat
       mkCommandParser "print-specialized"
       (PrintSpecialized <$>
         addressOption "central-wallet" "Address of central wallet" <*>
-        (L.FutureContract <$> addressOption "dstoken-address" "Address of DS Token contract") <*>
+        (L.FutureContract . uncurry L.EpAddress . (, L.def) <$> addressOption "dstoken-address" "Address of DS Token contract") <*>
         outputOption <*>
         onelineOption
       )
@@ -186,6 +192,46 @@ toUT (TLambda s t) = U.TLambda (toUT s `U.Type` noAnn) (toUT t `U.Type` noAnn)
 toUT (TMap s t) = U.TMap (U.Comparable s noAnn) (toUT t `U.Type` noAnn)
 toUT (TBigMap s t) = U.TBigMap (U.Comparable s noAnn) (toUT t `U.Type` noAnn)
 
+-- | Assert `HasNoOp`
+assertOpAbsense :: forall (t :: T) a. SingI t => (HasNoOp t => a) -> a
+assertOpAbsense f =
+  case opAbsense (sing @t) of
+    Nothing -> error "assertOpAbsense"
+    Just Dict -> forbiddenOp @t f
+
+-- | Assert `HasNoContract`
+assertContractTypeAbsense :: forall (t :: T) a. SingI t => (HasNoContract t => a) -> a
+assertContractTypeAbsense f =
+  case contractTypeAbsense  (sing @t) of
+    Nothing -> error "assertContractTypeAbsense"
+    Just Dict -> forbiddenContractType  @t f
+
+-- | Assert `HasNoBigMap`
+assertBigMapAbsense :: forall (t :: T) a. SingI t => (HasNoBigMap t => a) -> a
+assertBigMapAbsense f =
+  case bigMapAbsense (sing @t) of
+    Nothing -> error "assertBigMapAbsense"
+    Just Dict -> forbiddenBigMap @t f
+
+-- | Assert `HasNoNestedBigMaps`
+assertNestedBigMapAbsense :: forall (t :: T) a. SingI t => (HasNoNestedBigMaps t => a) -> a
+assertNestedBigMapAbsense f =
+  case nestedBigMapsAbsense (sing @t) of
+    Nothing -> error "assertNestedBigMapAbsense"
+    Just Dict -> forbiddenNestedBigMaps @t f
+
+someLorentzContract :: SomeContract -> L.SomeContract
+someLorentzContract (SomeContract (contract' :: FullContract cp st)) =
+  case contract' of
+    FullContract{..} ->
+      assertOpAbsense @cp $
+      assertNestedBigMapAbsense @cp $
+      assertOpAbsense @st $
+      assertNestedBigMapAbsense @st $
+      assertContractTypeAbsense @st $
+      L.SomeContract $
+      L.I @('[(L.Value cp, L.Value st)]) @('[([L.Operation], L.Value st)]) fcCode
+
 main :: IO ()
 main = do
   hSetTranslit stdout
@@ -239,7 +285,7 @@ main = do
         case typeCheckContract tcContracts' uContract of
           Left err -> die $ "Failed to type check contract: " <> show err
           Right typeCheckedContract ->
-            case DS.verifyForwarderContract centralWalletAddr' (L.toContractRef contractAddr') typeCheckedContract of
+            case DS.verifyForwarderContract centralWalletAddr' (L.toContractRef contractAddr') $ someLorentzContract typeCheckedContract of
               -- ContractRef
               Left err -> die err
               Right () -> putStrLn ("Contract verified successfully!" :: Text)

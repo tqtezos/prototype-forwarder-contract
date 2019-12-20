@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 001775dbe982faf6a91a04212dc95fc368691ccb1398629f7516b8c66c652d34
+-- hash: ef406108289ef38a2282c9ee9a31400a42a97c23bf7e03b4c4d264cd4fa10c71
 
 name:           prototype-forwarder-contract
 version:        0.1.0.0
@@ -37,9 +37,10 @@ library
   build-depends:
       base >=4.7 && <5
     , constraints
-    , lorentz-contracts
     , morley
     , morley-dstoken
+    , morley-ledgers
+    , morley-upgradeable
     , named
     , singletons
     , text
@@ -58,9 +59,10 @@ executable dstoken-forwarder-contract
     , constraints
     , containers
     , fmt
-    , lorentz-contracts
     , morley
     , morley-dstoken
+    , morley-ledgers
+    , morley-upgradeable
     , named
     , optparse-applicative
     , prototype-forwarder-contract
@@ -81,9 +83,10 @@ test-suite prototype-forwarder-contract-test
   build-depends:
       base >=4.7 && <5
     , constraints
-    , lorentz-contracts
     , morley
     , morley-dstoken
+    , morley-ledgers
+    , morley-upgradeable
     , named
     , prototype-forwarder-contract
     , singletons
