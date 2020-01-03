@@ -27,33 +27,23 @@ import GHC.Generics (Generic) -- , Generic1)
 import Text.Show (Show(..))
 import Data.Functor.Classes
 import Text.Read (Read(..))
-import Text.ParserCombinators.ReadPrec
+-- import Text.ParserCombinators.ReadPrec
 
 import Lorentz
 import Michelson.Text
 import Michelson.Typed.EntryPoints
+import Tezos.Address
 
--- | Uses `parseEpAddress` with the remainder of the input
-instance Read EpAddress where
-  readPrec = do
-    eEpAddress <- parseEpAddress . fromString <$> look
-    case eEpAddress of
-      Left err -> fail $ show err
-      Right epAddress' -> return epAddress'
+import Lorentz.Contracts.View
 
--- | Uses `readBinaryWith`
-instance (Read a, NiceParameter r) => Read (View a r) where
-  readPrec = readBinaryWith readPrec readPrec "View" $
-    (\x -> View x . toContractRef @r @EpAddress)
 
 -- | Either a `WrappedParameter`, which will fail if the contract has expired,
 -- or `GetExpiration` (will never fail).
 data Parameter cp
   = WrappedParameter !cp
-  | GetExpiration (View () Timestamp)
+  | GetExpiration (View_ Timestamp)
   deriving  (Generic)
 
--- (NiceParameter cp, HasNoOp (ToT cp), HasNoNestedBigMaps (ToT cp))
 instance NiceParameter cp => ParameterEntryPoints (Parameter cp) where
   parameterEntryPoints = pepNone
 
@@ -63,6 +53,7 @@ deriving instance Show cp => Show (Parameter cp)
 
 deriving instance IsoValue cp => IsoValue (Parameter cp)
 
+-- | We store the wrapped `Contract`'s storage and the expiration `Timestamp`
 data Storage st = Storage
   { wrappedStorage :: !st
   , expirationTime :: !Timestamp
@@ -125,8 +116,7 @@ expiringContract wrappedContract = do
           pair
           toStorage
         pair
-    , #cGetExpiration /-> view_ $ do
-        cdr
+    , #cGetExpiration /-> viewUnit_ $ do
         unStorage
         cdr
     )

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 001775dbe982faf6a91a04212dc95fc368691ccb1398629f7516b8c66c652d34
+-- hash: a702fe8f6d53e685eb74996988a1496794f6933ea5c1ed0e87b8f945e375a449
 
 name:           prototype-forwarder-contract
 version:        0.1.0.0
@@ -27,9 +27,14 @@ source-repository head
 
 library
   exposed-modules:
+      Lorentz.Contracts.Expiring
       Lorentz.Contracts.Forwarder
       Lorentz.Contracts.Forwarder.DS.V1
       Lorentz.Contracts.Forwarder.DS.V1.Specialized
+      Lorentz.Contracts.Forwarder.DS.V1.ValidatedExpiring
+      Lorentz.Contracts.Product
+      Lorentz.Contracts.Validate.Reception
+      Lorentz.Contracts.View
   other-modules:
       Paths_prototype_forwarder_contract
   hs-source-dirs:
