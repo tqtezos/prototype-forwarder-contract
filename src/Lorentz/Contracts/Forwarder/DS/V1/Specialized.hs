@@ -16,6 +16,7 @@
 {-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE OverloadedLabels #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 {-# OPTIONS -Wall -Wno-unused-do-bind -Wno-orphans #-}
 
@@ -23,13 +24,16 @@ module Lorentz.Contracts.Forwarder.DS.V1.Specialized where
 
 import Lorentz hiding (SomeContract(..))
 import Lorentz.Run (analyzeLorentz)
+import Lorentz.Base (SomeContract(..))
 import Michelson.Analyzer (AnalyzerRes)
 -- import Michelson.Optimizer
 -- import Michelson.Typed.Instr (toFullContract)
-import qualified Michelson.Typed.Instr as Instr
+-- import qualified Michelson.Typed.Instr as Instr
+-- import Michelson.Typed.Annotation
+-- import Michelson.Typed.Value
 -- import Michelson.Typed.Scope
 import Michelson.Typed.T
-import Michelson.TypeCheck.Types
+-- import Michelson.TypeCheck.Types (SomeContract(..))
 import Michelson.Text
 
 import qualified Lorentz.Contracts.DS.V1 as DS
@@ -92,22 +96,25 @@ analyzeSpecializedForwarder :: Address -> ContractRef DS.Parameter -> AnalyzerRe
 analyzeSpecializedForwarder centralWalletAddr' contractAddr' =
   analyzeLorentz $ specializedForwarderContract centralWalletAddr' contractAddr'
 
-makeI :: Instr.Contract a b -> Contract (Value a) (Value b)
-makeI = I
+-- makeI :: Instr.Contract a b -> Contract (Value a) (Value b)
+-- makeI = I
+
+contractOverValue :: forall cp st. Contract cp st -> Contract (Value (ToT cp)) (Value (ToT st))
+contractOverValue x = coerce_ # x # coerce_
 
 verifyForwarderContract :: Address -> ContractRef DS.Parameter -> SomeContract -> Either String ()
-verifyForwarderContract centralWalletAddr' dsTokenContractRef' (SomeContract (contract' :: Instr.Contract cp st) _ _) =
-  case eqT @cp @(ToT Parameter) of
-    Nothing -> Left $ "Unexpected parameter type: " <> show (typeRep (Proxy @cp))
+verifyForwarderContract centralWalletAddr' dsTokenContractRef' (SomeContract (contract' :: Contract cp st)) =
+  case eqT @(ToT cp) @(ToT Parameter) of
+    Nothing -> Left $ "Unexpected parameter type: " <> show (typeRep (Proxy @(ToT cp)))
     Just Refl ->
-      case eqT @st @(ToT Storage) of
-        Nothing -> Left $ "Unexpected storage type: " <> show (typeRep (Proxy @st))
+      case eqT @(ToT st) @(ToT Storage) of
+        Nothing -> Left $ "Unexpected storage type: " <> show (typeRep (Proxy @(ToT st)))
         Just Refl ->
           let givenContract =
                 printLorentzContract
-                  forceOneline
-                  -- specializedForwarderCompilationWay
-                  (makeI contract')
+                  forceOneline $
+                  -- _ $
+                  contractOverValue contract'
            in case givenContract == expectedContract of
                 True -> return ()
                 False -> Left "The contracts have the same type, but different implementations"

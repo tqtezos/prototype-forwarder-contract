@@ -42,9 +42,10 @@ library
   build-depends:
       base >=4.7 && <5
     , constraints
-    , lorentz-contracts
     , morley
     , morley-dstoken
+    , morley-ledgers
+    , morley-upgradeable
     , named
     , singletons
     , text
@@ -63,9 +64,10 @@ executable dstoken-forwarder-contract
     , constraints
     , containers
     , fmt
-    , lorentz-contracts
     , morley
     , morley-dstoken
+    , morley-ledgers
+    , morley-upgradeable
     , named
     , optparse-applicative
     , prototype-forwarder-contract
@@ -86,9 +88,10 @@ test-suite prototype-forwarder-contract-test
   build-depends:
       base >=4.7 && <5
     , constraints
-    , lorentz-contracts
     , morley
     , morley-dstoken
+    , morley-ledgers
+    , morley-upgradeable
     , named
     , prototype-forwarder-contract
     , singletons
