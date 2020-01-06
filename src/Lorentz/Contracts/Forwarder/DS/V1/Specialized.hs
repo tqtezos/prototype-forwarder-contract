@@ -84,14 +84,6 @@ specializedForwarderContract centralWalletAddr' contractAddr' = do
   dip unit
   pair
 
--- -- specializedForwarderCompilationWay :: LorentzCompilationWay Parameter Storage
--- specializedForwarderCompilationWay :: (KnownValue cp, NoOperation cp, NoBigMap cp, ProperStorageBetterErrors (ToT st), IsoValue st)
---                                    => LorentzCompilationWay cp st
--- specializedForwarderCompilationWay =
---   LorentzCompilationWay (toFullContract . optimize . compileLorentzContract)
-
--- forwarderDocumentation :: LText
-
 analyzeSpecializedForwarder :: Address -> ContractRef DS.Parameter -> AnalyzerRes
 analyzeSpecializedForwarder centralWalletAddr' contractAddr' =
   analyzeLorentz $ specializedForwarderContract centralWalletAddr' contractAddr'
@@ -123,7 +115,6 @@ verifyForwarderContract centralWalletAddr' dsTokenContractRef' (SomeContract (co
     expectedContract =
       printLorentzContract
            forceOneline
-           -- specializedForwarderCompilationWay
            (specializedForwarderContract
               centralWalletAddr'
               dsTokenContractRef')
