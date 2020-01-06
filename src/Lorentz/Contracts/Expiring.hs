@@ -23,16 +23,12 @@
 module Lorentz.Contracts.Expiring where
 
 import Prelude hiding ((>>), drop)
-import GHC.Generics (Generic) -- , Generic1)
+import GHC.Generics (Generic)
 import Text.Show (Show(..))
-import Data.Functor.Classes
 import Text.Read (Read(..))
--- import Text.ParserCombinators.ReadPrec
 
 import Lorentz
 import Michelson.Text
-import Michelson.Typed.EntryPoints
-import Tezos.Address
 
 import Lorentz.Contracts.View
 

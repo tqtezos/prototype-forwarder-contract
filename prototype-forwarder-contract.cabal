@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a702fe8f6d53e685eb74996988a1496794f6933ea5c1ed0e87b8f945e375a449
+-- hash: a57e1a4f27cb746c7e33bbb8479d237c5540df5ed4c4bec17b0472b1b2ba2d2a
 
 name:           prototype-forwarder-contract
 version:        0.1.0.0
@@ -42,6 +42,7 @@ library
   build-depends:
       base >=4.7 && <5
     , constraints
+    , containers
     , morley
     , morley-dstoken
     , morley-ledgers
@@ -88,6 +89,7 @@ test-suite prototype-forwarder-contract-test
   build-depends:
       base >=4.7 && <5
     , constraints
+    , containers
     , morley
     , morley-dstoken
     , morley-ledgers

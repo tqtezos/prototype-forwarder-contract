@@ -23,6 +23,9 @@ import Tezos.Address
 -- | A `View` accepting `()` as its argument
 type View_ = View ()
 
+toView_ :: ToContractRef r a => a -> View_ r
+toView_ = View () . toContractRef
+
 -- | `view_` specialized to `View_`
 viewUnit_ :: NiceParameter r =>
   (forall (s0 :: [*]). (storage & s0) :-> (r : s0))
