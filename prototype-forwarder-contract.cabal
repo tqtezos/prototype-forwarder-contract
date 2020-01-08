@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ef406108289ef38a2282c9ee9a31400a42a97c23bf7e03b4c4d264cd4fa10c71
+-- hash: a57e1a4f27cb746c7e33bbb8479d237c5540df5ed4c4bec17b0472b1b2ba2d2a
 
 name:           prototype-forwarder-contract
 version:        0.1.0.0
@@ -27,9 +27,14 @@ source-repository head
 
 library
   exposed-modules:
+      Lorentz.Contracts.Expiring
       Lorentz.Contracts.Forwarder
       Lorentz.Contracts.Forwarder.DS.V1
       Lorentz.Contracts.Forwarder.DS.V1.Specialized
+      Lorentz.Contracts.Forwarder.DS.V1.ValidatedExpiring
+      Lorentz.Contracts.Product
+      Lorentz.Contracts.Validate.Reception
+      Lorentz.Contracts.View
   other-modules:
       Paths_prototype_forwarder_contract
   hs-source-dirs:
@@ -37,6 +42,7 @@ library
   build-depends:
       base >=4.7 && <5
     , constraints
+    , containers
     , morley
     , morley-dstoken
     , morley-ledgers
@@ -83,6 +89,7 @@ test-suite prototype-forwarder-contract-test
   build-depends:
       base >=4.7 && <5
     , constraints
+    , containers
     , morley
     , morley-dstoken
     , morley-ledgers

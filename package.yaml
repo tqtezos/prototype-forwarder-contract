@@ -29,7 +29,7 @@ dependencies:
 - morley-ledgers
 - morley-upgradeable
 - constraints
-
+- containers
 - morley-dstoken
 - vinyl
 
@@ -52,7 +52,6 @@ executables:
     - fmt
     - optparse-applicative
     - universum
-    - containers
 
 tests:
   prototype-forwarder-contract-test:

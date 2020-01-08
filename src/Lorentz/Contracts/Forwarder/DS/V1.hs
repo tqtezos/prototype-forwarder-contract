@@ -25,8 +25,6 @@ import Michelson.Text
 import Michelson.Typed.T
 import Lorentz
 import qualified Lorentz.Contracts.Upgradeable.Common as Upgradeable
--- import Michelson.Typed.Haskell.Instr.Sum
--- import Michelson.Typed.Haskell.Value
 import Michelson.Typed.Value
 import Michelson.Typed.Instr (Instr)
 import Michelson.Analyzer (AnalyzerRes)
@@ -45,10 +43,6 @@ instance IsoValue (Value' Instr a) where
   type ToT (Value' Instr a) = a
   toVal = id
   fromVal = id
-
--- deriving instance (Show a, Show r) => Show (View a r)
--- deriving instance Show a => Show (ContractAddr a)
--- deriving instance Show (Upgradeable.Parameter entries)
 
 -- | Construct a 'UParam' safely. See `mkUParam`.
 toUParam
@@ -75,7 +69,6 @@ data Storage = Storage
   , centralWallet :: Address
   }
   deriving stock Eq
-  -- deriving stock Show
   deriving stock Generic
   deriving anyclass IsoValue
 
@@ -141,11 +134,6 @@ forwarderContract = do
   dip nil
   cons
   pair
-
--- forwarderCompilationWay :: LorentzCompilationWay Parameter Storage
--- forwarderCompilationWay = lcwDumb
-
--- forwarderDocumentation :: LText
 
 analyzeForwarder :: AnalyzerRes
 analyzeForwarder = analyzeLorentz forwarderContract
