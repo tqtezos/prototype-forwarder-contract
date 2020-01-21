@@ -61,14 +61,14 @@ import Michelson.Text
 import Michelson.Typed.T
 import Michelson.Typed.Scope
 import Michelson.Typed.Instr (FullContract(..))
-import qualified Lorentz.Contracts.Forwarder.Specialized as Specialized
+-- import qualified Lorentz.Contracts.Forwarder.Specialized as Specialized
 import qualified Lorentz.Contracts.Forwarder.DS.V1.Specialized as DS
 import qualified Lorentz.Contracts.Forwarder.DS.V1.ValidatedExpiring as DS
 import qualified Lorentz.Contracts.Forwarder.DS.V1.ValidatedExpiring as ValidatedExpiring
 import qualified Lorentz.Contracts.Forwarder.DS.V1 as DS
 import qualified Lorentz.Contracts.DS.V1 as DSToken
 import Lorentz.Contracts.DS.V1.Registry.Types (InvestorId(..))
-import qualified Lorentz.Contracts.ManagedLedger as ManagedLedger
+-- import qualified Lorentz.Contracts.ManagedLedger as ManagedLedger
 
 import Lorentz.Contracts.View
 import qualified Lorentz.Contracts.Product as Product
@@ -127,7 +127,7 @@ parseTimestamp name =
 data CmdLnArgs
   = Print !(Maybe FilePath) !Bool
   | PrintSpecialized !Address !(L.FutureContract DSToken.Parameter) !(Maybe FilePath) !Bool
-  | PrintSpecializedFA12 !Address !(L.FutureContract ManagedLedger.Parameter) !(Maybe FilePath) !Bool
+  -- | PrintSpecializedFA12 !Address !(L.FutureContract ManagedLedger.Parameter) !(Maybe FilePath) !Bool
   | PrintValidatedExpiring !Address !(L.FutureContract DSToken.Parameter) !(Maybe FilePath) !Bool
   | InitialStorage !Address !Address !(Maybe FilePath)
   | InitialStorageValidatedExpiring
@@ -436,12 +436,12 @@ main = do
             forceOneline $
             DS.specializedForwarderContract centralWalletAddr' $
             L.toContractRef dsTokenContractRef'
-      PrintSpecializedFA12 centralWalletAddr' fa12ContractRef' mOutput forceOneline ->
-        writeFunc mOutput $
-          L.printLorentzContract
-            forceOneline $
-            Specialized.specializedForwarderContract centralWalletAddr' $
-            L.toContractRef fa12ContractRef'
+      -- PrintSpecializedFA12 centralWalletAddr' fa12ContractRef' mOutput forceOneline ->
+      --   writeFunc mOutput $
+      --     L.printLorentzContract
+      --       forceOneline $
+      --       Specialized.specializedForwarderContract centralWalletAddr' $
+      --       L.toContractRef fa12ContractRef'
       PrintValidatedExpiring centralWalletAddr' dsTokenContractRef' mOutput forceOneline ->
         writeFunc mOutput $
           L.printLorentzContract

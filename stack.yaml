@@ -25,12 +25,13 @@ extra-deps:
     - morley-upgradeable
     - morley-ledgers
     - prelude
-- git:
-    git@github.com:tqtezos/morley-dstoken.git
-  commit:
-    6e07d017ee81bcbc0a2e2cfbd6601c2e1b96436b # master
-  subdirs:
-    - .
+- archive: /Users/michaelklein/Coding/morley-dstoken/morley-dstoken-6e07d017ee81bcbc0a2e2cfbd6601c2e1b96436b.tar.gz
+# - git:
+#     git@github.com:tqtezos/morley-dstoken.git
+#   commit:
+#     6e07d017ee81bcbc0a2e2cfbd6601c2e1b96436b # master
+#   subdirs:
+#     - .
 
 nix:
   shell-file: shell.nix
