@@ -1,4 +1,4 @@
-resolver: lts-13.22
+resolver: lts-14.15
 
 packages:
 - .
@@ -18,17 +18,22 @@ extra-deps:
     https://gitlab.com/morley-framework/morley.git
     # ^ CI cannot use ssh, so we use http clone here
   commit:
-    245a2152213c9d179759d6014972227ff0ccbf96  # master
+    c9c9f8b0449e81fc1e46f3786e00b2aedf2606d7 # martoon/#65-doc-collision
   subdirs:
     - .
-    - indigo
+    - prelude
     - morley-upgradeable
     - morley-ledgers
-    - prelude
+    - morley-ledgers-test
+    - indigo
+    - morley-nettest
+- git: https://github.com/int-index/caps.git
+  commit: ab4345eabd58fc6f05d3b46bea2c5acdba3ec6f8
+
 - git:
     git@github.com:tqtezos/morley-dstoken.git
   commit:
-    6e07d017ee81bcbc0a2e2cfbd6601c2e1b96436b # master
+    935ca03370ace435222eb3cd32402ee478b44d74 # 6e07d017ee81bcbc0a2e2cfbd6601c2e1b96436b # master
   subdirs:
     - .
 
