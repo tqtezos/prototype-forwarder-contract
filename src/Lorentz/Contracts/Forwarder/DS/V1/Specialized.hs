@@ -22,6 +22,8 @@
 
 module Lorentz.Contracts.Forwarder.DS.V1.Specialized where
 
+import GHC.Generics
+
 import Lorentz hiding (SomeContract(..))
 import Lorentz.Run (analyzeLorentz)
 import Lorentz.Base (SomeContract(..))
@@ -32,6 +34,7 @@ import Michelson.Analyzer (AnalyzerRes)
 -- import Michelson.Typed.Annotation
 -- import Michelson.Typed.Value
 -- import Michelson.Typed.Scope
+import Michelson.Typed.Value
 import Michelson.Typed.T
 -- import Michelson.TypeCheck.Types (SomeContract(..))
 import Michelson.Text
@@ -44,6 +47,7 @@ import Data.Typeable
 import Prelude (Enum(..), Eq(..), ($), String, show)
 import Data.Singletons (SingI)
 
+import GHC.Natural.Orphans
 
 -- | The number of sub-tokens to forward
 type Parameter = Natural
@@ -53,12 +57,6 @@ type Parameter = Natural
 -- - The central wallet to transfer sub-tokens to
 type Storage = ()
 
-
-instance (SingI ct, Typeable ct) => ParameterEntryPoints (Value ('Tc ct)) where
-  parameterEntryPoints = pepNone
-
-instance ParameterEntryPoints Natural where
-  parameterEntryPoints = pepNone
 
 -- changed
 runSpecializedTransfer :: Address -> ContractRef DS.Parameter -> (Natural & s) :-> (Operation & s)
@@ -92,7 +90,7 @@ analyzeSpecializedForwarder centralWalletAddr' contractAddr' =
 -- makeI = I
 
 contractOverValue :: forall cp st. Contract cp st -> Contract (Value (ToT cp)) (Value (ToT st))
-contractOverValue x = coerce_ # x # coerce_
+contractOverValue x = forcedCoerce_ # x # forcedCoerce_
 
 verifyForwarderContract :: Address -> ContractRef DS.Parameter -> SomeContract -> Either String ()
 verifyForwarderContract centralWalletAddr' dsTokenContractRef' (SomeContract (contract' :: Contract cp st)) =

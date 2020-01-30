@@ -38,10 +38,13 @@ import Data.Typeable
 import Prelude (Enum(..), Eq(..), ($), String, show, id)
 import Data.Singletons (SingI)
 
-instance IsoValue (Value' Instr a) where
-  type ToT (Value' Instr a) = a
-  toVal = id
-  fromVal = id
+import GHC.Natural.Orphans
+
+
+-- instance IsoValue (Value' Instr a) where
+--   type ToT (Value' Instr a) = a
+--   toVal = id
+--   fromVal = id
 
 -- | The number of sub-tokens to forward
 type Parameter = Natural
@@ -52,19 +55,13 @@ type Parameter = Natural
 type Storage = ()
 
 
-instance (SingI ct, Typeable ct) => ParameterEntryPoints (Value ('Tc ct)) where
-  parameterEntryPoints = pepNone
-
-instance ParameterEntryPoints Natural where
-  parameterEntryPoints = pepNone
-
 toTransferParameter :: forall s. Address & Natural & s :-> ManagedLedger.Parameter & s
 toTransferParameter = do
   pair
   self @Parameter
   address
   pair
-  coerce_ @(Address, (Address, Natural)) @ManagedLedger.TransferParams
+  forcedCoerce_ @(Address, (Address, Natural)) @ManagedLedger.TransferParams
   wrap_ #cTransfer
 
 -- changed
@@ -96,7 +93,7 @@ analyzeSpecializedForwarder centralWalletAddr' contractAddr' =
   analyzeLorentz $ specializedForwarderContract centralWalletAddr' contractAddr'
 
 contractOverValue :: forall cp st. Contract cp st -> Contract (Value (ToT cp)) (Value (ToT st))
-contractOverValue x = coerce_ # x # coerce_
+contractOverValue x = forcedCoerce_ # x # forcedCoerce_
 
 verifyForwarderContract :: Address -> ContractRef ManagedLedger.Parameter -> SomeContract -> Either String ()
 verifyForwarderContract centralWalletAddr' dsTokenContractRef' (SomeContract (contract' :: Contract cp st)) =

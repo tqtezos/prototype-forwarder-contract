@@ -21,7 +21,6 @@ module Lorentz.Contracts.Forwarder where
 
 import Lorentz
 import qualified Lorentz.Contracts.ManagedLedger as ManagedLedger
-import qualified Lorentz.Contracts.ManagedLedger.Types as ManagedLedger
 
 import Prelude (Show(..), Enum(..))
 
@@ -54,7 +53,7 @@ toTransferParams :: (Address & Address & Natural & s) :-> (ManagedLedger.Transfe
 toTransferParams = do
   dip pair
   pair
-  coerce_ @(Address, (Address, Natural)) @ManagedLedger.TransferParams
+  forcedCoerce_ @(Address, (Address, Natural)) @ManagedLedger.TransferParams
 
 -- | Run `ManagedLedger.TransferParams` with a @`ContractRef` `ManagedLedger.Parameter`@,
 -- from `Address`, to `Address`, and number of sub-tokens
@@ -81,7 +80,7 @@ toRefundParameters :: (Mutez & Storage & s) :-> (RefundParameters & Mutez & Cont
 toRefundParameters = do
   dip sender
   pair
-  coerce_ @(Mutez, Address) @RefundParameters
+  forcedCoerce_ @(Mutez, Address) @RefundParameters
   dip (do
     push (toEnum 0 :: Mutez)
     dip (getField #tezosWallet)

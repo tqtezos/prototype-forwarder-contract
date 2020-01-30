@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE DataKinds #-}
@@ -40,8 +41,9 @@ data Parameter cp
   | GetExpiration (View_ Timestamp)
   deriving  (Generic)
 
-instance NiceParameter cp => ParameterEntryPoints (Parameter cp) where
-  parameterEntryPoints = pepNone
+instance NiceParameter cp => ParameterHasEntryPoints (Parameter cp) where
+  -- parameterEntryPoints = pepNone
+  type ParameterEntryPointsDerivation (Parameter cp) = EpdNone
 
 deriving instance Read cp => Read (Parameter cp)
 
@@ -56,13 +58,13 @@ data Storage st = Storage
   }
   deriving  (Generic)
 
--- | `coerce_` from `Storage`
+-- | `forcedCoerce_` from `Storage`
 unStorage :: Storage st & s :-> (st, Timestamp) & s
-unStorage = coerce_
+unStorage = forcedCoerce_
 
--- | `coerce_` to `Storage`
+-- | `forcedCoerce_` to `Storage`
 toStorage :: (st, Timestamp) & s :-> Storage st & s
-toStorage = coerce_
+toStorage = forcedCoerce_
 
 deriving instance Show st => Show (Storage st)
 

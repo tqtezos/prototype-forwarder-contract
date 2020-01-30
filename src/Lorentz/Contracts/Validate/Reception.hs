@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE RankNTypes #-}
@@ -61,9 +62,9 @@ data ReceptionParameters = ReceptionParameters
   deriving  (Show)
   deriving  (IsoValue)
 
--- | `coerce_` from `ReceptionParameters`
+-- | `forcedCoerce_` from `ReceptionParameters`
 unReceptionParameters :: ReceptionParameters & s :-> (Natural, InvestorId) & s
-unReceptionParameters = coerce_
+unReceptionParameters = forcedCoerce_
 
 -- | For `Validate`, see `ReceptionParameters`.
 --
@@ -78,8 +79,8 @@ data Parameter
   deriving  (Show)
   deriving  (IsoValue)
 
-instance ParameterEntryPoints Parameter where
-  parameterEntryPoints = pepNone
+instance ParameterHasEntryPoints Parameter where
+  type ParameterEntryPointsDerivation Parameter = EpdPlain -- None
 
 -- | The Address of the associated DS Token contract, a `Whitelist` of allowed
 -- sending users and how many tokens may be forwarded.
@@ -93,13 +94,13 @@ data Storage = Storage
   deriving  (Show)
   deriving  (IsoValue)
 
--- | `coerce_` from `Storage`
+-- | `forcedCoerce_` from `Storage`
 unStorage :: Storage & s :-> (Address, (Whitelist, Natural)) & s
-unStorage = coerce_
+unStorage = forcedCoerce_
 
--- | `coerce_` to `Storage`
+-- | `forcedCoerce_` to `Storage`
 toStorage :: (Address, (Whitelist, Natural)) & s :-> Storage & s
-toStorage = coerce_
+toStorage = forcedCoerce_
 
 -- | Convenient `Storage` constructor
 mkStorage :: Address -> [InvestorId] -> Natural -> Storage

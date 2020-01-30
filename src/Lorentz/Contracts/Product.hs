@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -38,8 +39,9 @@ instance ( NiceParameter cp1
          , NiceParameter cp2
          , HasNoOp (ToT cp2)
          , HasNoNestedBigMaps (ToT cp2)
-         ) => ParameterEntryPoints (cp1 :|: cp2) where
-  parameterEntryPoints = pepNone
+         ) => ParameterHasEntryPoints (cp1 :|: cp2) where
+  -- parameterEntryPoints = pepNone
+  type ParameterEntryPointsDerivation (cp1 :|: cp2) = EpdNone
 
 deriving instance (Read cp1, Read cp2) => Read (cp1 :|: cp2)
 
@@ -60,13 +62,13 @@ deriving instance (Show cp1, Show cp2) => Show (cp1 :&: cp2)
 
 deriving instance (IsoValue cp1, IsoValue cp2) => IsoValue (cp1 :&: cp2)
 
--- | `coerce_` from `(:&:)`
+-- | `forcedCoerce_` from `(:&:)`
 unStorage :: (st1 :&: st2) & s :-> (st1, st2) & s
-unStorage = coerce_
+unStorage = forcedCoerce_
 
--- | `coerce_` to `(:&:)`
+-- | `forcedCoerce_` to `(:&:)`
 toStorage :: (st1, st2) & s :-> (st1 :&: st2) & s
-toStorage = coerce_
+toStorage = forcedCoerce_
 
 -- | The (independent) product of two contracts:
 -- accepting parameters from either (`:|:`) and holding storage

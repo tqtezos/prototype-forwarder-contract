@@ -32,6 +32,7 @@ import Michelson.Analyzer (AnalyzerRes)
 import qualified Lorentz.Contracts.DS.V1 as DS
 import qualified Lorentz.Contracts.DS.V1.Registry.Types as Registry
 import qualified Lorentz.Contracts.DS.V1.Token.Types as Token
+import qualified Lorentz.Contracts.DS.Permanent as Permanent
 
 import GHC.TypeLits (KnownSymbol)
 import Prelude (Enum(..), ($), id)
@@ -56,7 +57,7 @@ toUParam label = do
   pack
   push $ labelToMText label
   pair
-  coerce_
+  forcedCoerce_
 
 -- | The number of sub-tokens to forward
 type Parameter = Natural
@@ -72,15 +73,15 @@ data Storage = Storage
   deriving stock Generic
   deriving anyclass IsoValue
 
--- | `coerce_`
+-- | `forcedCoerce_`
 toWalletId :: (Address & s) :-> (Registry.WalletId & s)
-toWalletId = coerce_
+toWalletId = forcedCoerce_
 
 -- | Convert to `Address` and amount to `Token.ParameterTransfer`
 toTokenTransfer :: (Address & Natural & s) :-> (Token.ParameterTransfer & s)
 toTokenTransfer = do
   pair
-  coerce_
+  forcedCoerce_
   dip $ do
     push $ Token.CommitRun
   pair
@@ -93,13 +94,17 @@ toTokenTransfer = do
 -- @
 --  `wrap_` \@(`UParam` entries) #cRun
 -- @
-toParameterRun :: forall entries s. (UParam entries & s) :-> (Upgradeable.Parameter entries & s)
+-- toParameterRun :: forall entries entries' s. (UParam entries & s) :-> (Upgradeable.Parameter entries' & s)
+toParameterRun :: forall entries s. (Upgradeable.VerParam entries & s) :-> (Upgradeable.Parameter entries & s)
 toParameterRun = do
-  coerce_ @(UParam entries) @(Value ('TPair ('Tc 'CString) ('Tc 'CBytes)))
+  forcedCoerce_ @(Upgradeable.VerParam entries) @(Value ('TPair ('Tc 'CString) ('Tc 'CBytes)))
   left @(Value ('TPair ('Tc 'CString) ('Tc 'CBytes))) @(Value ('TPair ('Tc 'CNat) ('TPair ('TLambda ('TBigMap 'CBytes ('Tc 'CBytes)) ('TBigMap 'CBytes ('Tc 'CBytes))) ('TLambda ('TPair ('TPair ('Tc 'CString) ('Tc 'CBytes)) ('TBigMap 'CBytes ('Tc 'CBytes))) ('TPair ('TList 'TOperation) ('TBigMap 'CBytes ('Tc 'CBytes)))))))
   left @_ @(Value ('TOr ('TPair 'TUnit ('TContract ('Tc 'CNat))) ('Tc 'CAddress)))
   left @_ @(Value ('TOr ('TOr ('Tc 'CNat) ('TLambda ('TBigMap 'CBytes ('Tc 'CBytes)) ('TBigMap 'CBytes ('Tc 'CBytes)))) ('TOr ('TLambda ('TPair ('TPair ('Tc 'CString) ('Tc 'CBytes)) ('TBigMap 'CBytes ('Tc 'CBytes))) ('TPair ('TList 'TOperation) ('TBigMap 'CBytes ('Tc 'CBytes)))) 'TUnit)))
-  coerce_
+  forcedCoerce_
+
+toPermanentParameter :: forall ver s. Upgradeable.Parameter ver & s :-> Permanent.Parameter ver & s
+toPermanentParameter = forcedCoerce_
 
 -- | Convert to `Address` and amount to `DS.Parameter`
 toTransferParameter :: (Address & Natural & s) :-> (DS.Parameter & s)
@@ -107,6 +112,7 @@ toTransferParameter = do
   toTokenTransfer
   toUParam #callTokenTransfer
   toParameterRun
+  toPermanentParameter
 
 -- | Run a transfer, given the amount and the `Storage`,
 -- containing the central wallet address and sub token

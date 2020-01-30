@@ -18,6 +18,7 @@ import Text.ParserCombinators.ReadPrec (look)
 import Data.Functor.Classes
 
 import Lorentz
+import Lorentz.Value
 import Tezos.Address
 
 -- | A `View` accepting `()` as its argument
