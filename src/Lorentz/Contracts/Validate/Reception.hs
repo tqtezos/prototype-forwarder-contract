@@ -46,33 +46,13 @@ deriving instance Read InvestorId
 -- | A `Set` of allowed senders
 type Whitelist = Set InvestorId
 
--- | Given a `receivedAmount` and sender `InvestorId`,
--- the `validateReceptionContract` will ensure that
--- the `InvestorId` is in the `Whitelist` and
--- subtract the `receivedAmount` from the `tokenLimit`.
---
--- If the `InvestorId` is not in the `Whitelist` or
--- the `tokenLimit` is exceeded, the operation will fail.
-data ReceptionParameters = ReceptionParameters
-  { receivedAmount :: !Natural
-  , fromUser       :: !InvestorId
-  }
-  deriving  (Generic)
-  deriving  (Read)
-  deriving  (Show)
-  deriving  (IsoValue)
-
--- | `forcedCoerce_` from `ReceptionParameters`
-unReceptionParameters :: ReceptionParameters & s :-> (Natural, InvestorId) & s
-unReceptionParameters = forcedCoerce_
-
 -- | For `Validate`, see `ReceptionParameters`.
 --
 -- Otherwise, offers `View_`s for its `Storage`
 data Parameter
-  = Validate !ReceptionParameters
-  | GetDSAddress !(View_ Address)
-  | GetRemaining !(View_ Natural)
+  = Validate !InvestorId
+  -- | GetDSAddress !(View_ Address)
+  -- | GetRemaining !(View_ Natural)
   | GetWhitelist !(View_ Whitelist)
   deriving  (Generic)
   deriving  (Read)
@@ -85,9 +65,7 @@ instance ParameterHasEntryPoints Parameter where
 -- | The Address of the associated DS Token contract, a `Whitelist` of allowed
 -- sending users and how many tokens may be forwarded.
 data Storage = Storage
-  { dsTokenAddress :: !Address
-  , whitelist      :: !Whitelist
-  , tokenLimit     :: !Natural
+  { whitelist :: !Whitelist
   }
   deriving  (Generic)
   deriving  (Read)
@@ -95,27 +73,18 @@ data Storage = Storage
   deriving  (IsoValue)
 
 -- | `forcedCoerce_` from `Storage`
-unStorage :: Storage & s :-> (Address, (Whitelist, Natural)) & s
+unStorage :: Storage & s :-> Whitelist & s
 unStorage = forcedCoerce_
 
 -- | `forcedCoerce_` to `Storage`
-toStorage :: (Address, (Whitelist, Natural)) & s :-> Storage & s
+toStorage :: Whitelist & s :-> Storage & s
 toStorage = forcedCoerce_
 
 -- | Convenient `Storage` constructor
-mkStorage :: Address -> [InvestorId] -> Natural -> Storage
-mkStorage dsTokenAddress' whitelist' tokenLimit' =
+mkStorage :: [InvestorId] -> Storage
+mkStorage whitelist' =
   Storage
-    dsTokenAddress'
     (Set.fromList whitelist')
-    tokenLimit'
-
--- | Assert that the `sender` is the given DS Token address
-assertDSIsCaller :: Address & s :-> Address & s
-assertDSIsCaller = do
-  dup
-  sender
-  assertEq $ mkMTextUnsafe "not DS"
 
 -- | Assert the given `InvestorId` is in the `Whitelist`
 assertInWhitelist :: InvestorId & Whitelist & s :-> Whitelist & s
@@ -124,56 +93,23 @@ assertInWhitelist = do
   mem
   assert $ mkMTextUnsafe "not in whitelist"
 
--- | Accepts @tokensToConsume, tokenLimit@ and produces a new @tokenLimit@
--- by subtracting @tokensToConsume@ and asserting the result is non-negative
-consumeTokenLimit :: Natural & Natural & s :-> Natural & s
-consumeTokenLimit = do
-  swap
-  sub
-  isNat
-  assertSome $ mkMTextUnsafe "token limit exceeded"
-
 validateReceptionContract :: ()
   => Contract Parameter Storage
 validateReceptionContract = do
   unpair
   caseT @Parameter
     ( #cValidate /-> do
-        stackType @[ReceptionParameters, Storage]
+        stackType @[InvestorId, Storage]
         dip $ do
           unStorage
-          unpair
-          stackType @[Address, (Whitelist, Natural)]
-          assertDSIsCaller
-          swap
-          unpair
-          stackType @[Whitelist, Natural, Address]
-        unReceptionParameters
-        unpair
-        stackType @[Natural, InvestorId, Whitelist, Natural, Address]
-        dip $ do
-          assertInWhitelist
-          swap
-        stackType @[Natural, Natural, Whitelist, Address]
-        consumeTokenLimit
-        stackType @[Natural, Whitelist, Address]
-        swap
-        pair
-        swap
-        pair
+          stackType @('[Whitelist])
+        stackType @[InvestorId, Whitelist]
+        assertInWhitelist
+        stackType @('[Whitelist])
         toStorage
         nil
         pair
-    , #cGetDSAddress /-> viewUnit_ $ do
-        unStorage
-        car
-    , #cGetRemaining /-> viewUnit_ $ do
-        unStorage
-        cdr
-        cdr
     , #cGetWhitelist /-> viewUnit_ $ do
         unStorage
-        cdr
-        car
     )
 

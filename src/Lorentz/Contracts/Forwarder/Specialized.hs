@@ -26,25 +26,16 @@ import Lorentz hiding (SomeContract(..))
 import Lorentz.Run (analyzeLorentz)
 import Lorentz.Base (SomeContract(..))
 import Michelson.Analyzer (AnalyzerRes)
-import Michelson.Typed.Instr (Instr)
-import Michelson.Typed.Value
-import Michelson.Typed.T
 import Michelson.Text
 
 import qualified Lorentz.Contracts.ManagedLedger as ManagedLedger
 
 import Data.Type.Equality
 import Data.Typeable
-import Prelude (Enum(..), Eq(..), ($), String, show, id)
-import Data.Singletons (SingI)
+import Prelude (Enum(..), Eq(..), ($), String, show)
 
-import GHC.Natural.Orphans
+import GHC.Natural.Orphans ()
 
-
--- instance IsoValue (Value' Instr a) where
---   type ToT (Value' Instr a) = a
---   toVal = id
---   fromVal = id
 
 -- | The number of sub-tokens to forward
 type Parameter = Natural
@@ -64,7 +55,6 @@ toTransferParameter = do
   forcedCoerce_ @(Address, (Address, Natural)) @ManagedLedger.TransferParams
   wrap_ #cTransfer
 
--- changed
 runSpecializedTransfer :: Address -> ContractRef ManagedLedger.Parameter -> (Natural & s) :-> (Operation & s)
 runSpecializedTransfer centralWalletAddr' (ContractRef contractAddr' _) = do
   push centralWalletAddr'
@@ -92,6 +82,7 @@ analyzeSpecializedForwarder :: Address -> ContractRef ManagedLedger.Parameter ->
 analyzeSpecializedForwarder centralWalletAddr' contractAddr' =
   analyzeLorentz $ specializedForwarderContract centralWalletAddr' contractAddr'
 
+-- | `forcedCoerce_` to convert parameter and storage types to their `Value` equivalents
 contractOverValue :: forall cp st. Contract cp st -> Contract (Value (ToT cp)) (Value (ToT st))
 contractOverValue x = forcedCoerce_ # x # forcedCoerce_
 

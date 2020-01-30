@@ -95,14 +95,49 @@ toTokenTransfer = do
 --  `wrap_` \@(`UParam` entries) #cRun
 -- @
 -- toParameterRun :: forall entries entries' s. (UParam entries & s) :-> (Upgradeable.Parameter entries' & s)
-toParameterRun :: forall entries s. (Upgradeable.VerParam entries & s) :-> (Upgradeable.Parameter entries & s)
+toParameterRun ::
+     forall entries s.
+     (Upgradeable.VerParam entries & s) :-> (Upgradeable.Parameter entries & s)
 toParameterRun = do
-  forcedCoerce_ @(Upgradeable.VerParam entries) @(Value ('TPair ('Tc 'CString) ('Tc 'CBytes)))
-  left @(Value ('TPair ('Tc 'CString) ('Tc 'CBytes))) @(Value ('TPair ('Tc 'CNat) ('TPair ('TLambda ('TBigMap 'CBytes ('Tc 'CBytes)) ('TBigMap 'CBytes ('Tc 'CBytes))) ('TLambda ('TPair ('TPair ('Tc 'CString) ('Tc 'CBytes)) ('TBigMap 'CBytes ('Tc 'CBytes))) ('TPair ('TList 'TOperation) ('TBigMap 'CBytes ('Tc 'CBytes)))))))
-  left @_ @(Value ('TOr ('TPair 'TUnit ('TContract ('Tc 'CNat))) ('Tc 'CAddress)))
-  left @_ @(Value ('TOr ('TOr ('Tc 'CNat) ('TLambda ('TBigMap 'CBytes ('Tc 'CBytes)) ('TBigMap 'CBytes ('Tc 'CBytes)))) ('TOr ('TLambda ('TPair ('TPair ('Tc 'CString) ('Tc 'CBytes)) ('TBigMap 'CBytes ('Tc 'CBytes))) ('TPair ('TList 'TOperation) ('TBigMap 'CBytes ('Tc 'CBytes)))) 'TUnit)))
+  forcedCoerce_
+    @(Upgradeable.VerParam entries)
+    @(Value ('TPair ('Tc 'CString) ('Tc 'CBytes)))
+  left
+    @(Value ('TPair ('Tc 'CString) ('Tc 'CBytes)))
+    @(Value
+       ('TPair
+          ('Tc 'CNat)
+          ('TPair
+             ('TLambda
+                ('TBigMap 'CBytes ('Tc 'CBytes))
+                ('TBigMap 'CBytes ('Tc 'CBytes)))
+             ('TLambda
+                ('TPair
+                   ('TPair ('Tc 'CString) ('Tc 'CBytes))
+                   ('TBigMap 'CBytes ('Tc 'CBytes)))
+                ('TPair ('TList 'TOperation) ('TBigMap 'CBytes ('Tc 'CBytes)))))))
+  left
+    @_
+    @(Value ('TOr ('TPair 'TUnit ('TContract ('Tc 'CNat))) ('Tc 'CAddress)))
+  left
+    @_
+    @(Value
+       ('TOr
+          ('TOr
+             ('Tc 'CNat)
+             ('TLambda
+                ('TBigMap 'CBytes ('Tc 'CBytes))
+                ('TBigMap 'CBytes ('Tc 'CBytes))))
+          ('TOr
+             ('TLambda
+                ('TPair
+                   ('TPair ('Tc 'CString) ('Tc 'CBytes))
+                   ('TBigMap 'CBytes ('Tc 'CBytes)))
+                ('TPair ('TList 'TOperation) ('TBigMap 'CBytes ('Tc 'CBytes))))
+             'TUnit)))
   forcedCoerce_
 
+-- | `forcedCoerce_` to `Permanent.Parameter`
 toPermanentParameter :: forall ver s. Upgradeable.Parameter ver & s :-> Permanent.Parameter ver & s
 toPermanentParameter = forcedCoerce_
 

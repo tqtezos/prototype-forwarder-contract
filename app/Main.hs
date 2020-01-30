@@ -65,6 +65,7 @@ import qualified Lorentz.Contracts.Forwarder.Specialized as Specialized
 import qualified Lorentz.Contracts.Forwarder.DS.V1.Specialized as DS
 import qualified Lorentz.Contracts.Forwarder.DS.V1.ValidatedExpiring as DS
 import qualified Lorentz.Contracts.Forwarder.DS.V1.ValidatedExpiring as ValidatedExpiring
+import qualified Lorentz.Contracts.Forwarder.DS.V1.Validated as Validated
 import qualified Lorentz.Contracts.Forwarder.DS.V1 as DS
 import qualified Lorentz.Contracts.DS.V1 as DSToken
 import Lorentz.Contracts.DS.V1.Registry.Types (InvestorId(..))
@@ -129,19 +130,20 @@ data CmdLnArgs
   | PrintSpecialized !Address !(L.FutureContract DSToken.Parameter) !(Maybe FilePath) !Bool
   | PrintSpecializedFA12 !Address !(L.FutureContract ManagedLedger.Parameter) !(Maybe FilePath) !Bool
   | PrintValidatedExpiring !Address !(L.FutureContract DSToken.Parameter) !(Maybe FilePath) !Bool
+  | PrintValidated !Address !(L.FutureContract DSToken.Parameter) !(Maybe FilePath) !Bool
   | InitialStorage !Address !Address !(Maybe FilePath)
   | InitialStorageValidatedExpiring
-      { dsTokenAddress :: !Address
-      , whitelist :: ![String]
-      , tokenLimit :: Natural
+      { whitelist :: ![String]
       , expirationDate :: !Timestamp
       , mOutput :: !(Maybe FilePath)
       }
+  | InitialStorageValidated
+      { whitelist :: ![String]
+      , mOutput :: !(Maybe FilePath)
+      }
   | FlushForwarder { amountToFlush :: !Natural, mOutput :: !(Maybe FilePath) }
-  | ValidateTransfer { receivedAmount :: !Natural, fromUser :: !InvestorId, mOutput :: !(Maybe FilePath) }
+  | ValidateTransfer { fromUser :: !InvestorId, mOutput :: !(Maybe FilePath) }
   | GetExpiration { callbackContract :: !Address, mOutput :: !(Maybe FilePath) } -- !(View_ Address)
-  | GetDSAddress  { callbackContract :: !Address, mOutput :: !(Maybe FilePath) } -- !(View_ Address)
-  | GetRemaining  { callbackContract :: !Address, mOutput :: !(Maybe FilePath) } -- !(View_ Natural)
   | GetWhitelist  { callbackContract :: !Address, mOutput :: !(Maybe FilePath) } -- !(View_ Whitelist)
   | Document !(Maybe FilePath)
   | Analyze
@@ -154,13 +156,13 @@ argParser = Opt.subparser $ mconcat
   , printSpecializedSubCmd
   , printSpecializedFA12SubCmd
   , printValidatedExpiringSubCmd
+  , printValidatedSubCmd
   , initialStorageSubCmd
   , initialStorageValidatedExpiringSubCmd
+  , initialStorageValidatedSubCmd
   , flushForwarderSubCmd
   , validateTransferSubCmd
   , getExpirationSubCmd
-  , getDSAddressSubCmd
-  , getRemainingSubCmd
   , getWhitelistSubCmd
   , documentSubCmd
   , analyzeSubCmd
@@ -208,7 +210,18 @@ argParser = Opt.subparser $ mconcat
         onelineOption
       )
       ("Dump DS Token Forwarder contract, specialized to paricular addresses, " <>
-      "with sender validating and expiration, in the form of Michelson code")
+      "with sender validation and expiration, in the form of Michelson code")
+
+    printValidatedSubCmd =
+      mkCommandParser "print-validated"
+      (PrintValidated <$>
+        addressOption "central-wallet" "Address of central wallet" <*>
+        (L.FutureContract . uncurry L.EpAddress . (, L.def) <$> addressOption "dstoken-address" "Address of DS Token contract") <*>
+        outputOption <*>
+        onelineOption
+      )
+      ("Dump DS Token Forwarder contract, specialized to paricular addresses, " <>
+      "with sender validation, in the form of Michelson code")
 
     initialStorageSubCmd =
       mkCommandParser "initial-storage"
@@ -222,13 +235,19 @@ argParser = Opt.subparser $ mconcat
     initialStorageValidatedExpiringSubCmd =
       mkCommandParser "initial-storage-validated-expiring"
       (InitialStorageValidatedExpiring <$>
-        addressOption "dstoken-address" "Address of DS Token contract" <*>
         parseStrings "whitelisted-investors" <*>
-        parseNatural "token-limit" <*>
         parseTimestamp "expiration-date" <*>
         outputOption
       )
       "Dump initial storage value for validated-expiring forwarder"
+
+    initialStorageValidatedSubCmd =
+      mkCommandParser "initial-storage-validated"
+      (InitialStorageValidated <$>
+        parseStrings "whitelisted-investors" <*>
+        outputOption
+      )
+      "Dump initial storage value for validated forwarder"
 
     flushForwarderSubCmd =
       mkCommandParser "flush-forwarder"
@@ -241,13 +260,11 @@ argParser = Opt.subparser $ mconcat
     validateTransferSubCmd =
       mkCommandParser "validate-transfer"
       (ValidateTransfer <$>
-        parseNatural "received-amount" <*>
         (InvestorId . mkMTextUnsafe . fromString <$> parseString "from-user") <*>
         outputOption
       )
       ("Parameter to validate an amount of tokens and its sender for the " <>
-      "validated-expiring forwarder. Note: it will fail if invalid and " <>
-      "otherwise update the remaining token forwarding limit.")
+      "validated forwarder. Note: it will fail if invalid.")
 
     getExpirationSubCmd =
       mkCommandParser "get-expiration"
@@ -258,31 +275,13 @@ argParser = Opt.subparser $ mconcat
       ("Parameter to view the expiration timestamp, " <>
       "given a contract accepting a 'timestamp")
 
-    getDSAddressSubCmd =
-      mkCommandParser "get-ds-address"
-      (GetDSAddress <$>
-        addressOption "callback-contract" "contract accepting an 'address' callback" <*>
-        outputOption
-      )
-      ("Parameter to view the DS token contract address, " <>
-      "given a contract accepting an 'address'")
-
-    getRemainingSubCmd =
-      mkCommandParser "get-token-limit"
-      (GetRemaining <$>
-        addressOption "callback-contract" "contract accepting a 'nat' callback" <*>
-        outputOption
-      )
-      ("Parameter to view the remaining token forwarding limit, " <>
-      "given a contract accepting a 'nat'")
-
     getWhitelistSubCmd =
       mkCommandParser "get-whitelist"
       (GetWhitelist <$>
         addressOption "callback-contract" "contract accepting a '(set string)' callback" <*>
         outputOption
       )
-      ("Parameter to view the DS token contract address, " <>
+      ("Parameter to view the whitelist for the validated forwarder, " <>
       "given a contract accepting a (set string)")
 
     documentSubCmd =
@@ -448,54 +447,45 @@ main = do
             forceOneline $
             DS.validatedExpiringForwarderContract centralWalletAddr' $
             L.toContractRef dsTokenContractRef'
+      PrintValidated centralWalletAddr' dsTokenContractRef' mOutput forceOneline ->
+        writeFunc mOutput $
+          L.printLorentzContract
+            forceOneline $
+            Validated.validatedForwarderContract centralWalletAddr' $
+            L.toContractRef dsTokenContractRef'
       InitialStorage centralWalletAddr dsTokenAddr mOutput ->
         writeFunc mOutput $ L.printLorentzValue True $ DS.Storage dsTokenAddr centralWalletAddr
       InitialStorageValidatedExpiring{..} ->
         writeFunc mOutput $
         L.printLorentzValue True $
-        ValidatedExpiring.mkStorageWithInvestorIds dsTokenAddress whitelist tokenLimit expirationDate
+        ValidatedExpiring.mkStorageWithInvestorIds whitelist expirationDate
+      InitialStorageValidated{..} ->
+        writeFunc mOutput $
+        L.printLorentzValue True $
+        Validated.mkStorageWithInvestorIds whitelist
       FlushForwarder {..} ->
         writeFunc mOutput $
         L.printLorentzValue True $
-        asParameterType $
-        Expiring.WrappedParameter $
+        asValidatedParameterType $
         Product.LeftParameter $
         amountToFlush
       ValidateTransfer {..} ->
         writeFunc mOutput $
         L.printLorentzValue True $
-        asParameterType $
-        Expiring.WrappedParameter $
+        asValidatedParameterType $
         Product.RightParameter $
         ValidateReception.Validate $
-        ValidateReception.ReceptionParameters receivedAmount fromUser
+        fromUser
       GetExpiration {..} ->
         writeFunc mOutput $
         L.printLorentzValue True $
         asParameterType $
         Expiring.GetExpiration $
         toView_ callbackContract
-      GetDSAddress {..} ->
-        writeFunc mOutput $
-        L.printLorentzValue True $
-        asParameterType $
-        Expiring.WrappedParameter $
-        Product.RightParameter $
-        ValidateReception.GetDSAddress $
-        toView_ callbackContract
-      GetRemaining {..} ->
-        writeFunc mOutput $
-        L.printLorentzValue True $
-        asParameterType $
-        Expiring.WrappedParameter $
-        Product.RightParameter $
-        ValidateReception.GetRemaining $
-        toView_ callbackContract
       GetWhitelist {..} ->
         writeFunc mOutput $
         L.printLorentzValue True $
-        asParameterType $
-        Expiring.WrappedParameter $
+        asValidatedParameterType $
         Product.RightParameter $
         ValidateReception.GetWhitelist $
         toView_ callbackContract
@@ -526,4 +516,8 @@ main = do
 
     asParameterType :: ValidatedExpiring.Parameter -> ValidatedExpiring.Parameter
     asParameterType = id
+
+    asValidatedParameterType :: Validated.Parameter -> Validated.Parameter
+    asValidatedParameterType = id
+
 
