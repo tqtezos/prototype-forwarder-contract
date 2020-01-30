@@ -24,6 +24,7 @@ import Tezos.Address
 -- | A `View` accepting `()` as its argument
 type View_ = View ()
 
+-- | Construct a `View_`
 toView_ :: ToContractRef r a => a -> View_ r
 toView_ = View () . toContractRef
 

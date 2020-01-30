@@ -74,12 +74,11 @@ analyzeSpecializedForwarder :: Address -> ContractRef DS.Parameter -> AnalyzerRe
 analyzeSpecializedForwarder centralWalletAddr' contractAddr' =
   analyzeLorentz $ specializedForwarderContract centralWalletAddr' contractAddr'
 
--- makeI :: Instr.Contract a b -> Contract (Value a) (Value b)
--- makeI = I
-
 contractOverValue :: forall cp st. Contract cp st -> Contract (Value (ToT cp)) (Value (ToT st))
 contractOverValue x = forcedCoerce_ # x # forcedCoerce_
 
+-- | Verify that `SomeContract` is an instance of `specializedForwarderContract`, for some
+-- particular central wallet address and DS Token address.
 verifyForwarderContract :: Address -> ContractRef DS.Parameter -> SomeContract -> Either String ()
 verifyForwarderContract centralWalletAddr' dsTokenContractRef' (SomeContract (contract' :: Contract cp st)) =
   case eqT @(ToT cp) @(ToT Parameter) of

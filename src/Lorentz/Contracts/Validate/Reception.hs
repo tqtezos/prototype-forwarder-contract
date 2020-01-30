@@ -10,7 +10,6 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DerivingStrategies #-}
--- {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE OverloadedStrings #-}
 
@@ -19,7 +18,6 @@ module Lorentz.Contracts.Validate.Reception where
 import Prelude hiding ((>>), drop)
 import GHC.Generics (Generic)
 import Text.Show (Show(..))
--- import Data.Functor.Classes
 import Text.Read (Read(..))
 import Text.ParserCombinators.ReadPrec (look)
 
@@ -29,7 +27,6 @@ import Lorentz
 import Michelson.Text
 import Michelson.Typed.EntryPoints
 import Michelson.Typed.Scope
--- import Tezos.Address
 
 import Lorentz.Contracts.View
 import Lorentz.Contracts.DS.V1.Registry.Types (InvestorId(..))
@@ -50,9 +47,7 @@ type Whitelist = Set InvestorId
 --
 -- Otherwise, offers `View_`s for its `Storage`
 data Parameter
-  = Validate !InvestorId
-  -- | GetDSAddress !(View_ Address)
-  -- | GetRemaining !(View_ Natural)
+  = Validate !InvestorId -- throw error unless InvestorId in Whitelist
   | GetWhitelist !(View_ Whitelist)
   deriving  (Generic)
   deriving  (Read)

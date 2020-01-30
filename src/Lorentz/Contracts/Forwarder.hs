@@ -25,8 +25,6 @@ import qualified Lorentz.Contracts.ManagedLedger as ManagedLedger
 import Prelude (Show(..), Enum(..))
 
 deriving instance Show ManagedLedger.Parameter
--- deriving instance (Show a, Show r) => Show (View a r)
--- deriving instance Show a => Show (ContractRef a)
 
 -- | We need the addresses of:
 -- - The sub-token contract, assumed to accept `ManagedLedger.Parameter`

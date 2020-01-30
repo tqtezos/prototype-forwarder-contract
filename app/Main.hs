@@ -1,4 +1,3 @@
--- {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ApplicativeDo #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -8,19 +7,10 @@
 
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE PolyKinds #-}
--- {-# LANGUAGE TypeOperators #-}
--- {-# LANGUAGE TypeFamilies #-}
--- {-# LANGUAGE GADTs #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE KindSignatures #-}
--- {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE ScopedTypeVariables #-}
--- {-# LANGUAGE TypeApplications #-}
--- {-# LANGUAGE FlexibleInstances #-}
--- {-# LANGUAGE RebindableSyntax #-}
--- {-# LANGUAGE OverloadedLabels #-}
--- {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE MonoLocalBinds #-}
@@ -41,7 +31,8 @@ import qualified Data.Map as Map
 import Data.Singletons
 import Data.Constraint
 
-import Tezos.Address (Address(..), parseAddress)
+import Tezos.Address (Address(..))
+import qualified Tezos.Address as Tezos
 import qualified Tezos.Core as Core (parseTimestamp)
 import Lorentz (Timestamp)
 import qualified Lorentz as L
@@ -78,16 +69,18 @@ import qualified Lorentz.Contracts.Validate.Reception as ValidateReception
 
 deriving instance Show (L.FutureContract p)
 
-
--- -- | Parse an `Address` argument, given its field name
--- parseAddress :: String -> Opt.Parser Address
--- parseAddress name =
---   Opt.option Opt.auto $
---   mconcat
---     [ Opt.long name
---     , Opt.metavar "ADDRESS"
---     , Opt.help $ "Address of the " ++ name ++ "."
---     ]
+-- | Parse an address argument, given its field name and description
+parseAddress :: String -> String -> Opt.Parser Address
+parseAddress name hInfo = Opt.option (Opt.eitherReader parseAddrDo) $ mconcat
+  [ Opt.long name
+  , Opt.metavar "ADDRESS"
+  , Opt.help hInfo
+  ]
+  where
+    parseAddrDo =
+      either (Left . mappend "Failed to parse address: " . pretty) Right .
+      Tezos.parseAddress .
+      toText
 
 -- | Parse a natural number argument, given its field name
 parseNatural :: String -> Opt.Parser Natural
@@ -182,8 +175,8 @@ argParser = Opt.subparser $ mconcat
     printSpecializedSubCmd =
       mkCommandParser "print-specialized-fa12"
       (PrintSpecialized <$>
-        addressOption "central-wallet" "Address of central wallet" <*>
-        (L.FutureContract . uncurry L.EpAddress . (, L.def) <$> addressOption "fa12-address" "Address of FA1.2 Token contract") <*>
+        parseAddress "central-wallet" "Address of central wallet" <*>
+        (L.FutureContract . uncurry L.EpAddress . (, L.def) <$> parseAddress "fa12-address" "Address of FA1.2 Token contract") <*>
         outputOption <*>
         onelineOption
       )
@@ -193,8 +186,8 @@ argParser = Opt.subparser $ mconcat
     printSpecializedFA12SubCmd =
       mkCommandParser "print-specialized"
       (PrintSpecialized <$>
-        addressOption "central-wallet" "Address of central wallet" <*>
-        (L.FutureContract . uncurry L.EpAddress . (, L.def) <$> addressOption "dstoken-address" "Address of DS Token contract") <*>
+        parseAddress "central-wallet" "Address of central wallet" <*>
+        (L.FutureContract . uncurry L.EpAddress . (, L.def) <$> parseAddress "dstoken-address" "Address of DS Token contract") <*>
         outputOption <*>
         onelineOption
       )
@@ -204,8 +197,8 @@ argParser = Opt.subparser $ mconcat
     printValidatedExpiringSubCmd =
       mkCommandParser "print-validated-expiring"
       (PrintValidatedExpiring <$>
-        addressOption "central-wallet" "Address of central wallet" <*>
-        (L.FutureContract . uncurry L.EpAddress . (, L.def) <$> addressOption "dstoken-address" "Address of DS Token contract") <*>
+        parseAddress "central-wallet" "Address of central wallet" <*>
+        (L.FutureContract . uncurry L.EpAddress . (, L.def) <$> parseAddress "dstoken-address" "Address of DS Token contract") <*>
         outputOption <*>
         onelineOption
       )
@@ -215,8 +208,8 @@ argParser = Opt.subparser $ mconcat
     printValidatedSubCmd =
       mkCommandParser "print-validated"
       (PrintValidated <$>
-        addressOption "central-wallet" "Address of central wallet" <*>
-        (L.FutureContract . uncurry L.EpAddress . (, L.def) <$> addressOption "dstoken-address" "Address of DS Token contract") <*>
+        parseAddress "central-wallet" "Address of central wallet" <*>
+        (L.FutureContract . uncurry L.EpAddress . (, L.def) <$> parseAddress "dstoken-address" "Address of DS Token contract") <*>
         outputOption <*>
         onelineOption
       )
@@ -226,8 +219,8 @@ argParser = Opt.subparser $ mconcat
     initialStorageSubCmd =
       mkCommandParser "initial-storage"
       (InitialStorage <$>
-        addressOption "central-wallet" "Address of central wallet" <*>
-        addressOption "dstoken-address" "Address of DS Token contract" <*>
+        parseAddress "central-wallet" "Address of central wallet" <*>
+        parseAddress "dstoken-address" "Address of DS Token contract" <*>
         outputOption
       )
       "Dump initial storage value"
@@ -269,7 +262,7 @@ argParser = Opt.subparser $ mconcat
     getExpirationSubCmd =
       mkCommandParser "get-expiration"
       (GetExpiration <$>
-        addressOption "callback-contract" "contract accepting a 'timestamp' callback" <*>
+        parseAddress "callback-contract" "contract accepting a 'timestamp' callback" <*>
         outputOption
       )
       ("Parameter to view the expiration timestamp, " <>
@@ -278,7 +271,7 @@ argParser = Opt.subparser $ mconcat
     getWhitelistSubCmd =
       mkCommandParser "get-whitelist"
       (GetWhitelist <$>
-        addressOption "callback-contract" "contract accepting a '(set string)' callback" <*>
+        parseAddress "callback-contract" "contract accepting a '(set string)' callback" <*>
         outputOption
       )
       ("Parameter to view the whitelist for the validated forwarder, " <>
@@ -297,8 +290,8 @@ argParser = Opt.subparser $ mconcat
     parseSubCmd =
       mkCommandParser "parse"
       (Parse <$>
-        addressOption "central-wallet" "Address of central wallet" <*>
-        addressOption "dstoken-address" "Address of DS Token contract" <*>
+        parseAddress "central-wallet" "Address of central wallet" <*>
+        parseAddress "dstoken-address" "Address of DS Token contract" <*>
         outputOption
       )
       "Parse and verify a copy of the contract"
@@ -315,30 +308,14 @@ argParser = Opt.subparser $ mconcat
       Opt.help "Force single line output")
 
 
--- Copy-pasted from `morley` CLI parsing.
-addressOption :: String -> String -> Opt.Parser Address
-addressOption name hInfo =
-  Opt.option (Opt.eitherReader parseAddrDo) $ mconcat
-  [ Opt.long name
-  , Opt.metavar "ADDRESS"
-  , Opt.help hInfo
-  ]
-  where
-    parseAddrDo addr =
-      either (Left . mappend "Failed to parse address: " . pretty) Right $
-      parseAddress $ toText addr
-
 programInfo :: Opt.ParserInfo CmdLnArgs
-programInfo = Opt.info (Opt.helper <*> argParser) $ -- versionOption <*>
+programInfo = Opt.info (Opt.helper <*> argParser) $
   mconcat
   [ Opt.fullDesc
   , Opt.progDesc "CLI for DS Token Forwarder contract"
   , Opt.header "DS Token Forwarder"
   , Opt.footerDoc usageDoc
   ]
-  where
-    -- versionOption = Opt.infoOption ("morley-dstoken-contract" <> showVersion version)
-    --   (Opt.long "version" <> Opt.help "Show version.")
 
 usageDoc :: Maybe Doc
 usageDoc = Just $ mconcat
@@ -419,8 +396,6 @@ main = do
       -> IO ()
     printFunc writeToFile = maybe putStrLn (\file -> writeToFile file . flip mappend "\n")
     writeFunc = printFunc writeFileUtf8
-    -- appendFunc :: (Print text, IsString text, Monoid text) => Maybe FilePath -> text -> IO ()
-    -- appendFunc = printFunc appendFileUtf8
 
     run :: CmdLnArgs -> IO ()
     run = \case
