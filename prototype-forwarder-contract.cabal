@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 91102c0c1b5c7f0b214829250e846b2794b819103ae6e3bfbb7096cc6e9aecb6
+-- hash: 7e30c470a1d65efa1256ed64e1f17d328d04582cc589a546ddfb4e28553e2026
 
 name:           prototype-forwarder-contract
 version:        0.1.0.0
@@ -85,6 +85,11 @@ test-suite prototype-forwarder-contract-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      Test.Lorentz.Contracts.Forwarder.Common
+      Test.Lorentz.Contracts.Forwarder.DS
+      Test.Lorentz.Contracts.Forwarder.DS.Common
+      Test.Lorentz.Contracts.Forwarder.Specialized
+      Tree
       Paths_prototype_forwarder_contract
   hs-source-dirs:
       test
@@ -93,6 +98,8 @@ test-suite prototype-forwarder-contract-test
       base >=4.7 && <5
     , constraints
     , containers
+    , fmt
+    , hspec
     , morley
     , morley-dstoken
     , morley-ledgers
@@ -100,6 +107,8 @@ test-suite prototype-forwarder-contract-test
     , named
     , prototype-forwarder-contract
     , singletons
+    , tasty
+    , tasty-hspec
     , text
     , vinyl
   default-language: Haskell2010

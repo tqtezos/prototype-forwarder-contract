@@ -63,3 +63,7 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - prototype-forwarder-contract
+    - fmt
+    - hspec
+    - tasty
+    - tasty-hspec
