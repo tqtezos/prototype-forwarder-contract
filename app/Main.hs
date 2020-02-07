@@ -65,7 +65,6 @@ import qualified Lorentz.Contracts.Forwarder.DS.V1.Validated as Validated
 import qualified Lorentz.Contracts.Forwarder.DS.V1 as DS
 import qualified Lorentz.Contracts.DS.V1 as DSToken
 import Lorentz.Contracts.DS.V1.Registry.Types (InvestorId(..))
-import qualified Lorentz.Contracts.ManagedLedger as ManagedLedger
 
 import Lorentz.Contracts.View
 import qualified Lorentz.Contracts.Product as Product
@@ -126,7 +125,7 @@ parseTimestamp name =
 data CmdLnArgs
   = Print !(Maybe FilePath) !Bool
   | PrintSpecialized !Address !(L.FutureContract DSToken.Parameter) !(Maybe FilePath) !Bool
-  | PrintSpecializedFA12 !Address !(L.FutureContract ManagedLedger.Parameter) !(Maybe FilePath) !Bool
+  | PrintSpecializedFA12 !Address !Address !(Maybe FilePath) !Bool
   | PrintValidatedExpiring !Address !(L.FutureContract DSToken.Parameter) !(Maybe FilePath) !Bool
   | PrintValidated !Address !(L.FutureContract DSToken.Parameter) !(Maybe FilePath) !Bool
   | InitialStorage !Address !Address !(Maybe FilePath)
@@ -181,18 +180,18 @@ argParser = Opt.subparser $ mconcat
       (Print <$> outputOption <*> onelineOption)
       "Dump DS Token Forwarder contract in the form of Michelson code"
 
-    printSpecializedSubCmd =
+    printSpecializedFA12SubCmd =
       mkCommandParser "print-specialized-fa12"
-      (PrintSpecialized <$>
+      (PrintSpecializedFA12 <$>
         parseAddress "central-wallet" "Address of central wallet" <*>
-        (toFutureDSToken <$> parseAddress "fa12-address" "Address of FA1.2 Token contract") <*>
+        parseAddress "fa12-address" "Address of FA1.2 Token contract" <*>
         outputOption <*>
         onelineOption
       )
       ("Dump FA1.2 Token Forwarder contract, specialized to paricular addresses, " <>
       "in the form of Michelson code")
 
-    printSpecializedFA12SubCmd =
+    printSpecializedSubCmd =
       mkCommandParser "print-specialized"
       (PrintSpecialized <$>
         parseAddress "central-wallet" "Address of central wallet" <*>
@@ -425,12 +424,12 @@ main = do
             forceOneline $
             DS.specializedForwarderContract centralWalletAddr' $
             L.toContractRef dsTokenContractRef'
-      PrintSpecializedFA12 centralWalletAddr' fa12ContractRef' mOutput forceOneline ->
+      PrintSpecializedFA12 centralWalletAddr' fa12ContractAddr' mOutput forceOneline ->
         writeFunc mOutput $
           L.printLorentzContract
             forceOneline $
             Specialized.specializedForwarderContract centralWalletAddr' $
-            L.toContractRef fa12ContractRef'
+            fa12ContractAddr'
       PrintValidatedExpiring centralWalletAddr' dsTokenContractRef' mOutput forceOneline ->
         writeFunc mOutput $
           L.printLorentzContract
