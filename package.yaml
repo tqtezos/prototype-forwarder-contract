@@ -27,10 +27,12 @@ dependencies:
 - text
 - constraints
 - morley-ledgers
+- morley-nettest
 - morley-upgradeable
 - constraints
 - containers
 - morley-dstoken
+- universum
 - vinyl
 
 library:
@@ -49,8 +51,10 @@ executables:
     - morley
     # - morley-prelude
     - morley-dstoken
+    - morley-nettest
     - fmt
     - optparse-applicative
+    - random
     - universum
 
 tests:

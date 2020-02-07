@@ -63,15 +63,30 @@ import qualified Lorentz.Contracts.Forwarder.DS.V1.ValidatedExpiring as DS
 import qualified Lorentz.Contracts.Forwarder.DS.V1.ValidatedExpiring as ValidatedExpiring
 import qualified Lorentz.Contracts.Forwarder.DS.V1.Validated as Validated
 import qualified Lorentz.Contracts.Forwarder.DS.V1 as DS
+import Lorentz.Contracts.Forwarder.TestScenario
 import qualified Lorentz.Contracts.DS.V1 as DSToken
 import Lorentz.Contracts.DS.V1.Registry.Types (InvestorId(..))
+import Morley.Nettest (NettestClientConfig(..), NettestScenario, NettestT)
+import qualified Morley.Nettest as NT
 
+import NettestHelpers
 import Lorentz.Contracts.View
 import qualified Lorentz.Contracts.Product as Product
 import qualified Lorentz.Contracts.Expiring as Expiring
 import qualified Lorentz.Contracts.Validate.Reception as ValidateReception
 
 deriving instance Show (L.FutureContract p)
+
+-- | Configuration for testing the forwarder on a real network
+nettestConfig :: NettestClientConfig
+nettestConfig = NettestClientConfig
+  { nccScenarioName = Just "Forwarder"
+  , nccNodeAddress = Nothing
+  , nccNodePort = Nothing
+  , nccTezosClient = "tezos-client"
+  , nccNodeUseHttps = False
+  , nccVerbose = True
+  }
 
 -- | Parse an address argument, given its field name and description
 parseAddress :: String -> String -> Opt.Parser Address
@@ -145,6 +160,7 @@ data CmdLnArgs
   | Document !(Maybe FilePath)
   | Analyze
   | Parse !Address !Address !(Maybe FilePath)
+  | DeployAndTest
   deriving (Show)
 
 toFutureDSToken :: Address -> L.FutureContract DSToken.Parameter
@@ -168,6 +184,7 @@ argParser = Opt.subparser $ mconcat
   , documentSubCmd
   , analyzeSubCmd
   , parseSubCmd
+  , deployAndTestSubCmd
   ]
   where
     mkCommandParser commandName parser desc =
@@ -303,6 +320,11 @@ argParser = Opt.subparser $ mconcat
         outputOption
       )
       "Parse and verify a copy of the contract"
+
+    deployAndTestSubCmd =
+      mkCommandParser "deploy-test"
+      (pure DeployAndTest)
+      "Deploy and test different ledgers and forwarder contracts"
 
     outputOption = Opt.optional $ Opt.strOption $ mconcat
       [ Opt.short 'o'
@@ -501,6 +523,36 @@ main = do
               -- ContractRef
               Left err -> die err
               Right () -> putStrLn ("Contract verified successfully!" :: Text)
+      DeployAndTest -> deployAndTest
+
+    deployAndTest :: IO ()
+    deployAndTest = do
+      dsId <- genContractId "er"
+      fwdId <- genContractId "fwd"
+      let
+        scenario :: NettestScenario
+        scenario = NT.uncapsNettest $ do
+          dsAddress <- originateDS dsId
+          cw <- NT.newAddress "centralWallet"
+          fwdAddress <- originateForwarder fwdId dsAddress cw
+          testScenario $
+            TestScenarioParameters
+              { tspDSToken = dsAddress
+              , tspCentralWallet = cw
+              , tspForwarder = fwdAddress
+              }
+
+      -- Quick check on that scenario is sane
+      NT.runNettestViaIntegrational scenario
+      putTextLn "Test precheck passed, running on test network"
+      NT.runNettestClient nettestConfig scenario
+      putTextLn "Test suite completed"
+
+
+    testScenario :: Monad m => TestScenarioParameters -> NettestT m ()
+    testScenario params = do
+      runTestScenario params
+      NT.comment "Test passed successfully"
 
     expectedContractParamT :: Sing (L.ToT DSToken.Parameter)
     expectedContractParamT = sing -- sing @(L.ToT DSToken.Parameter))
@@ -510,5 +562,3 @@ main = do
 
     asValidatedParameterType :: Validated.Parameter -> Validated.Parameter
     asValidatedParameterType = id
-
-

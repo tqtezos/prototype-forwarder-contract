@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 7e30c470a1d65efa1256ed64e1f17d328d04582cc589a546ddfb4e28553e2026
+-- hash: 066fb9df50eefcd3f5da3eed5078304ef8808c82ce252d19f1285c6894d8a4f7
 
 name:           prototype-forwarder-contract
 version:        0.1.0.0
@@ -35,6 +35,7 @@ library
       Lorentz.Contracts.Forwarder.DS.V1.Validated
       Lorentz.Contracts.Forwarder.DS.V1.ValidatedExpiring
       Lorentz.Contracts.Forwarder.Specialized
+      Lorentz.Contracts.Forwarder.TestScenario
       Lorentz.Contracts.Product
       Lorentz.Contracts.Validate.Reception
       Lorentz.Contracts.View
@@ -49,16 +50,19 @@ library
     , morley
     , morley-dstoken
     , morley-ledgers
+    , morley-nettest
     , morley-upgradeable
     , named
     , singletons
     , text
+    , universum
     , vinyl
   default-language: Haskell2010
 
 executable dstoken-forwarder-contract
   main-is: Main.hs
   other-modules:
+      NettestHelpers
       Paths_prototype_forwarder_contract
   hs-source-dirs:
       app
@@ -71,10 +75,12 @@ executable dstoken-forwarder-contract
     , morley
     , morley-dstoken
     , morley-ledgers
+    , morley-nettest
     , morley-upgradeable
     , named
     , optparse-applicative
     , prototype-forwarder-contract
+    , random
     , singletons
     , text
     , universum
@@ -103,6 +109,7 @@ test-suite prototype-forwarder-contract-test
     , morley
     , morley-dstoken
     , morley-ledgers
+    , morley-nettest
     , morley-upgradeable
     , named
     , prototype-forwarder-contract
@@ -110,5 +117,6 @@ test-suite prototype-forwarder-contract-test
     , tasty
     , tasty-hspec
     , text
+    , universum
     , vinyl
   default-language: Haskell2010
