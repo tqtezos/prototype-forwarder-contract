@@ -22,9 +22,7 @@ module Lorentz.Contracts.Forwarder.DS.V1 where
 
 import Lorentz.Run (analyzeLorentz)
 import Michelson.Text
-import Michelson.Typed.T
 import Lorentz
-import qualified Lorentz.Contracts.Upgradeable.Common as Upgradeable
 import Michelson.Typed.Value
 import Michelson.Typed.Instr (Instr)
 import Michelson.Analyzer (AnalyzerRes)
@@ -32,7 +30,6 @@ import Michelson.Analyzer (AnalyzerRes)
 import qualified Lorentz.Contracts.DS.V1 as DS
 import qualified Lorentz.Contracts.DS.V1.Registry.Types as Registry
 import qualified Lorentz.Contracts.DS.V1.Token.Types as Token
-import qualified Lorentz.Contracts.DS.Permanent as Permanent
 
 import GHC.TypeLits (KnownSymbol)
 import Prelude (Enum(..), ($), id)
@@ -77,77 +74,27 @@ data Storage = Storage
 toWalletId :: (Address & s) :-> (Registry.WalletId & s)
 toWalletId = forcedCoerce_
 
--- | Convert to `Address` and amount to `Token.ParameterTransfer`
-toTokenTransfer :: (Address & Natural & s) :-> (Token.ParameterTransfer & s)
+-- | Pushes self address to stack
+selfAddress :: s :-> (Address & s)
+selfAddress = do
+  selfCalling @Parameter CallDefault
+  address
+
+-- | Convert to `Address` and amount to `Token.TransferParams`
+toTokenTransfer :: (Address & Natural & s) :-> (Token.TransferParams & s)
 toTokenTransfer = do
-  pair
-  forcedCoerce_
-  dip $ do
-    push $ Token.CommitRun
-  pair
-  wrap_ @Token.ParameterTransfer #cTransfer
+  constructT @Token.TransferParams
+    ( fieldCtor $ do selfAddress; toWalletId; toNamed #from
+    , fieldCtor $ do dup; toWalletId; toNamed #to
+    , fieldCtor $ do duupX @2; toNamed #val
+    )
+  dip (dropN @2)
 
--- | Would like to use `wrap_`, but couldn't get it to work for `Upgradeable.Parameter`
---
--- If it worked with `wrap_`, it'd be:
---
--- @
---  `wrap_` \@(`UParam` entries) #cRun
--- @
--- toParameterRun :: forall entries entries' s. (UParam entries & s) :-> (Upgradeable.Parameter entries' & s)
-toParameterRun ::
-     forall entries s.
-     (Upgradeable.VerParam entries & s) :-> (Upgradeable.Parameter entries & s)
-toParameterRun = do
-  forcedCoerce_
-    @(Upgradeable.VerParam entries)
-    @(Value ('TPair ('Tc 'CString) ('Tc 'CBytes)))
-  left
-    @(Value ('TPair ('Tc 'CString) ('Tc 'CBytes)))
-    @(Value
-       ('TPair
-          ('Tc 'CNat)
-          ('TPair
-             ('TLambda
-                ('TBigMap 'CBytes ('Tc 'CBytes))
-                ('TBigMap 'CBytes ('Tc 'CBytes)))
-             ('TLambda
-                ('TPair
-                   ('TPair ('Tc 'CString) ('Tc 'CBytes))
-                   ('TBigMap 'CBytes ('Tc 'CBytes)))
-                ('TPair ('TList 'TOperation) ('TBigMap 'CBytes ('Tc 'CBytes)))))))
-  left
-    @_
-    @(Value ('TOr ('TPair 'TUnit ('TContract ('Tc 'CNat))) ('Tc 'CAddress)))
-  left
-    @_
-    @(Value
-       ('TOr
-          ('TOr
-             ('Tc 'CNat)
-             ('TLambda
-                ('TBigMap 'CBytes ('Tc 'CBytes))
-                ('TBigMap 'CBytes ('Tc 'CBytes))))
-          ('TOr
-             ('TLambda
-                ('TPair
-                   ('TPair ('Tc 'CString) ('Tc 'CBytes))
-                   ('TBigMap 'CBytes ('Tc 'CBytes)))
-                ('TPair ('TList 'TOperation) ('TBigMap 'CBytes ('Tc 'CBytes))))
-             'TUnit)))
-  forcedCoerce_
-
--- | `forcedCoerce_` to `Permanent.Parameter`
-toPermanentParameter :: forall ver s. Upgradeable.Parameter ver & s :-> Permanent.Parameter ver & s
-toPermanentParameter = forcedCoerce_
-
--- | Convert to `Address` and amount to `DS.Parameter`
-toTransferParameter :: (Address & Natural & s) :-> (DS.Parameter & s)
+-- | Convert `Address` and amount to `UParam`
+toTransferParameter :: (Address & Natural & s) :-> (UParam DS.Interface & s)
 toTransferParameter = do
   toTokenTransfer
   toUParam #callTokenTransfer
-  toParameterRun
-  toPermanentParameter
 
 -- | Run a transfer, given the amount and the `Storage`,
 -- containing the central wallet address and sub token
@@ -160,7 +107,7 @@ runTransfer = do
   toTransferParameter
   dip $ do
     getField #subTokenContract
-    contract
+    contractCalling @(DS.Parameter) $ Call @"Run"
     ifNone
       (failUnexpected (mkMTextUnsafe "not a DSToken"))
       (push (toEnum 0 :: Mutez))

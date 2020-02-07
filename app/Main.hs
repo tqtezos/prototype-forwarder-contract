@@ -1,7 +1,10 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ApplicativeDo #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TupleSections #-}
 
@@ -30,11 +33,12 @@ import Options.Applicative.Help.Pretty (Doc, linebreak)
 import qualified Data.Map as Map
 import Data.Singletons
 import Data.Constraint
+import Data.Typeable (eqT, Typeable, (:~:)(..))
 
 import Tezos.Address (Address(..))
 import qualified Tezos.Address as Tezos
 import qualified Tezos.Core as Core (parseTimestamp)
-import Lorentz (Timestamp)
+import Lorentz (Timestamp, ToT, IsoValue)
 import qualified Lorentz as L
 import Michelson.Analyzer (AnalyzerRes)
 import Util.IO (hSetTranslit, writeFileUtf8)
@@ -54,6 +58,7 @@ import Michelson.Typed.Scope
 import Michelson.Typed.Instr (FullContract(..))
 import qualified Lorentz.Contracts.Forwarder.Specialized as Specialized
 import qualified Lorentz.Contracts.Forwarder.DS.V1.Specialized as DS
+import qualified Lorentz.Contracts.Forwarder.DS.V1.Specialized as DSSpecialized
 import qualified Lorentz.Contracts.Forwarder.DS.V1.ValidatedExpiring as DS
 import qualified Lorentz.Contracts.Forwarder.DS.V1.ValidatedExpiring as ValidatedExpiring
 import qualified Lorentz.Contracts.Forwarder.DS.V1.Validated as Validated
@@ -143,6 +148,10 @@ data CmdLnArgs
   | Parse !Address !Address !(Maybe FilePath)
   deriving (Show)
 
+toFutureDSToken :: Address -> L.FutureContract DSToken.Parameter
+toFutureDSToken =
+  L.FutureContract . L.callingDefTAddress . L.toTAddress @DSToken.Parameter
+
 argParser :: Opt.Parser CmdLnArgs
 argParser = Opt.subparser $ mconcat
   [ printSubCmd
@@ -176,7 +185,7 @@ argParser = Opt.subparser $ mconcat
       mkCommandParser "print-specialized-fa12"
       (PrintSpecialized <$>
         parseAddress "central-wallet" "Address of central wallet" <*>
-        (L.FutureContract . uncurry L.EpAddress . (, L.def) <$> parseAddress "fa12-address" "Address of FA1.2 Token contract") <*>
+        (toFutureDSToken <$> parseAddress "fa12-address" "Address of FA1.2 Token contract") <*>
         outputOption <*>
         onelineOption
       )
@@ -187,7 +196,7 @@ argParser = Opt.subparser $ mconcat
       mkCommandParser "print-specialized"
       (PrintSpecialized <$>
         parseAddress "central-wallet" "Address of central wallet" <*>
-        (L.FutureContract . uncurry L.EpAddress . (, L.def) <$> parseAddress "dstoken-address" "Address of DS Token contract") <*>
+        (toFutureDSToken <$> parseAddress "dstoken-address" "Address of DS Token contract") <*>
         outputOption <*>
         onelineOption
       )
@@ -198,7 +207,7 @@ argParser = Opt.subparser $ mconcat
       mkCommandParser "print-validated-expiring"
       (PrintValidatedExpiring <$>
         parseAddress "central-wallet" "Address of central wallet" <*>
-        (L.FutureContract . uncurry L.EpAddress . (, L.def) <$> parseAddress "dstoken-address" "Address of DS Token contract") <*>
+        (toFutureDSToken <$> parseAddress "dstoken-address" "Address of DS Token contract") <*>
         outputOption <*>
         onelineOption
       )
@@ -209,7 +218,7 @@ argParser = Opt.subparser $ mconcat
       mkCommandParser "print-validated"
       (PrintValidated <$>
         parseAddress "central-wallet" "Address of central wallet" <*>
-        (L.FutureContract . uncurry L.EpAddress . (, L.def) <$> parseAddress "dstoken-address" "Address of DS Token contract") <*>
+        (toFutureDSToken <$> parseAddress "dstoken-address" "Address of DS Token contract") <*>
         outputOption <*>
         onelineOption
       )
@@ -369,17 +378,23 @@ assertNestedBigMapAbsense f =
     Nothing -> error "assertNestedBigMapAbsense"
     Just Dict -> forbiddenNestedBigMaps @t f
 
-someLorentzContract :: SomeContract -> L.SomeContract
+someLorentzContract
+  :: forall param.
+     (L.NiceParameterFull param, IsoValue param, Typeable param, Typeable (ToT param))
+  => SomeContract -> L.SomeContract
 someLorentzContract (SomeContract (contract' :: FullContract cp st)) =
   case contract' of
     FullContract{..} ->
-      assertOpAbsense @cp $
-      assertNestedBigMapAbsense @cp $
-      assertOpAbsense @st $
-      assertNestedBigMapAbsense @st $
-      assertContractTypeAbsense @st $
-      L.SomeContract $
-      L.I @('[(L.Value cp, L.Value st)]) @('[([L.Operation], L.Value st)]) fcCode
+      case eqT @(ToT param) @cp of
+        Nothing -> error "The parameter type is incorrect"
+        Just Refl ->
+          assertOpAbsense @cp $
+          assertNestedBigMapAbsense @cp $
+          assertOpAbsense @st $
+          assertNestedBigMapAbsense @st $
+          assertContractTypeAbsense @st $
+          L.SomeContract $
+          (L.I fcCode :: L.Contract param (L.Value st))
 
 main :: IO ()
 main = do
@@ -456,14 +471,14 @@ main = do
         L.printLorentzValue True $
         asParameterType $
         Expiring.GetExpiration $
-        toView_ callbackContract
+        toView_ (L.toTAddress callbackContract)
       GetWhitelist {..} ->
         writeFunc mOutput $
         L.printLorentzValue True $
         asValidatedParameterType $
         Product.RightParameter $
         ValidateReception.GetWhitelist $
-        toView_ callbackContract
+        toView_ (L.toTAddress callbackContract)
       Document _ -> error "documentation not implemented"
       Analyze -> do
         let
@@ -478,10 +493,12 @@ main = do
               Map.singleton
                 (case contractAddr' of {ContractAddress addr' -> addr'; _ -> error ("Expected ContractAddress, but got: " <> show contractAddr')})
                 (U.Type (toUT (fromSing expectedContractParamT)) noAnn)
+        let contractRef = L.callingDefTAddress $ L.toTAddress @DSToken.Parameter contractAddr'
+        let verifyForwarder = DS.verifyForwarderContract centralWalletAddr' contractRef
         case typeCheckContract tcContracts' uContract of
           Left err -> die $ "Failed to type check contract: " <> show err
           Right typeCheckedContract ->
-            case DS.verifyForwarderContract centralWalletAddr' (L.toContractRef contractAddr') $ someLorentzContract typeCheckedContract of
+            case verifyForwarder $ someLorentzContract @DSSpecialized.Parameter typeCheckedContract of
               -- ContractRef
               Left err -> die err
               Right () -> putStrLn ("Contract verified successfully!" :: Text)
