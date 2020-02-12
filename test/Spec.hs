@@ -1,2 +1,12 @@
+module Main
+  ( main
+  ) where
+
+import Test.Tasty (defaultMainWithIngredients)
+
+import Util.Test.Ingredients (ourIngredients)
+
+import Tree (tests)
+
 main :: IO ()
-main = putStrLn "Test suite not yet implemented"
+main = tests >>= defaultMainWithIngredients ourIngredients

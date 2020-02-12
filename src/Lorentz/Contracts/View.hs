@@ -18,13 +18,15 @@ import Text.ParserCombinators.ReadPrec (look)
 import Data.Functor.Classes
 
 import Lorentz
+import Lorentz.Value
 import Tezos.Address
 
 -- | A `View` accepting `()` as its argument
 type View_ = View ()
 
+-- | Construct a `View_`
 toView_ :: ToContractRef r a => a -> View_ r
-toView_ = View () . toContractRef
+toView_ = mkView ()
 
 -- | `view_` specialized to `View_`
 viewUnit_ :: NiceParameter r =>
@@ -36,15 +38,15 @@ viewUnit_ f = do
     f
 
 -- | Uses `parseAddress` with the remainder of the input
-instance Read Address where
+instance Read (TAddress r) where
   readPrec = do
     eAddress <- parseAddress . fromString <$> look
     case eAddress of
       Left err -> fail $ show err
-      Right address' -> return address'
+      Right address' -> return $ toTAddress address'
 
 -- | Uses `readBinaryWith`
-instance (Read a, NiceParameter r) => Read (View a r) where
+instance (Read a, NiceParameter r, ToContractRef r (TAddress r)) => Read (View a r) where
   readPrec = readBinaryWith readPrec readPrec "View" $
-    (\x -> View x . toContractRef @r @Address)
+    (\x -> View x . toContractRef @r @(TAddress r))
 

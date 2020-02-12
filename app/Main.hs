@@ -1,26 +1,19 @@
--- {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ApplicativeDo #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TupleSections #-}
 
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE PolyKinds #-}
--- {-# LANGUAGE TypeOperators #-}
--- {-# LANGUAGE TypeFamilies #-}
--- {-# LANGUAGE GADTs #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE KindSignatures #-}
--- {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE ScopedTypeVariables #-}
--- {-# LANGUAGE TypeApplications #-}
--- {-# LANGUAGE FlexibleInstances #-}
--- {-# LANGUAGE RebindableSyntax #-}
--- {-# LANGUAGE OverloadedLabels #-}
--- {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE MonoLocalBinds #-}
@@ -40,10 +33,12 @@ import Options.Applicative.Help.Pretty (Doc, linebreak)
 import qualified Data.Map as Map
 import Data.Singletons
 import Data.Constraint
+import Data.Typeable (eqT, Typeable, (:~:)(..))
 
-import Tezos.Address (Address(..), parseAddress)
+import Tezos.Address (Address(..))
+import qualified Tezos.Address as Tezos
 import qualified Tezos.Core as Core (parseTimestamp)
-import Lorentz (Timestamp)
+import Lorentz (Timestamp, ToT, IsoValue)
 import qualified Lorentz as L
 import Michelson.Analyzer (AnalyzerRes)
 import Util.IO (hSetTranslit, writeFileUtf8)
@@ -61,13 +56,20 @@ import Michelson.Text
 import Michelson.Typed.T
 import Michelson.Typed.Scope
 import Michelson.Typed.Instr (FullContract(..))
+import qualified Lorentz.Contracts.Forwarder.Specialized as Specialized
 import qualified Lorentz.Contracts.Forwarder.DS.V1.Specialized as DS
+import qualified Lorentz.Contracts.Forwarder.DS.V1.Specialized as DSSpecialized
 import qualified Lorentz.Contracts.Forwarder.DS.V1.ValidatedExpiring as DS
 import qualified Lorentz.Contracts.Forwarder.DS.V1.ValidatedExpiring as ValidatedExpiring
+import qualified Lorentz.Contracts.Forwarder.DS.V1.Validated as Validated
 import qualified Lorentz.Contracts.Forwarder.DS.V1 as DS
+import Lorentz.Contracts.Forwarder.TestScenario
 import qualified Lorentz.Contracts.DS.V1 as DSToken
 import Lorentz.Contracts.DS.V1.Registry.Types (InvestorId(..))
+import Morley.Nettest (NettestClientConfig(..), NettestScenario, NettestT)
+import qualified Morley.Nettest as NT
 
+import NettestHelpers
 import Lorentz.Contracts.View
 import qualified Lorentz.Contracts.Product as Product
 import qualified Lorentz.Contracts.Expiring as Expiring
@@ -75,16 +77,29 @@ import qualified Lorentz.Contracts.Validate.Reception as ValidateReception
 
 deriving instance Show (L.FutureContract p)
 
+-- | Configuration for testing the forwarder on a real network
+nettestConfig :: NettestClientConfig
+nettestConfig = NettestClientConfig
+  { nccScenarioName = Just "Forwarder"
+  , nccNodeAddress = Nothing
+  , nccNodePort = Nothing
+  , nccTezosClient = "tezos-client"
+  , nccNodeUseHttps = False
+  , nccVerbose = True
+  }
 
--- -- | Parse an `Address` argument, given its field name
--- parseAddress :: String -> Opt.Parser Address
--- parseAddress name =
---   Opt.option Opt.auto $
---   mconcat
---     [ Opt.long name
---     , Opt.metavar "ADDRESS"
---     , Opt.help $ "Address of the " ++ name ++ "."
---     ]
+-- | Parse an address argument, given its field name and description
+parseAddress :: String -> String -> Opt.Parser Address
+parseAddress name hInfo = Opt.option (Opt.eitherReader parseAddrDo) $ mconcat
+  [ Opt.long name
+  , Opt.metavar "ADDRESS"
+  , Opt.help hInfo
+  ]
+  where
+    parseAddrDo =
+      either (Left . mappend "Failed to parse address: " . pretty) Right .
+      Tezos.parseAddress .
+      toText
 
 -- | Parse a natural number argument, given its field name
 parseNatural :: String -> Opt.Parser Natural
@@ -125,42 +140,51 @@ parseTimestamp name =
 data CmdLnArgs
   = Print !(Maybe FilePath) !Bool
   | PrintSpecialized !Address !(L.FutureContract DSToken.Parameter) !(Maybe FilePath) !Bool
+  | PrintSpecializedFA12 !Address !Address !(Maybe FilePath) !Bool
   | PrintValidatedExpiring !Address !(L.FutureContract DSToken.Parameter) !(Maybe FilePath) !Bool
+  | PrintValidated !Address !(L.FutureContract DSToken.Parameter) !(Maybe FilePath) !Bool
   | InitialStorage !Address !Address !(Maybe FilePath)
   | InitialStorageValidatedExpiring
-      { dsTokenAddress :: !Address
-      , whitelist :: ![String]
-      , tokenLimit :: Natural
+      { whitelist :: ![String]
       , expirationDate :: !Timestamp
       , mOutput :: !(Maybe FilePath)
       }
+  | InitialStorageValidated
+      { whitelist :: ![String]
+      , mOutput :: !(Maybe FilePath)
+      }
   | FlushForwarder { amountToFlush :: !Natural, mOutput :: !(Maybe FilePath) }
-  | ValidateTransfer { receivedAmount :: !Natural, fromUser :: !InvestorId, mOutput :: !(Maybe FilePath) }
+  | ValidateTransfer { fromUser :: !InvestorId, mOutput :: !(Maybe FilePath) }
   | GetExpiration { callbackContract :: !Address, mOutput :: !(Maybe FilePath) } -- !(View_ Address)
-  | GetDSAddress  { callbackContract :: !Address, mOutput :: !(Maybe FilePath) } -- !(View_ Address)
-  | GetRemaining  { callbackContract :: !Address, mOutput :: !(Maybe FilePath) } -- !(View_ Natural)
   | GetWhitelist  { callbackContract :: !Address, mOutput :: !(Maybe FilePath) } -- !(View_ Whitelist)
   | Document !(Maybe FilePath)
   | Analyze
   | Parse !Address !Address !(Maybe FilePath)
+  | DeployAndTest
   deriving (Show)
+
+toFutureDSToken :: Address -> L.FutureContract DSToken.Parameter
+toFutureDSToken =
+  L.FutureContract . L.callingDefTAddress . L.toTAddress @DSToken.Parameter
 
 argParser :: Opt.Parser CmdLnArgs
 argParser = Opt.subparser $ mconcat
   [ printSubCmd
   , printSpecializedSubCmd
+  , printSpecializedFA12SubCmd
   , printValidatedExpiringSubCmd
+  , printValidatedSubCmd
   , initialStorageSubCmd
   , initialStorageValidatedExpiringSubCmd
+  , initialStorageValidatedSubCmd
   , flushForwarderSubCmd
   , validateTransferSubCmd
   , getExpirationSubCmd
-  , getDSAddressSubCmd
-  , getRemainingSubCmd
   , getWhitelistSubCmd
   , documentSubCmd
   , analyzeSubCmd
   , parseSubCmd
+  , deployAndTestSubCmd
   ]
   where
     mkCommandParser commandName parser desc =
@@ -173,11 +197,22 @@ argParser = Opt.subparser $ mconcat
       (Print <$> outputOption <*> onelineOption)
       "Dump DS Token Forwarder contract in the form of Michelson code"
 
+    printSpecializedFA12SubCmd =
+      mkCommandParser "print-specialized-fa12"
+      (PrintSpecializedFA12 <$>
+        parseAddress "central-wallet" "Address of central wallet" <*>
+        parseAddress "fa12-address" "Address of FA1.2 Token contract" <*>
+        outputOption <*>
+        onelineOption
+      )
+      ("Dump FA1.2 Token Forwarder contract, specialized to paricular addresses, " <>
+      "in the form of Michelson code")
+
     printSpecializedSubCmd =
       mkCommandParser "print-specialized"
       (PrintSpecialized <$>
-        addressOption "central-wallet" "Address of central wallet" <*>
-        (L.FutureContract . uncurry L.EpAddress . (, L.def) <$> addressOption "dstoken-address" "Address of DS Token contract") <*>
+        parseAddress "central-wallet" "Address of central wallet" <*>
+        (toFutureDSToken <$> parseAddress "dstoken-address" "Address of DS Token contract") <*>
         outputOption <*>
         onelineOption
       )
@@ -187,19 +222,30 @@ argParser = Opt.subparser $ mconcat
     printValidatedExpiringSubCmd =
       mkCommandParser "print-validated-expiring"
       (PrintValidatedExpiring <$>
-        addressOption "central-wallet" "Address of central wallet" <*>
-        (L.FutureContract . uncurry L.EpAddress . (, L.def) <$> addressOption "dstoken-address" "Address of DS Token contract") <*>
+        parseAddress "central-wallet" "Address of central wallet" <*>
+        (toFutureDSToken <$> parseAddress "dstoken-address" "Address of DS Token contract") <*>
         outputOption <*>
         onelineOption
       )
       ("Dump DS Token Forwarder contract, specialized to paricular addresses, " <>
-      "with sender validating and expiration, in the form of Michelson code")
+      "with sender validation and expiration, in the form of Michelson code")
+
+    printValidatedSubCmd =
+      mkCommandParser "print-validated"
+      (PrintValidated <$>
+        parseAddress "central-wallet" "Address of central wallet" <*>
+        (toFutureDSToken <$> parseAddress "dstoken-address" "Address of DS Token contract") <*>
+        outputOption <*>
+        onelineOption
+      )
+      ("Dump DS Token Forwarder contract, specialized to paricular addresses, " <>
+      "with sender validation, in the form of Michelson code")
 
     initialStorageSubCmd =
       mkCommandParser "initial-storage"
       (InitialStorage <$>
-        addressOption "central-wallet" "Address of central wallet" <*>
-        addressOption "dstoken-address" "Address of DS Token contract" <*>
+        parseAddress "central-wallet" "Address of central wallet" <*>
+        parseAddress "dstoken-address" "Address of DS Token contract" <*>
         outputOption
       )
       "Dump initial storage value"
@@ -207,13 +253,19 @@ argParser = Opt.subparser $ mconcat
     initialStorageValidatedExpiringSubCmd =
       mkCommandParser "initial-storage-validated-expiring"
       (InitialStorageValidatedExpiring <$>
-        addressOption "dstoken-address" "Address of DS Token contract" <*>
         parseStrings "whitelisted-investors" <*>
-        parseNatural "token-limit" <*>
         parseTimestamp "expiration-date" <*>
         outputOption
       )
       "Dump initial storage value for validated-expiring forwarder"
+
+    initialStorageValidatedSubCmd =
+      mkCommandParser "initial-storage-validated"
+      (InitialStorageValidated <$>
+        parseStrings "whitelisted-investors" <*>
+        outputOption
+      )
+      "Dump initial storage value for validated forwarder"
 
     flushForwarderSubCmd =
       mkCommandParser "flush-forwarder"
@@ -226,48 +278,28 @@ argParser = Opt.subparser $ mconcat
     validateTransferSubCmd =
       mkCommandParser "validate-transfer"
       (ValidateTransfer <$>
-        parseNatural "received-amount" <*>
         (InvestorId . mkMTextUnsafe . fromString <$> parseString "from-user") <*>
         outputOption
       )
       ("Parameter to validate an amount of tokens and its sender for the " <>
-      "validated-expiring forwarder. Note: it will fail if invalid and " <>
-      "otherwise update the remaining token forwarding limit.")
+      "validated forwarder. Note: it will fail if invalid.")
 
     getExpirationSubCmd =
       mkCommandParser "get-expiration"
       (GetExpiration <$>
-        addressOption "callback-contract" "contract accepting a 'timestamp' callback" <*>
+        parseAddress "callback-contract" "contract accepting a 'timestamp' callback" <*>
         outputOption
       )
       ("Parameter to view the expiration timestamp, " <>
       "given a contract accepting a 'timestamp")
 
-    getDSAddressSubCmd =
-      mkCommandParser "get-ds-address"
-      (GetDSAddress <$>
-        addressOption "callback-contract" "contract accepting an 'address' callback" <*>
-        outputOption
-      )
-      ("Parameter to view the DS token contract address, " <>
-      "given a contract accepting an 'address'")
-
-    getRemainingSubCmd =
-      mkCommandParser "get-token-limit"
-      (GetRemaining <$>
-        addressOption "callback-contract" "contract accepting a 'nat' callback" <*>
-        outputOption
-      )
-      ("Parameter to view the remaining token forwarding limit, " <>
-      "given a contract accepting a 'nat'")
-
     getWhitelistSubCmd =
       mkCommandParser "get-whitelist"
       (GetWhitelist <$>
-        addressOption "callback-contract" "contract accepting a '(set string)' callback" <*>
+        parseAddress "callback-contract" "contract accepting a '(set string)' callback" <*>
         outputOption
       )
-      ("Parameter to view the DS token contract address, " <>
+      ("Parameter to view the whitelist for the validated forwarder, " <>
       "given a contract accepting a (set string)")
 
     documentSubCmd =
@@ -283,11 +315,16 @@ argParser = Opt.subparser $ mconcat
     parseSubCmd =
       mkCommandParser "parse"
       (Parse <$>
-        addressOption "central-wallet" "Address of central wallet" <*>
-        addressOption "dstoken-address" "Address of DS Token contract" <*>
+        parseAddress "central-wallet" "Address of central wallet" <*>
+        parseAddress "dstoken-address" "Address of DS Token contract" <*>
         outputOption
       )
       "Parse and verify a copy of the contract"
+
+    deployAndTestSubCmd =
+      mkCommandParser "deploy-test"
+      (pure DeployAndTest)
+      "Deploy and test different ledgers and forwarder contracts"
 
     outputOption = Opt.optional $ Opt.strOption $ mconcat
       [ Opt.short 'o'
@@ -301,30 +338,14 @@ argParser = Opt.subparser $ mconcat
       Opt.help "Force single line output")
 
 
--- Copy-pasted from `morley` CLI parsing.
-addressOption :: String -> String -> Opt.Parser Address
-addressOption name hInfo =
-  Opt.option (Opt.eitherReader parseAddrDo) $ mconcat
-  [ Opt.long name
-  , Opt.metavar "ADDRESS"
-  , Opt.help hInfo
-  ]
-  where
-    parseAddrDo addr =
-      either (Left . mappend "Failed to parse address: " . pretty) Right $
-      parseAddress $ toText addr
-
 programInfo :: Opt.ParserInfo CmdLnArgs
-programInfo = Opt.info (Opt.helper <*> argParser) $ -- versionOption <*>
+programInfo = Opt.info (Opt.helper <*> argParser) $
   mconcat
   [ Opt.fullDesc
   , Opt.progDesc "CLI for DS Token Forwarder contract"
   , Opt.header "DS Token Forwarder"
   , Opt.footerDoc usageDoc
   ]
-  where
-    -- versionOption = Opt.infoOption ("morley-dstoken-contract" <> showVersion version)
-    --   (Opt.long "version" <> Opt.help "Show version.")
 
 usageDoc :: Maybe Doc
 usageDoc = Just $ mconcat
@@ -378,17 +399,23 @@ assertNestedBigMapAbsense f =
     Nothing -> error "assertNestedBigMapAbsense"
     Just Dict -> forbiddenNestedBigMaps @t f
 
-someLorentzContract :: SomeContract -> L.SomeContract
+someLorentzContract
+  :: forall param.
+     (L.NiceParameterFull param, IsoValue param, Typeable param, Typeable (ToT param))
+  => SomeContract -> L.SomeContract
 someLorentzContract (SomeContract (contract' :: FullContract cp st)) =
   case contract' of
     FullContract{..} ->
-      assertOpAbsense @cp $
-      assertNestedBigMapAbsense @cp $
-      assertOpAbsense @st $
-      assertNestedBigMapAbsense @st $
-      assertContractTypeAbsense @st $
-      L.SomeContract $
-      L.I @('[(L.Value cp, L.Value st)]) @('[([L.Operation], L.Value st)]) fcCode
+      case eqT @(ToT param) @cp of
+        Nothing -> error "The parameter type is incorrect"
+        Just Refl ->
+          assertOpAbsense @cp $
+          assertNestedBigMapAbsense @cp $
+          assertOpAbsense @st $
+          assertNestedBigMapAbsense @st $
+          assertContractTypeAbsense @st $
+          L.SomeContract $
+          (L.I fcCode :: L.Contract param (L.Value st))
 
 main :: IO ()
 main = do
@@ -405,8 +432,6 @@ main = do
       -> IO ()
     printFunc writeToFile = maybe putStrLn (\file -> writeToFile file . flip mappend "\n")
     writeFunc = printFunc writeFileUtf8
-    -- appendFunc :: (Print text, IsString text, Monoid text) => Maybe FilePath -> text -> IO ()
-    -- appendFunc = printFunc appendFileUtf8
 
     run :: CmdLnArgs -> IO ()
     run = \case
@@ -421,63 +446,60 @@ main = do
             forceOneline $
             DS.specializedForwarderContract centralWalletAddr' $
             L.toContractRef dsTokenContractRef'
+      PrintSpecializedFA12 centralWalletAddr' fa12ContractAddr' mOutput forceOneline ->
+        writeFunc mOutput $
+          L.printLorentzContract
+            forceOneline $
+            Specialized.specializedForwarderContract centralWalletAddr' $
+            fa12ContractAddr'
       PrintValidatedExpiring centralWalletAddr' dsTokenContractRef' mOutput forceOneline ->
         writeFunc mOutput $
           L.printLorentzContract
             forceOneline $
             DS.validatedExpiringForwarderContract centralWalletAddr' $
             L.toContractRef dsTokenContractRef'
+      PrintValidated centralWalletAddr' dsTokenContractRef' mOutput forceOneline ->
+        writeFunc mOutput $
+          L.printLorentzContract
+            forceOneline $
+            Validated.validatedForwarderContract centralWalletAddr' $
+            L.toContractRef dsTokenContractRef'
       InitialStorage centralWalletAddr dsTokenAddr mOutput ->
         writeFunc mOutput $ L.printLorentzValue True $ DS.Storage dsTokenAddr centralWalletAddr
       InitialStorageValidatedExpiring{..} ->
         writeFunc mOutput $
         L.printLorentzValue True $
-        ValidatedExpiring.mkStorageWithInvestorIds dsTokenAddress whitelist tokenLimit expirationDate
+        ValidatedExpiring.mkStorageWithInvestorIds whitelist expirationDate
+      InitialStorageValidated{..} ->
+        writeFunc mOutput $
+        L.printLorentzValue True $
+        Validated.mkStorageWithInvestorIds whitelist
       FlushForwarder {..} ->
         writeFunc mOutput $
         L.printLorentzValue True $
-        asParameterType $
-        Expiring.WrappedParameter $
+        asValidatedParameterType $
         Product.LeftParameter $
         amountToFlush
       ValidateTransfer {..} ->
         writeFunc mOutput $
         L.printLorentzValue True $
-        asParameterType $
-        Expiring.WrappedParameter $
+        asValidatedParameterType $
         Product.RightParameter $
         ValidateReception.Validate $
-        ValidateReception.ReceptionParameters receivedAmount fromUser
+        fromUser
       GetExpiration {..} ->
         writeFunc mOutput $
         L.printLorentzValue True $
         asParameterType $
         Expiring.GetExpiration $
-        toView_ callbackContract
-      GetDSAddress {..} ->
-        writeFunc mOutput $
-        L.printLorentzValue True $
-        asParameterType $
-        Expiring.WrappedParameter $
-        Product.RightParameter $
-        ValidateReception.GetDSAddress $
-        toView_ callbackContract
-      GetRemaining {..} ->
-        writeFunc mOutput $
-        L.printLorentzValue True $
-        asParameterType $
-        Expiring.WrappedParameter $
-        Product.RightParameter $
-        ValidateReception.GetRemaining $
-        toView_ callbackContract
+        toView_ (L.toTAddress callbackContract)
       GetWhitelist {..} ->
         writeFunc mOutput $
         L.printLorentzValue True $
-        asParameterType $
-        Expiring.WrappedParameter $
+        asValidatedParameterType $
         Product.RightParameter $
         ValidateReception.GetWhitelist $
-        toView_ callbackContract
+        toView_ (L.toTAddress callbackContract)
       Document _ -> error "documentation not implemented"
       Analyze -> do
         let
@@ -492,13 +514,45 @@ main = do
               Map.singleton
                 (case contractAddr' of {ContractAddress addr' -> addr'; _ -> error ("Expected ContractAddress, but got: " <> show contractAddr')})
                 (U.Type (toUT (fromSing expectedContractParamT)) noAnn)
+        let contractRef = L.callingDefTAddress $ L.toTAddress @DSToken.Parameter contractAddr'
+        let verifyForwarder = DS.verifyForwarderContract centralWalletAddr' contractRef
         case typeCheckContract tcContracts' uContract of
           Left err -> die $ "Failed to type check contract: " <> show err
           Right typeCheckedContract ->
-            case DS.verifyForwarderContract centralWalletAddr' (L.toContractRef contractAddr') $ someLorentzContract typeCheckedContract of
+            case verifyForwarder $ someLorentzContract @DSSpecialized.Parameter typeCheckedContract of
               -- ContractRef
               Left err -> die err
               Right () -> putStrLn ("Contract verified successfully!" :: Text)
+      DeployAndTest -> deployAndTest
+
+    deployAndTest :: IO ()
+    deployAndTest = do
+      dsId <- genContractId "er"
+      fwdId <- genContractId "fwd"
+      let
+        scenario :: NettestScenario
+        scenario = NT.uncapsNettest $ do
+          dsAddress <- originateDS dsId
+          cw <- NT.newAddress "centralWallet"
+          fwdAddress <- originateForwarder fwdId dsAddress cw
+          testScenario $
+            TestScenarioParameters
+              { tspDSToken = dsAddress
+              , tspCentralWallet = cw
+              , tspForwarder = fwdAddress
+              }
+
+      -- Quick check on that scenario is sane
+      NT.runNettestViaIntegrational scenario
+      putTextLn "Test precheck passed, running on test network"
+      NT.runNettestClient nettestConfig scenario
+      putTextLn "Test suite completed"
+
+
+    testScenario :: Monad m => TestScenarioParameters -> NettestT m ()
+    testScenario params = do
+      runTestScenario params
+      NT.comment "Test passed successfully"
 
     expectedContractParamT :: Sing (L.ToT DSToken.Parameter)
     expectedContractParamT = sing -- sing @(L.ToT DSToken.Parameter))
@@ -506,3 +560,5 @@ main = do
     asParameterType :: ValidatedExpiring.Parameter -> ValidatedExpiring.Parameter
     asParameterType = id
 
+    asValidatedParameterType :: Validated.Parameter -> Validated.Parameter
+    asValidatedParameterType = id
