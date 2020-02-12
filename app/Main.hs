@@ -1,7 +1,10 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ApplicativeDo #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TupleSections #-}
 
@@ -30,11 +33,12 @@ import Options.Applicative.Help.Pretty (Doc, linebreak)
 import qualified Data.Map as Map
 import Data.Singletons
 import Data.Constraint
+import Data.Typeable (eqT, Typeable, (:~:)(..))
 
 import Tezos.Address (Address(..))
 import qualified Tezos.Address as Tezos
 import qualified Tezos.Core as Core (parseTimestamp)
-import Lorentz (Timestamp)
+import Lorentz (Timestamp, ToT, IsoValue)
 import qualified Lorentz as L
 import Michelson.Analyzer (AnalyzerRes)
 import Util.IO (hSetTranslit, writeFileUtf8)
@@ -54,20 +58,35 @@ import Michelson.Typed.Scope
 import Michelson.Typed.Instr (FullContract(..))
 import qualified Lorentz.Contracts.Forwarder.Specialized as Specialized
 import qualified Lorentz.Contracts.Forwarder.DS.V1.Specialized as DS
+import qualified Lorentz.Contracts.Forwarder.DS.V1.Specialized as DSSpecialized
 import qualified Lorentz.Contracts.Forwarder.DS.V1.ValidatedExpiring as DS
 import qualified Lorentz.Contracts.Forwarder.DS.V1.ValidatedExpiring as ValidatedExpiring
 import qualified Lorentz.Contracts.Forwarder.DS.V1.Validated as Validated
 import qualified Lorentz.Contracts.Forwarder.DS.V1 as DS
+import Lorentz.Contracts.Forwarder.TestScenario
 import qualified Lorentz.Contracts.DS.V1 as DSToken
 import Lorentz.Contracts.DS.V1.Registry.Types (InvestorId(..))
-import qualified Lorentz.Contracts.ManagedLedger as ManagedLedger
+import Morley.Nettest (NettestClientConfig(..), NettestScenario, NettestT)
+import qualified Morley.Nettest as NT
 
+import NettestHelpers
 import Lorentz.Contracts.View
 import qualified Lorentz.Contracts.Product as Product
 import qualified Lorentz.Contracts.Expiring as Expiring
 import qualified Lorentz.Contracts.Validate.Reception as ValidateReception
 
 deriving instance Show (L.FutureContract p)
+
+-- | Configuration for testing the forwarder on a real network
+nettestConfig :: NettestClientConfig
+nettestConfig = NettestClientConfig
+  { nccScenarioName = Just "Forwarder"
+  , nccNodeAddress = Nothing
+  , nccNodePort = Nothing
+  , nccTezosClient = "tezos-client"
+  , nccNodeUseHttps = False
+  , nccVerbose = True
+  }
 
 -- | Parse an address argument, given its field name and description
 parseAddress :: String -> String -> Opt.Parser Address
@@ -121,7 +140,7 @@ parseTimestamp name =
 data CmdLnArgs
   = Print !(Maybe FilePath) !Bool
   | PrintSpecialized !Address !(L.FutureContract DSToken.Parameter) !(Maybe FilePath) !Bool
-  | PrintSpecializedFA12 !Address !(L.FutureContract ManagedLedger.Parameter) !(Maybe FilePath) !Bool
+  | PrintSpecializedFA12 !Address !Address !(Maybe FilePath) !Bool
   | PrintValidatedExpiring !Address !(L.FutureContract DSToken.Parameter) !(Maybe FilePath) !Bool
   | PrintValidated !Address !(L.FutureContract DSToken.Parameter) !(Maybe FilePath) !Bool
   | InitialStorage !Address !Address !(Maybe FilePath)
@@ -141,7 +160,12 @@ data CmdLnArgs
   | Document !(Maybe FilePath)
   | Analyze
   | Parse !Address !Address !(Maybe FilePath)
+  | DeployAndTest
   deriving (Show)
+
+toFutureDSToken :: Address -> L.FutureContract DSToken.Parameter
+toFutureDSToken =
+  L.FutureContract . L.callingDefTAddress . L.toTAddress @DSToken.Parameter
 
 argParser :: Opt.Parser CmdLnArgs
 argParser = Opt.subparser $ mconcat
@@ -160,6 +184,7 @@ argParser = Opt.subparser $ mconcat
   , documentSubCmd
   , analyzeSubCmd
   , parseSubCmd
+  , deployAndTestSubCmd
   ]
   where
     mkCommandParser commandName parser desc =
@@ -172,22 +197,22 @@ argParser = Opt.subparser $ mconcat
       (Print <$> outputOption <*> onelineOption)
       "Dump DS Token Forwarder contract in the form of Michelson code"
 
-    printSpecializedSubCmd =
+    printSpecializedFA12SubCmd =
       mkCommandParser "print-specialized-fa12"
-      (PrintSpecialized <$>
+      (PrintSpecializedFA12 <$>
         parseAddress "central-wallet" "Address of central wallet" <*>
-        (L.FutureContract . uncurry L.EpAddress . (, L.def) <$> parseAddress "fa12-address" "Address of FA1.2 Token contract") <*>
+        parseAddress "fa12-address" "Address of FA1.2 Token contract" <*>
         outputOption <*>
         onelineOption
       )
       ("Dump FA1.2 Token Forwarder contract, specialized to paricular addresses, " <>
       "in the form of Michelson code")
 
-    printSpecializedFA12SubCmd =
+    printSpecializedSubCmd =
       mkCommandParser "print-specialized"
       (PrintSpecialized <$>
         parseAddress "central-wallet" "Address of central wallet" <*>
-        (L.FutureContract . uncurry L.EpAddress . (, L.def) <$> parseAddress "dstoken-address" "Address of DS Token contract") <*>
+        (toFutureDSToken <$> parseAddress "dstoken-address" "Address of DS Token contract") <*>
         outputOption <*>
         onelineOption
       )
@@ -198,7 +223,7 @@ argParser = Opt.subparser $ mconcat
       mkCommandParser "print-validated-expiring"
       (PrintValidatedExpiring <$>
         parseAddress "central-wallet" "Address of central wallet" <*>
-        (L.FutureContract . uncurry L.EpAddress . (, L.def) <$> parseAddress "dstoken-address" "Address of DS Token contract") <*>
+        (toFutureDSToken <$> parseAddress "dstoken-address" "Address of DS Token contract") <*>
         outputOption <*>
         onelineOption
       )
@@ -209,7 +234,7 @@ argParser = Opt.subparser $ mconcat
       mkCommandParser "print-validated"
       (PrintValidated <$>
         parseAddress "central-wallet" "Address of central wallet" <*>
-        (L.FutureContract . uncurry L.EpAddress . (, L.def) <$> parseAddress "dstoken-address" "Address of DS Token contract") <*>
+        (toFutureDSToken <$> parseAddress "dstoken-address" "Address of DS Token contract") <*>
         outputOption <*>
         onelineOption
       )
@@ -296,6 +321,11 @@ argParser = Opt.subparser $ mconcat
       )
       "Parse and verify a copy of the contract"
 
+    deployAndTestSubCmd =
+      mkCommandParser "deploy-test"
+      (pure DeployAndTest)
+      "Deploy and test different ledgers and forwarder contracts"
+
     outputOption = Opt.optional $ Opt.strOption $ mconcat
       [ Opt.short 'o'
       , Opt.long "output"
@@ -369,17 +399,23 @@ assertNestedBigMapAbsense f =
     Nothing -> error "assertNestedBigMapAbsense"
     Just Dict -> forbiddenNestedBigMaps @t f
 
-someLorentzContract :: SomeContract -> L.SomeContract
+someLorentzContract
+  :: forall param.
+     (L.NiceParameterFull param, IsoValue param, Typeable param, Typeable (ToT param))
+  => SomeContract -> L.SomeContract
 someLorentzContract (SomeContract (contract' :: FullContract cp st)) =
   case contract' of
     FullContract{..} ->
-      assertOpAbsense @cp $
-      assertNestedBigMapAbsense @cp $
-      assertOpAbsense @st $
-      assertNestedBigMapAbsense @st $
-      assertContractTypeAbsense @st $
-      L.SomeContract $
-      L.I @('[(L.Value cp, L.Value st)]) @('[([L.Operation], L.Value st)]) fcCode
+      case eqT @(ToT param) @cp of
+        Nothing -> error "The parameter type is incorrect"
+        Just Refl ->
+          assertOpAbsense @cp $
+          assertNestedBigMapAbsense @cp $
+          assertOpAbsense @st $
+          assertNestedBigMapAbsense @st $
+          assertContractTypeAbsense @st $
+          L.SomeContract $
+          (L.I fcCode :: L.Contract param (L.Value st))
 
 main :: IO ()
 main = do
@@ -410,12 +446,12 @@ main = do
             forceOneline $
             DS.specializedForwarderContract centralWalletAddr' $
             L.toContractRef dsTokenContractRef'
-      PrintSpecializedFA12 centralWalletAddr' fa12ContractRef' mOutput forceOneline ->
+      PrintSpecializedFA12 centralWalletAddr' fa12ContractAddr' mOutput forceOneline ->
         writeFunc mOutput $
           L.printLorentzContract
             forceOneline $
             Specialized.specializedForwarderContract centralWalletAddr' $
-            L.toContractRef fa12ContractRef'
+            fa12ContractAddr'
       PrintValidatedExpiring centralWalletAddr' dsTokenContractRef' mOutput forceOneline ->
         writeFunc mOutput $
           L.printLorentzContract
@@ -456,14 +492,14 @@ main = do
         L.printLorentzValue True $
         asParameterType $
         Expiring.GetExpiration $
-        toView_ callbackContract
+        toView_ (L.toTAddress callbackContract)
       GetWhitelist {..} ->
         writeFunc mOutput $
         L.printLorentzValue True $
         asValidatedParameterType $
         Product.RightParameter $
         ValidateReception.GetWhitelist $
-        toView_ callbackContract
+        toView_ (L.toTAddress callbackContract)
       Document _ -> error "documentation not implemented"
       Analyze -> do
         let
@@ -478,13 +514,45 @@ main = do
               Map.singleton
                 (case contractAddr' of {ContractAddress addr' -> addr'; _ -> error ("Expected ContractAddress, but got: " <> show contractAddr')})
                 (U.Type (toUT (fromSing expectedContractParamT)) noAnn)
+        let contractRef = L.callingDefTAddress $ L.toTAddress @DSToken.Parameter contractAddr'
+        let verifyForwarder = DS.verifyForwarderContract centralWalletAddr' contractRef
         case typeCheckContract tcContracts' uContract of
           Left err -> die $ "Failed to type check contract: " <> show err
           Right typeCheckedContract ->
-            case DS.verifyForwarderContract centralWalletAddr' (L.toContractRef contractAddr') $ someLorentzContract typeCheckedContract of
+            case verifyForwarder $ someLorentzContract @DSSpecialized.Parameter typeCheckedContract of
               -- ContractRef
               Left err -> die err
               Right () -> putStrLn ("Contract verified successfully!" :: Text)
+      DeployAndTest -> deployAndTest
+
+    deployAndTest :: IO ()
+    deployAndTest = do
+      dsId <- genContractId "er"
+      fwdId <- genContractId "fwd"
+      let
+        scenario :: NettestScenario
+        scenario = NT.uncapsNettest $ do
+          dsAddress <- originateDS dsId
+          cw <- NT.newAddress "centralWallet"
+          fwdAddress <- originateForwarder fwdId dsAddress cw
+          testScenario $
+            TestScenarioParameters
+              { tspDSToken = dsAddress
+              , tspCentralWallet = cw
+              , tspForwarder = fwdAddress
+              }
+
+      -- Quick check on that scenario is sane
+      NT.runNettestViaIntegrational scenario
+      putTextLn "Test precheck passed, running on test network"
+      NT.runNettestClient nettestConfig scenario
+      putTextLn "Test suite completed"
+
+
+    testScenario :: Monad m => TestScenarioParameters -> NettestT m ()
+    testScenario params = do
+      runTestScenario params
+      NT.comment "Test passed successfully"
 
     expectedContractParamT :: Sing (L.ToT DSToken.Parameter)
     expectedContractParamT = sing -- sing @(L.ToT DSToken.Parameter))
@@ -494,5 +562,3 @@ main = do
 
     asValidatedParameterType :: Validated.Parameter -> Validated.Parameter
     asValidatedParameterType = id
-
-

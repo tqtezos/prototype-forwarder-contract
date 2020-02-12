@@ -18,7 +18,7 @@ extra-deps:
     https://gitlab.com/morley-framework/morley.git
     # ^ CI cannot use ssh, so we use http clone here
   commit:
-    13dc88b9f17172cfde87b60fa945aada21047a9b # martoon/#65-doc-collision
+    34c9cbfa160cde0ac8e9bd92d8fc57b3844da41e # master
   subdirs:
     - .
     - prelude
@@ -31,9 +31,9 @@ extra-deps:
   commit: ab4345eabd58fc6f05d3b46bea2c5acdba3ec6f8
 
 - git:
-    git@github.com:tqtezos/morley-dstoken.git
+    git@gitlab.com:elevated-returns/morley-dstoken.git
   commit:
-    935ca03370ace435222eb3cd32402ee478b44d74 # master
+    dbfc4980249410a0df1c8c5bdf3d1dd0765d70d3 # master
   subdirs:
     - .
 

@@ -53,7 +53,7 @@ runSpecializedTransfer centralWalletAddr' (ContractRef contractAddr' _) = do
   toTransferParameter
   dip $ do
     push contractAddr'
-    contract @DS.Parameter
+    contractCalling @DS.Parameter $ Call @"Run"
     ifNone
       (failUnexpected (mkMTextUnsafe "not DS"))
       (push (toEnum 0 :: Mutez))

@@ -28,7 +28,7 @@ import Lorentz.Base (SomeContract(..))
 import Michelson.Analyzer (AnalyzerRes)
 import Michelson.Text
 
-import qualified Lorentz.Contracts.ManagedLedger as ManagedLedger
+import Lorentz.Contracts.Spec.AbstractLedgerInterface (TransferParams) 
 
 import Data.Type.Equality
 import Data.Typeable
@@ -45,23 +45,21 @@ type Parameter = Natural
 -- - The central wallet to transfer sub-tokens to
 type Storage = ()
 
-
-toTransferParameter :: forall s. Address & Natural & s :-> ManagedLedger.Parameter & s
+toTransferParameter :: forall s. Address & Natural & s :-> TransferParams & s
 toTransferParameter = do
   pair
   self @Parameter
   address
   pair
-  forcedCoerce_ @(Address, (Address, Natural)) @ManagedLedger.TransferParams
-  wrap_ #cTransfer
+  forcedCoerce_ @(Address, (Address, Natural)) @TransferParams
 
-runSpecializedTransfer :: Address -> ContractRef ManagedLedger.Parameter -> (Natural & s) :-> (Operation & s)
-runSpecializedTransfer centralWalletAddr' (ContractRef contractAddr' _) = do
+runSpecializedTransfer :: Address -> Address -> (Natural & s) :-> (Operation & s)
+runSpecializedTransfer centralWalletAddr' contractAddr' = do
   push centralWalletAddr'
   toTransferParameter
   dip $ do
     push contractAddr'
-    contract @ManagedLedger.Parameter
+    contractCallingUnsafe . eprName $ Call @"Transfer"
     ifNone
       (failUnexpected (mkMTextUnsafe "not FA1.2"))
       (push (toEnum 0 :: Mutez))
@@ -69,7 +67,7 @@ runSpecializedTransfer centralWalletAddr' (ContractRef contractAddr' _) = do
 
 -- | Forwarder contract: forwards the given number of sub-tokens
 -- from its own address to the central wallet.
-specializedForwarderContract :: Address -> ContractRef ManagedLedger.Parameter -> Contract Parameter Storage
+specializedForwarderContract :: Address -> Address -> Contract Parameter Storage
 specializedForwarderContract centralWalletAddr' contractAddr' = do
   car
   runSpecializedTransfer centralWalletAddr' contractAddr'
@@ -78,7 +76,7 @@ specializedForwarderContract centralWalletAddr' contractAddr' = do
   dip unit
   pair
 
-analyzeSpecializedForwarder :: Address -> ContractRef ManagedLedger.Parameter -> AnalyzerRes
+analyzeSpecializedForwarder :: Address -> Address -> AnalyzerRes
 analyzeSpecializedForwarder centralWalletAddr' contractAddr' =
   analyzeLorentz $ specializedForwarderContract centralWalletAddr' contractAddr'
 
@@ -87,9 +85,9 @@ contractOverValue :: forall cp st. Contract cp st -> Contract (Value (ToT cp)) (
 contractOverValue x = forcedCoerce_ # x # forcedCoerce_
 
 -- | Verify that `SomeContract` is an instance of `specializedForwarderContract`, for some
--- particular central wallet address and DS Token address.
-verifyForwarderContract :: Address -> ContractRef ManagedLedger.Parameter -> SomeContract -> Either String ()
-verifyForwarderContract centralWalletAddr' dsTokenContractRef' (SomeContract (contract' :: Contract cp st)) =
+-- particular central wallet address and token address.
+verifyForwarderContract :: Address -> Address -> SomeContract -> Either String ()
+verifyForwarderContract centralWalletAddr' tokenAddr' (SomeContract (contract' :: Contract cp st)) =
   case eqT @(ToT cp) @(ToT Parameter) of
     Nothing -> Left $ "Unexpected parameter type: " <> show (typeRep (Proxy @(ToT cp)))
     Just Refl ->
@@ -110,5 +108,5 @@ verifyForwarderContract centralWalletAddr' dsTokenContractRef' (SomeContract (co
            forceOneline
            (specializedForwarderContract
               centralWalletAddr'
-              dsTokenContractRef')
+              tokenAddr')
 
