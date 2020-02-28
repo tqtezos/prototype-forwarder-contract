@@ -68,6 +68,7 @@ import qualified Lorentz.Contracts.Forwarder.DS.V1.ValidatedExpiring as DS
 import qualified Lorentz.Contracts.Forwarder.DS.V1.ValidatedExpiring as ValidatedExpiring
 import qualified Lorentz.Contracts.Forwarder.Specialized as Specialized
 import qualified Lorentz.Contracts.Forwarder.Specialized.FlushAny as Specialized
+import qualified Lorentz.Contracts.Forwarder.Specialized.FlushAny.Tez as Specialized (specializedAnyTezForwarderContract)
 import qualified Michelson.Untyped.Type as U
 import qualified Morley.Nettest as NT
 
@@ -144,6 +145,7 @@ data CmdLnArgs
   | PrintSpecialized !Address !(L.FutureContract DSToken.Parameter) !(Maybe FilePath) !Bool
   | PrintSpecializedFA12 !Address !Address !(Maybe FilePath) !Bool
   | PrintSpecializedAnyFA12 !Address !(Maybe FilePath) !Bool
+  | PrintSpecializedAnyTezFA12 !Address !(Maybe FilePath) !Bool
   | PrintValidatedExpiring !Address !(L.FutureContract DSToken.Parameter) !(Maybe FilePath) !Bool
   | PrintValidated !Address !(L.FutureContract DSToken.Parameter) !(Maybe FilePath) !Bool
   | InitialStorage !Address !Address !(Maybe FilePath)
@@ -177,6 +179,7 @@ argParser = Opt.subparser $ mconcat
   , printSpecializedSubCmd
   , printSpecializedFA12SubCmd
   , printSpecializedAnyFA12SubCmd
+  , printSpecializedAnyTezFA12SubCmd
   , printValidatedExpiringSubCmd
   , printValidatedSubCmd
   , initialStorageSubCmd
@@ -222,6 +225,17 @@ argParser = Opt.subparser $ mconcat
         onelineOption
       )
       ("Dump FA1.2 Token Forwarder contract for any FA1.2 token, " <>
+      "specialized to paricular addresses, " <>
+      "in the form of Michelson code")
+
+    printSpecializedAnyTezFA12SubCmd =
+      mkCommandParser "print-specialized-any-tez-fa12"
+      (PrintSpecializedAnyTezFA12 <$>
+        parseAddress "central-wallet" "Address of central wallet" <*>
+        outputOption <*>
+        onelineOption
+      )
+      ("Dump FA1.2 Token Forwarder contract for any FA1.2 token or Tez, " <>
       "specialized to paricular addresses, " <>
       "in the form of Michelson code")
 
@@ -483,6 +497,11 @@ main = do
           L.printLorentzContract
             forceOneline $
             Specialized.specializedAnyForwarderContract centralWalletAddr'
+      PrintSpecializedAnyTezFA12 centralWalletAddr' mOutput forceOneline ->
+        writeFunc mOutput $
+          L.printLorentzContract
+            forceOneline $
+            Specialized.specializedAnyTezForwarderContract centralWalletAddr'
       PrintValidatedExpiring centralWalletAddr' dsTokenContractRef' mOutput forceOneline ->
         writeFunc mOutput $
           L.printLorentzContract

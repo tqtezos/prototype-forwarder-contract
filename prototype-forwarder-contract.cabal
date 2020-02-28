@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9298af40e68ea05d9d7a79d7ad2d76dc0f70e3ce6daed5b1506f4b3409c4e18c
+-- hash: 513ef2bd20887e3e55557fa2046f1038584ea15a43f8985a8d73aa73192aecfa
 
 name:           prototype-forwarder-contract
 version:        0.1.0.0
@@ -36,6 +36,7 @@ library
       Lorentz.Contracts.Forwarder.DS.V1.ValidatedExpiring
       Lorentz.Contracts.Forwarder.Specialized
       Lorentz.Contracts.Forwarder.Specialized.FlushAny
+      Lorentz.Contracts.Forwarder.Specialized.FlushAny.Tez
       Lorentz.Contracts.Forwarder.TestScenario
       Lorentz.Contracts.Product
       Lorentz.Contracts.Validate.Reception
