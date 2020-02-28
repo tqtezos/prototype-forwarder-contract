@@ -47,26 +47,28 @@ import Universum.String
 import Universum.Lifted
 import Universum.Exception
 
+import Lorentz.Contracts.DS.V1.Registry.Types (InvestorId(..))
+import Lorentz.Contracts.Forwarder.TestScenario
 import Michelson.Macro
 import Michelson.Runtime
-import Michelson.TypeCheck
-import qualified Michelson.Untyped.Type as U
-import Michelson.Untyped.Annotation (noAnn)
 import Michelson.Text
-import Michelson.Typed.T
-import Michelson.Typed.Scope
+import Michelson.TypeCheck
+import Michelson.Typed.EntryPoints
 import Michelson.Typed.Instr (FullContract(..))
-import qualified Lorentz.Contracts.Forwarder.Specialized as Specialized
+import Michelson.Typed.Scope
+import Michelson.Typed.T
+import Michelson.Untyped.Annotation (noAnn)
+import Morley.Nettest (NettestClientConfig(..), NettestScenario, NettestT)
+import qualified Lorentz.Contracts.DS.V1 as DSToken
+import qualified Lorentz.Contracts.Forwarder.DS.V1 as DS
 import qualified Lorentz.Contracts.Forwarder.DS.V1.Specialized as DS
 import qualified Lorentz.Contracts.Forwarder.DS.V1.Specialized as DSSpecialized
+import qualified Lorentz.Contracts.Forwarder.DS.V1.Validated as Validated
 import qualified Lorentz.Contracts.Forwarder.DS.V1.ValidatedExpiring as DS
 import qualified Lorentz.Contracts.Forwarder.DS.V1.ValidatedExpiring as ValidatedExpiring
-import qualified Lorentz.Contracts.Forwarder.DS.V1.Validated as Validated
-import qualified Lorentz.Contracts.Forwarder.DS.V1 as DS
-import Lorentz.Contracts.Forwarder.TestScenario
-import qualified Lorentz.Contracts.DS.V1 as DSToken
-import Lorentz.Contracts.DS.V1.Registry.Types (InvestorId(..))
-import Morley.Nettest (NettestClientConfig(..), NettestScenario, NettestT)
+import qualified Lorentz.Contracts.Forwarder.Specialized as Specialized
+import qualified Lorentz.Contracts.Forwarder.Specialized.FlushAny as Specialized
+import qualified Michelson.Untyped.Type as U
 import qualified Morley.Nettest as NT
 
 import NettestHelpers
@@ -141,6 +143,7 @@ data CmdLnArgs
   = Print !(Maybe FilePath) !Bool
   | PrintSpecialized !Address !(L.FutureContract DSToken.Parameter) !(Maybe FilePath) !Bool
   | PrintSpecializedFA12 !Address !Address !(Maybe FilePath) !Bool
+  | PrintSpecializedAnyFA12 !Address !(Maybe FilePath) !Bool
   | PrintValidatedExpiring !Address !(L.FutureContract DSToken.Parameter) !(Maybe FilePath) !Bool
   | PrintValidated !Address !(L.FutureContract DSToken.Parameter) !(Maybe FilePath) !Bool
   | InitialStorage !Address !Address !(Maybe FilePath)
@@ -154,6 +157,7 @@ data CmdLnArgs
       , mOutput :: !(Maybe FilePath)
       }
   | FlushForwarder { amountToFlush :: !Natural, mOutput :: !(Maybe FilePath) }
+  | FlushSpecializedAnyForwarder { amountToFlush :: !Natural, tokenContract :: !Address, mOutput :: !(Maybe FilePath) }
   | ValidateTransfer { fromUser :: !InvestorId, mOutput :: !(Maybe FilePath) }
   | GetExpiration { callbackContract :: !Address, mOutput :: !(Maybe FilePath) } -- !(View_ Address)
   | GetWhitelist  { callbackContract :: !Address, mOutput :: !(Maybe FilePath) } -- !(View_ Whitelist)
@@ -172,12 +176,14 @@ argParser = Opt.subparser $ mconcat
   [ printSubCmd
   , printSpecializedSubCmd
   , printSpecializedFA12SubCmd
+  , printSpecializedAnyFA12SubCmd
   , printValidatedExpiringSubCmd
   , printValidatedSubCmd
   , initialStorageSubCmd
   , initialStorageValidatedExpiringSubCmd
   , initialStorageValidatedSubCmd
   , flushForwarderSubCmd
+  , flushSpecializedAnyForwarderSubCmd
   , validateTransferSubCmd
   , getExpirationSubCmd
   , getWhitelistSubCmd
@@ -206,6 +212,17 @@ argParser = Opt.subparser $ mconcat
         onelineOption
       )
       ("Dump FA1.2 Token Forwarder contract, specialized to paricular addresses, " <>
+      "in the form of Michelson code")
+
+    printSpecializedAnyFA12SubCmd =
+      mkCommandParser "print-specialized-any-fa12"
+      (PrintSpecializedAnyFA12 <$>
+        parseAddress "central-wallet" "Address of central wallet" <*>
+        outputOption <*>
+        onelineOption
+      )
+      ("Dump FA1.2 Token Forwarder contract for any FA1.2 token, " <>
+      "specialized to paricular addresses, " <>
       "in the form of Michelson code")
 
     printSpecializedSubCmd =
@@ -273,7 +290,16 @@ argParser = Opt.subparser $ mconcat
         parseNatural "tokens-to-flush" <*>
         outputOption
       )
-      "Parameter to flush validated-expiring forwarder"
+      "Parameter to flush forwarder"
+
+    flushSpecializedAnyForwarderSubCmd =
+      mkCommandParser "flush-specialized-any-forwarder"
+      (FlushSpecializedAnyForwarder <$>
+        parseNatural "tokens-to-flush" <*>
+        parseAddress "tokens-contract" "Address of FA1.2 token contract" <*>
+        outputOption
+      )
+      "Parameter to flush spzialized any-token forwarder"
 
     validateTransferSubCmd =
       mkCommandParser "validate-transfer"
@@ -452,6 +478,11 @@ main = do
             forceOneline $
             Specialized.specializedForwarderContract centralWalletAddr' $
             fa12ContractAddr'
+      PrintSpecializedAnyFA12 centralWalletAddr' mOutput forceOneline ->
+        writeFunc mOutput $
+          L.printLorentzContract
+            forceOneline $
+            Specialized.specializedAnyForwarderContract centralWalletAddr'
       PrintValidatedExpiring centralWalletAddr' dsTokenContractRef' mOutput forceOneline ->
         writeFunc mOutput $
           L.printLorentzContract
@@ -480,6 +511,11 @@ main = do
         asValidatedParameterType $
         Product.LeftParameter $
         amountToFlush
+      FlushSpecializedAnyForwarder {..} ->
+        writeFunc mOutput $
+        L.printLorentzValue True $
+        Specialized.Parameter amountToFlush $
+        L.ContractRef tokenContract sepcPrimitive
       ValidateTransfer {..} ->
         writeFunc mOutput $
         L.printLorentzValue True $
