@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -26,10 +27,13 @@ import Lorentz hiding (SomeContract(..))
 import Lorentz.Run (analyzeLorentz)
 import Lorentz.Base (SomeContract(..))
 import Michelson.Analyzer (AnalyzerRes)
+import Michelson.Typed.EntryPoints
 
 import Lorentz.Contracts.Spec.AbstractLedgerInterface (TransferParams)
+import qualified Lorentz.Contracts.Spec.AbstractLedgerInterface as AL
 import qualified Lorentz.Contracts.Forwarder.Specialized as Specialized
 
+import Data.Singletons
 import Data.Type.Equality
 import Data.Typeable
 import Prelude (Show(..), Enum(..), Eq(..), ($), String, show)
@@ -46,8 +50,42 @@ data Parameter = Parameter
   deriving stock Generic
   deriving anyclass IsoValue
 
+instance ParameterHasEntryPoints Parameter where
+  type ParameterEntryPointsDerivation Parameter = EpdNone
+
 unParameter :: Parameter & s :-> (Natural, ContractRef TransferParams) & s
 unParameter = forcedCoerce_
+
+-- | Assumes the `Address` points to a `AL.Parameter`
+mkParameter :: Natural -> Address -> Parameter
+mkParameter amountToFlush' tokenContract' =
+  Parameter
+    amountToFlush' $
+    ContractRef tokenContract' unsafeEPCall
+  where
+    epParamNotes' :: ParamNotes (ToT AL.Parameter)
+    epParamNotes' =
+      ParamNotesUnsafe $
+      epdNotes @(ParameterEntryPointsDerivation AL.Parameter) @AL.Parameter
+
+    mkEPCallRes' :: MkEntryPointCallRes (ToT AL.Parameter)
+    mkEPCallRes' =
+      case mkEntryPointCall @(ToT AL.Parameter)
+        (EpNameUnsafe "transfer")
+        (sing, epParamNotes') of
+        Nothing -> error "mkParameter: TransferParams does not have label 'transfer'"
+        Just xs -> xs
+
+    unsafeEPCall :: SomeEntryPointCall TransferParams
+    unsafeEPCall =
+      (\case
+        MkEntryPointCallRes _ (epCall' :: EntryPointCallT (ToT AL.Parameter) arg) ->
+          case eqT @arg @(ToT TransferParams) of
+            Nothing -> error "mkParameter: arg does not have type TransferParams"
+            Just Refl ->
+              SomeEpc @(ToT TransferParams) @(ToT AL.Parameter) epCall'
+      ) mkEPCallRes'
+
 
 -- | We have the addresses of:
 -- - The central wallet to transfer sub-tokens to

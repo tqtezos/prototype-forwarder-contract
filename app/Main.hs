@@ -53,7 +53,6 @@ import Michelson.Macro
 import Michelson.Runtime
 import Michelson.Text
 import Michelson.TypeCheck
-import Michelson.Typed.EntryPoints
 import Michelson.Typed.Instr (FullContract(..))
 import Michelson.Typed.Scope
 import Michelson.Typed.T
@@ -533,8 +532,7 @@ main = do
       FlushSpecializedAnyForwarder {..} ->
         writeFunc mOutput $
         L.printLorentzValue True $
-        Specialized.Parameter amountToFlush $
-        L.ContractRef tokenContract sepcPrimitive
+        Specialized.mkParameter amountToFlush tokenContract
       ValidateTransfer {..} ->
         writeFunc mOutput $
         L.printLorentzValue True $

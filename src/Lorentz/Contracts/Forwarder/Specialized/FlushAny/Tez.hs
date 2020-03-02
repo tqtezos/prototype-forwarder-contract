@@ -29,7 +29,9 @@ import Michelson.Analyzer (AnalyzerRes)
 import Michelson.Text
 
 import Lorentz.Contracts.Spec.AbstractLedgerInterface (TransferParams)
+import Lorentz.Contracts.Forwarder.Specialized.FlushAny (Parameter(..))
 import qualified Lorentz.Contracts.Forwarder.Specialized as Specialized
+import qualified Lorentz.Contracts.Forwarder.Specialized.FlushAny as FlushAny
 
 import Data.Type.Equality
 import Data.Typeable
@@ -37,30 +39,9 @@ import Prelude (Show(..), Enum(..), Eq(..), ($), String, show)
 
 import GHC.Natural.Orphans ()
 
-
--- | The number of sub-tokens to forward and which token to forward it on
-data Parameter = Parameter
-  { amountToFlush :: !Natural
-  , tokenContract :: !(ContractRef TransferParams)
-  }
-  deriving stock Show
-  deriving stock Generic
-  deriving anyclass IsoValue
-
-unParameter :: Parameter & s :-> (Natural, ContractRef TransferParams) & s
-unParameter = forcedCoerce_
-
 -- | We have the addresses of:
 -- - The central wallet to transfer sub-tokens to
 type Storage = ()
-
-toTransferParameter :: forall s. Address & Natural & s :-> TransferParams & s
-toTransferParameter = do
-  pair
-  self @Parameter
-  address
-  pair
-  forcedCoerce_ @(Address, (Address, Natural)) @TransferParams
 
 runSpecializedAnyTezTransfer :: Address -> (Natural & ContractRef TransferParams & s) :-> ([Operation] & s)
 runSpecializedAnyTezTransfer centralWalletAddr' = do
@@ -68,8 +49,8 @@ runSpecializedAnyTezTransfer centralWalletAddr' = do
   nil @Operation
   balance
   push $ toEnum @Mutez 0
-  eq
-  if_
+  ifEq
+    nop
     (do
       dip $ do
         dup
@@ -81,9 +62,8 @@ runSpecializedAnyTezTransfer centralWalletAddr' = do
       swap
       cons
     )
-    nop
   dip $ do
-    toTransferParameter
+    FlushAny.toTransferParameter
     dip . push $ toEnum @Mutez 0
     transferTokens
   swap
@@ -96,7 +76,7 @@ runSpecializedAnyTezTransfer centralWalletAddr' = do
 specializedAnyTezForwarderContract :: Address -> Contract Parameter Storage
 specializedAnyTezForwarderContract centralWalletAddr' = do
   car
-  unParameter
+  FlushAny.unParameter
   unpair
   runSpecializedAnyTezTransfer centralWalletAddr'
   dip unit
