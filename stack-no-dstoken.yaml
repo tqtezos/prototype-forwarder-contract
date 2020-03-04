@@ -1,0 +1,34 @@
+resolver: lts-14.15
+
+packages:
+- .
+
+extra-deps:
+- aeson-options-0.1.0
+- base58-bytestring-0.1.0
+- constraints-0.11
+- hex-text-0.1.0.0
+- pretty-terminal-0.1.0.0
+- qm-interpolated-string-0.3.0.0
+- show-type-0.1.1
+- first-class-families-0.6.0.0@sha256:9d2a2a0092dfb8fd0e688b0b6bf71242fbc393c028b0b669d25ed387667490c2
+
+# Morley and associated libraries
+- git:
+    https://gitlab.com/morley-framework/morley.git
+    # ^ CI cannot use ssh, so we use http clone here
+  commit:
+    34c9cbfa160cde0ac8e9bd92d8fc57b3844da41e # master
+  subdirs:
+    - .
+    - prelude
+    - morley-upgradeable
+    - morley-ledgers
+    - morley-ledgers-test
+    - indigo
+    - morley-nettest
+- git: https://github.com/int-index/caps.git
+  commit: ab4345eabd58fc6f05d3b46bea2c5acdba3ec6f8
+
+nix:
+  shell-file: shell.nix

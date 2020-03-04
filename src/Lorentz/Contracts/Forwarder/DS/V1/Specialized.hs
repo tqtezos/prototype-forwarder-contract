@@ -17,10 +17,13 @@
 {-# LANGUAGE OverloadedLabels #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE CPP #-}
 
 {-# OPTIONS -Wall -Wno-unused-do-bind -Wno-orphans #-}
 
 module Lorentz.Contracts.Forwarder.DS.V1.Specialized where
+
+#ifdef HAS_DSTOKEN
 
 import Lorentz hiding (SomeContract(..))
 import Lorentz.Run (analyzeLorentz)
@@ -104,3 +107,4 @@ verifyForwarderContract centralWalletAddr' dsTokenContractRef' (SomeContract (co
               centralWalletAddr'
               dsTokenContractRef')
 
+#endif
