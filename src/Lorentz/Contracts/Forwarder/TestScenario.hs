@@ -7,6 +7,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE CPP #-}
 
 module Lorentz.Contracts.Forwarder.TestScenario
   ( runTestScenario
@@ -18,11 +19,15 @@ import Universum (safeHead, (?:))
 
 import qualified Lorentz as L
 import Lorentz.Constraints
+
+#ifdef HAS_DSTOKEN
 import qualified Lorentz.Contracts.DS.V1 as V1
 import Lorentz.Contracts.DS.V1.Compliance.Types
 import qualified Lorentz.Contracts.DS.V1.Token as Token
 import qualified Lorentz.Contracts.DS.V1.Registry as Registry
 import Lorentz.Contracts.DS.V1.Registry.Types
+#endif
+
 import Lorentz.Contracts.Upgradeable.Common as Upg
 import Lorentz.Value (Label)
 import Morley.Nettest (AddrOrAlias(..), NettestT)
@@ -31,6 +36,7 @@ import qualified Morley.Nettest as NT
 import Tezos.Address (Address)
 import Tezos.Core
 
+#ifdef HAS_DSTOKEN
 inv0, inv1 :: InvestorId
 inv0 = InvestorId [mt|r1|]
 inv1 = InvestorId [mt|r2|]
@@ -73,6 +79,7 @@ ciMostChecksForTransfer = ComplianceInfoExt
   , ciForceAccredited = Just True
   , ciForceAccreditedUS = Just True
   }
+#endif
 
 mkRun
   :: ( KnownSymbol name
@@ -83,6 +90,7 @@ mkRun
   => Label name -> arg -> Upg.Parameter ver
 mkRun name arg = Upg.Run $ L.mkUParam name arg
 
+#ifdef HAS_DSTOKEN
 mkRunV1
   :: ( KnownSymbol name
      , NicePackedValue arg
@@ -91,6 +99,7 @@ mkRunV1
      )
   => Label name -> arg -> Upg.Parameter ver
 mkRunV1 = mkRun
+#endif
 
 -- | 'NT.TransferData' for the default entrypoint of some contract.
 defCallData
@@ -121,6 +130,7 @@ data TestScenarioParameters
     , tspForwarder :: Address
     }
 
+#ifdef HAS_DSTOKEN
 testScenario :: Monad m => TestScenarioParameters -> NettestT m Scenario
 testScenario TestScenarioParameters{..} = do
   master <- NT.resolveNettestAddr
@@ -161,8 +171,17 @@ testScenario TestScenarioParameters{..} = do
     [ initRegistryMinimal
     , performTransfer
     ]
+#endif
 
+#ifdef HAS_DSTOKEN
 runTestScenario
   :: Monad m
   => TestScenarioParameters -> NettestT m ()
 runTestScenario params = compileScenario $ testScenario params
+#else
+runTestScenario
+  :: Monad m
+  => a -> NettestT m ()
+runTestScenario _ = return ()
+#endif
+

@@ -2,10 +2,15 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE CPP #-}
 
 module NettestHelpers
   ( genContractId
+
+  #ifdef HAS_DSTOKEN
   , originateDS
+  #endif
+
   , originateForwarder
   ) where
 
@@ -19,10 +24,14 @@ import Universum.String
 
 import Lorentz (mt, Text, Address)
 import qualified Lorentz as L
+
+#ifdef HAS_DSTOKEN
 import Lorentz.Contracts.DS.Permanent (mkEmptyStorage)
 import Lorentz.Contracts.DS.Preprocess (v0Contract, v1CompiledMigration, v1UpgradeParameters)
 import qualified Lorentz.Contracts.DS.V1 as V1
 import qualified Lorentz.Contracts.DS.V1.Token as Token
+#endif
+
 import qualified Lorentz.Contracts.Forwarder.Specialized as Fwd
 import qualified Lorentz.Contracts.Upgradeable.Common as Upg
 import Morley.Nettest
@@ -34,6 +43,7 @@ genContractId prefix = do
   contractIdNum <- randomRIO @Int (1, 10000)
   return (prefix <> show contractIdNum)
 
+#ifdef HAS_DSTOKEN
 mkProductionOrigParams :: L.Address -> V1.OriginationParameters
 mkProductionOrigParams master = V1.OriginationParameters
   { opMaster = master
@@ -64,6 +74,7 @@ originateDS contractId = do
     "Successfully deployed DSToken: " <>
     pretty contractId <> " / " <> pretty contract
   return contract
+#endif
 
 originateForwarder
   :: Monad m => Text -> Address -> Address -> NettestT m Address
@@ -80,5 +91,5 @@ originateForwarder contractId ds centralWallet = do
     "Successfully deployed forwarder: " <>
     pretty contractId <> " / " <> pretty contract
   return contract
- 
+
 

@@ -17,6 +17,7 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE MonoLocalBinds #-}
+{-# LANGUAGE CPP #-}
 
 {-# OPTIONS -Wall -Wno-orphans #-}
 
@@ -27,10 +28,14 @@ import Data.String
 import GHC.Natural
 import Prelude hiding (putStrLn, show, print)
 
+#ifdef HAS_DSTOKEN
 import Fmt (pretty, fmt, build, nameF)
+#else
+import Fmt (pretty)
+#endif
+
 import qualified Options.Applicative as Opt
 import Options.Applicative.Help.Pretty (Doc, linebreak)
-import qualified Data.Map as Map
 import Data.Singletons
 import Data.Constraint
 import Data.Typeable (eqT, Typeable, (:~:)(..))
@@ -40,33 +45,53 @@ import qualified Tezos.Address as Tezos
 import qualified Tezos.Core as Core (parseTimestamp)
 import Lorentz (Timestamp, ToT, IsoValue)
 import qualified Lorentz as L
-import Michelson.Analyzer (AnalyzerRes)
 import Util.IO (hSetTranslit, writeFileUtf8)
 import Universum.Print
 import Universum.String
 import Universum.Lifted
 import Universum.Exception
 
+#ifdef HAS_DSTOKEN
+import qualified Data.Map as Map
+
+import Michelson.Analyzer (AnalyzerRes)
+
+import Lorentz.Contracts.DS.V1.Registry.Types (InvestorId(..))
+
+import Lorentz.Contracts.Forwarder.TestScenario
 import Michelson.Macro
 import Michelson.Runtime
-import Michelson.TypeCheck
-import qualified Michelson.Untyped.Type as U
-import Michelson.Untyped.Annotation (noAnn)
 import Michelson.Text
-import Michelson.Typed.T
-import Michelson.Typed.Scope
+#endif
+
+import Michelson.TypeCheck
 import Michelson.Typed.Instr (FullContract(..))
-import qualified Lorentz.Contracts.Forwarder.Specialized as Specialized
+import Michelson.Typed.Scope
+import Michelson.Typed.T
+import Michelson.Untyped.Annotation (noAnn)
+
+#ifdef HAS_DSTOKEN
+import Morley.Nettest (NettestClientConfig(..), NettestScenario, NettestT)
+#else
+import Morley.Nettest (NettestClientConfig(..))
+#endif
+
+#ifdef HAS_DSTOKEN
+import qualified Lorentz.Contracts.DS.V1 as DSToken
+import qualified Lorentz.Contracts.Forwarder.DS.V1 as DS
 import qualified Lorentz.Contracts.Forwarder.DS.V1.Specialized as DS
 import qualified Lorentz.Contracts.Forwarder.DS.V1.Specialized as DSSpecialized
+import qualified Lorentz.Contracts.Forwarder.DS.V1.Validated as Validated
 import qualified Lorentz.Contracts.Forwarder.DS.V1.ValidatedExpiring as DS
 import qualified Lorentz.Contracts.Forwarder.DS.V1.ValidatedExpiring as ValidatedExpiring
-import qualified Lorentz.Contracts.Forwarder.DS.V1.Validated as Validated
-import qualified Lorentz.Contracts.Forwarder.DS.V1 as DS
-import Lorentz.Contracts.Forwarder.TestScenario
-import qualified Lorentz.Contracts.DS.V1 as DSToken
-import Lorentz.Contracts.DS.V1.Registry.Types (InvestorId(..))
-import Morley.Nettest (NettestClientConfig(..), NettestScenario, NettestT)
+#endif
+
+import qualified Lorentz.Contracts.Forwarder.Specialized as Specialized
+import qualified Lorentz.Contracts.Forwarder.Specialized.FlushAny as Specialized
+import qualified Lorentz.Contracts.Forwarder.Specialized.FlushAny.Tez as Specialized (specializedAnyTezForwarderContract)
+import qualified Michelson.Untyped.Type as U
+
+#ifdef HAS_DSTOKEN
 import qualified Morley.Nettest as NT
 
 import NettestHelpers
@@ -74,6 +99,7 @@ import Lorentz.Contracts.View
 import qualified Lorentz.Contracts.Product as Product
 import qualified Lorentz.Contracts.Expiring as Expiring
 import qualified Lorentz.Contracts.Validate.Reception as ValidateReception
+#endif
 
 deriving instance Show (L.FutureContract p)
 
@@ -138,9 +164,16 @@ parseTimestamp name =
     ]
 
 data CmdLnArgs
+  #ifdef HAS_DSTOKEN
   = Print !(Maybe FilePath) !Bool
   | PrintSpecialized !Address !(L.FutureContract DSToken.Parameter) !(Maybe FilePath) !Bool
   | PrintSpecializedFA12 !Address !Address !(Maybe FilePath) !Bool
+  #else
+  = PrintSpecializedFA12 !Address !Address !(Maybe FilePath) !Bool
+  #endif
+  | PrintSpecializedAnyFA12 !Address !(Maybe FilePath) !Bool
+  | PrintSpecializedAnyTezFA12 !Address !(Maybe FilePath) !Bool
+  #ifdef HAS_DSTOKEN
   | PrintValidatedExpiring !Address !(L.FutureContract DSToken.Parameter) !(Maybe FilePath) !Bool
   | PrintValidated !Address !(L.FutureContract DSToken.Parameter) !(Maybe FilePath) !Bool
   | InitialStorage !Address !Address !(Maybe FilePath)
@@ -154,6 +187,9 @@ data CmdLnArgs
       , mOutput :: !(Maybe FilePath)
       }
   | FlushForwarder { amountToFlush :: !Natural, mOutput :: !(Maybe FilePath) }
+  #endif
+  | FlushSpecializedAnyForwarder { amountToFlush :: !Natural, tokenContract :: !Address, mOutput :: !(Maybe FilePath) }
+  #ifdef HAS_DSTOKEN
   | ValidateTransfer { fromUser :: !InvestorId, mOutput :: !(Maybe FilePath) }
   | GetExpiration { callbackContract :: !Address, mOutput :: !(Maybe FilePath) } -- !(View_ Address)
   | GetWhitelist  { callbackContract :: !Address, mOutput :: !(Maybe FilePath) } -- !(View_ Whitelist)
@@ -161,23 +197,30 @@ data CmdLnArgs
   | Analyze
   | Parse !Address !Address !(Maybe FilePath)
   | DeployAndTest
+  #endif
   deriving (Show)
 
+#ifdef HAS_DSTOKEN
 toFutureDSToken :: Address -> L.FutureContract DSToken.Parameter
 toFutureDSToken =
   L.FutureContract . L.callingDefTAddress . L.toTAddress @DSToken.Parameter
+#endif
 
 argParser :: Opt.Parser CmdLnArgs
 argParser = Opt.subparser $ mconcat
+  #ifdef HAS_DSTOKEN
   [ printSubCmd
   , printSpecializedSubCmd
   , printSpecializedFA12SubCmd
+  , printSpecializedAnyFA12SubCmd
+  , printSpecializedAnyTezFA12SubCmd
   , printValidatedExpiringSubCmd
   , printValidatedSubCmd
   , initialStorageSubCmd
   , initialStorageValidatedExpiringSubCmd
   , initialStorageValidatedSubCmd
   , flushForwarderSubCmd
+  , flushSpecializedAnyForwarderSubCmd
   , validateTransferSubCmd
   , getExpirationSubCmd
   , getWhitelistSubCmd
@@ -186,16 +229,25 @@ argParser = Opt.subparser $ mconcat
   , parseSubCmd
   , deployAndTestSubCmd
   ]
+  #else
+  [ printSpecializedFA12SubCmd
+  , printSpecializedAnyFA12SubCmd
+  , printSpecializedAnyTezFA12SubCmd
+  , flushSpecializedAnyForwarderSubCmd
+  ]
+  #endif
   where
     mkCommandParser commandName parser desc =
       Opt.command commandName $
       Opt.info (Opt.helper <*> parser) $
       Opt.progDesc desc
 
+    #ifdef HAS_DSTOKEN
     printSubCmd =
       mkCommandParser "print"
       (Print <$> outputOption <*> onelineOption)
       "Dump DS Token Forwarder contract in the form of Michelson code"
+    #endif
 
     printSpecializedFA12SubCmd =
       mkCommandParser "print-specialized-fa12"
@@ -208,6 +260,29 @@ argParser = Opt.subparser $ mconcat
       ("Dump FA1.2 Token Forwarder contract, specialized to paricular addresses, " <>
       "in the form of Michelson code")
 
+    printSpecializedAnyFA12SubCmd =
+      mkCommandParser "print-specialized-any-fa12"
+      (PrintSpecializedAnyFA12 <$>
+        parseAddress "central-wallet" "Address of central wallet" <*>
+        outputOption <*>
+        onelineOption
+      )
+      ("Dump FA1.2 Token Forwarder contract for any FA1.2 token, " <>
+      "specialized to paricular addresses, " <>
+      "in the form of Michelson code")
+
+    printSpecializedAnyTezFA12SubCmd =
+      mkCommandParser "print-specialized-any-tez-fa12"
+      (PrintSpecializedAnyTezFA12 <$>
+        parseAddress "central-wallet" "Address of central wallet" <*>
+        outputOption <*>
+        onelineOption
+      )
+      ("Dump FA1.2 Token Forwarder contract for any FA1.2 token or Tez, " <>
+      "specialized to paricular addresses, " <>
+      "in the form of Michelson code")
+
+    #ifdef HAS_DSTOKEN
     printSpecializedSubCmd =
       mkCommandParser "print-specialized"
       (PrintSpecialized <$>
@@ -273,8 +348,19 @@ argParser = Opt.subparser $ mconcat
         parseNatural "tokens-to-flush" <*>
         outputOption
       )
-      "Parameter to flush validated-expiring forwarder"
+      "Parameter to flush forwarder"
+    #endif
 
+    flushSpecializedAnyForwarderSubCmd =
+      mkCommandParser "flush-specialized-any-forwarder"
+      (FlushSpecializedAnyForwarder <$>
+        parseNatural "tokens-to-flush" <*>
+        parseAddress "tokens-contract" "Address of FA1.2 token contract" <*>
+        outputOption
+      )
+      "Parameter to flush spzialized any-token forwarder"
+
+    #ifdef HAS_DSTOKEN
     validateTransferSubCmd =
       mkCommandParser "validate-transfer"
       (ValidateTransfer <$>
@@ -325,6 +411,7 @@ argParser = Opt.subparser $ mconcat
       mkCommandParser "deploy-test"
       (pure DeployAndTest)
       "Deploy and test different ledgers and forwarder contracts"
+    #endif
 
     outputOption = Opt.optional $ Opt.strOption $ mconcat
       [ Opt.short 'o'
@@ -435,6 +522,7 @@ main = do
 
     run :: CmdLnArgs -> IO ()
     run = \case
+      #ifdef HAS_DSTOKEN
       Print mOutput forceOneline ->
         writeFunc mOutput $
           L.printLorentzContract
@@ -446,12 +534,24 @@ main = do
             forceOneline $
             DS.specializedForwarderContract centralWalletAddr' $
             L.toContractRef dsTokenContractRef'
+      #endif
       PrintSpecializedFA12 centralWalletAddr' fa12ContractAddr' mOutput forceOneline ->
         writeFunc mOutput $
           L.printLorentzContract
             forceOneline $
             Specialized.specializedForwarderContract centralWalletAddr' $
             fa12ContractAddr'
+      PrintSpecializedAnyFA12 centralWalletAddr' mOutput forceOneline ->
+        writeFunc mOutput $
+          L.printLorentzContract
+            forceOneline $
+            Specialized.specializedAnyForwarderContract centralWalletAddr'
+      PrintSpecializedAnyTezFA12 centralWalletAddr' mOutput forceOneline ->
+        writeFunc mOutput $
+          L.printLorentzContract
+            forceOneline $
+            Specialized.specializedAnyTezForwarderContract centralWalletAddr'
+      #ifdef HAS_DSTOKEN
       PrintValidatedExpiring centralWalletAddr' dsTokenContractRef' mOutput forceOneline ->
         writeFunc mOutput $
           L.printLorentzContract
@@ -480,6 +580,12 @@ main = do
         asValidatedParameterType $
         Product.LeftParameter $
         amountToFlush
+      #endif
+      FlushSpecializedAnyForwarder {..} ->
+        writeFunc mOutput $
+        L.printLorentzValue True $
+        Specialized.mkParameter amountToFlush tokenContract
+      #ifdef HAS_DSTOKEN
       ValidateTransfer {..} ->
         writeFunc mOutput $
         L.printLorentzValue True $
@@ -524,7 +630,9 @@ main = do
               Left err -> die err
               Right () -> putStrLn ("Contract verified successfully!" :: Text)
       DeployAndTest -> deployAndTest
+      #endif
 
+    #ifdef HAS_DSTOKEN
     deployAndTest :: IO ()
     deployAndTest = do
       dsId <- genContractId "er"
@@ -562,3 +670,4 @@ main = do
 
     asValidatedParameterType :: Validated.Parameter -> Validated.Parameter
     asValidatedParameterType = id
+    #endif

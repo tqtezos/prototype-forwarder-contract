@@ -1,6 +1,9 @@
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE CPP #-}
 
 module Lorentz.Contracts.Forwarder.DS.V1.Validated where
+
+#ifdef HAS_DSTOKEN
 
 import Data.String (IsString(..))
 
@@ -42,3 +45,4 @@ validatedForwarderContract centralWalletAddr' contractAddr' =
     (Forwarder.specializedForwarderContract centralWalletAddr' contractAddr')
     ValidateReception.validateReceptionContract
 
+#endif

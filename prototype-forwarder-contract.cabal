@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 066fb9df50eefcd3f5da3eed5078304ef8808c82ce252d19f1285c6894d8a4f7
+-- hash: e7222fd6fc9c99f39ba4ef0ed09be6d93bb3f430ed9c84aebf62c7126ebbc38f
 
 name:           prototype-forwarder-contract
 version:        0.1.0.0
@@ -25,6 +25,11 @@ source-repository head
   type: git
   location: https://github.com/githubuser/prototype-forwarder-contract
 
+flag dstoken
+  description: Include DS Token
+  manual: True
+  default: False
+
 library
   exposed-modules:
       GHC.Natural.Orphans
@@ -35,6 +40,8 @@ library
       Lorentz.Contracts.Forwarder.DS.V1.Validated
       Lorentz.Contracts.Forwarder.DS.V1.ValidatedExpiring
       Lorentz.Contracts.Forwarder.Specialized
+      Lorentz.Contracts.Forwarder.Specialized.FlushAny
+      Lorentz.Contracts.Forwarder.Specialized.FlushAny.Tez
       Lorentz.Contracts.Forwarder.TestScenario
       Lorentz.Contracts.Product
       Lorentz.Contracts.Validate.Reception
@@ -48,7 +55,6 @@ library
     , constraints
     , containers
     , morley
-    , morley-dstoken
     , morley-ledgers
     , morley-nettest
     , morley-upgradeable
@@ -57,9 +63,15 @@ library
     , text
     , universum
     , vinyl
+  if flag(dstoken)
+    cpp-options: -DHAS_DSTOKEN
+    build-depends:
+        morley-dstoken
+  else
+    cpp-options: -DNO_DSTOKEN
   default-language: Haskell2010
 
-executable dstoken-forwarder-contract
+executable prototype-forwarder-contract
   main-is: Main.hs
   other-modules:
       NettestHelpers
@@ -73,7 +85,6 @@ executable dstoken-forwarder-contract
     , containers
     , fmt
     , morley
-    , morley-dstoken
     , morley-ledgers
     , morley-nettest
     , morley-upgradeable
@@ -85,6 +96,18 @@ executable dstoken-forwarder-contract
     , text
     , universum
     , vinyl
+  if flag(dstoken)
+    cpp-options: -DHAS_DSTOKEN
+    build-depends:
+        morley-dstoken
+  else
+    cpp-options: -DNO_DSTOKEN
+  if flag(dstoken)
+    cpp-options: -DHAS_DSTOKEN
+    build-depends:
+        morley-dstoken
+  else
+    cpp-options: -DNO_DSTOKEN
   default-language: Haskell2010
 
 test-suite prototype-forwarder-contract-test
@@ -107,7 +130,6 @@ test-suite prototype-forwarder-contract-test
     , fmt
     , hspec
     , morley
-    , morley-dstoken
     , morley-ledgers
     , morley-nettest
     , morley-upgradeable
@@ -119,4 +141,10 @@ test-suite prototype-forwarder-contract-test
     , text
     , universum
     , vinyl
+  if flag(dstoken)
+    cpp-options: -DHAS_DSTOKEN
+    build-depends:
+        morley-dstoken
+  else
+    cpp-options: -DNO_DSTOKEN
   default-language: Haskell2010

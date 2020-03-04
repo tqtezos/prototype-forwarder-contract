@@ -42,7 +42,6 @@ data Parameter cp
   deriving  (Generic)
 
 instance NiceParameter cp => ParameterHasEntryPoints (Parameter cp) where
-  -- parameterEntryPoints = pepNone
   type ParameterEntryPointsDerivation (Parameter cp) = EpdNone
 
 deriving instance Read cp => Read (Parameter cp)

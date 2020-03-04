@@ -12,6 +12,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE CPP #-}
 
 module Lorentz.Contracts.Validate.Reception where
 
@@ -29,16 +30,12 @@ import Michelson.Typed.EntryPoints
 import Michelson.Typed.Scope
 
 import Lorentz.Contracts.View
+
+#ifdef HAS_DSTOKEN
 import Lorentz.Contracts.DS.V1.Registry.Types (InvestorId(..))
-
-instance Read MText where
-  readPrec = do
-    eMText <- mkMText . fromString <$> look
-    case eMText of
-      Left err -> fail $ show err
-      Right mText' -> return mText'
-
-deriving instance Read InvestorId
+#else
+type InvestorId = Address
+#endif
 
 -- | A `Set` of allowed senders
 type Whitelist = Set InvestorId
@@ -50,7 +47,6 @@ data Parameter
   = Validate !InvestorId -- throw error unless InvestorId in Whitelist
   | GetWhitelist !(View_ Whitelist)
   deriving  (Generic)
-  deriving  (Read)
   deriving  (Show)
   deriving  (IsoValue)
 
@@ -63,7 +59,6 @@ data Storage = Storage
   { whitelist :: !Whitelist
   }
   deriving  (Generic)
-  deriving  (Read)
   deriving  (Show)
   deriving  (IsoValue)
 
