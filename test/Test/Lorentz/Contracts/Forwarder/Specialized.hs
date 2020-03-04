@@ -8,6 +8,7 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE CPP #-}
 
 module Test.Lorentz.Contracts.Forwarder.Specialized
   ( spec_SpecializedForwarder
@@ -23,7 +24,11 @@ import Fmt (Buildable(..), listF)
 
 import qualified Indigo.Contracts.AbstractLedger as AL
 import qualified Lorentz.Contracts.Spec.AbstractLedgerInterface as AL
+
+#ifdef HAS_DSTOKEN
 import Lorentz.Contracts.DS.V1.Registry (InvestorId)
+#endif
+
 import qualified Lorentz.Contracts.Forwarder.Specialized as Fwd
 import qualified Lorentz.Contracts.Forwarder.Specialized.FlushAny as FwdAny
 import qualified Lorentz.Contracts.Forwarder.Specialized.FlushAny.Tez as FwdAnyTez
@@ -107,6 +112,7 @@ spec_SpecializedForwarder = do
       validate . Right $
           lExpectViewConsumerStorage consumer [amount]
 
+  #ifdef HAS_DSTOKEN
   it "Successfully forwards DS Tokens to centralWallet" $
     integrationalTestExpectation $ do
       let amount = 100500
@@ -120,6 +126,7 @@ spec_SpecializedForwarder = do
       lCallEP dsAddr (Call @"GetBalance") (mkView (#owner .! centralWallet) consumer)
       validate . Right $
           lExpectViewConsumerStorage consumer [amount]
+  #endif
 
   it "Successfully forwards Abstract ledger tokens to centralWallet (FwdAny)" $
     integrationalTestExpectation $ do

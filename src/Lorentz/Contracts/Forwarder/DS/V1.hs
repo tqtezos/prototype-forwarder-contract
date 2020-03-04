@@ -26,8 +26,6 @@ module Lorentz.Contracts.Forwarder.DS.V1 where
 import Lorentz.Run (analyzeLorentz)
 import Michelson.Text
 import Lorentz
-import Michelson.Typed.Value
-import Michelson.Typed.Instr (Instr)
 import Michelson.Analyzer (AnalyzerRes)
 
 import qualified Lorentz.Contracts.DS.V1 as DS
@@ -35,7 +33,7 @@ import qualified Lorentz.Contracts.DS.V1.Registry.Types as Registry
 import qualified Lorentz.Contracts.DS.V1.Token.Types as Token
 
 import GHC.TypeLits (KnownSymbol)
-import Prelude (Enum(..), ($), id)
+import Prelude (Enum(..), ($))
 
 import Data.Vinyl.Derived (Label)
 
