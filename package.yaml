@@ -19,6 +19,12 @@ extra-source-files:
 # common to point users to the README.md file.
 description:         Please see the README on GitHub at <https://github.com/tqtezos/prototype-forwarder-contract#readme>
 
+flags:
+  dstoken:
+    description: Include DS Token
+    manual: true
+    default: false
+
 dependencies:
 - base >= 4.7 && < 5
 - morley
@@ -31,15 +37,23 @@ dependencies:
 - morley-upgradeable
 - constraints
 - containers
-- morley-dstoken
 - universum
 - vinyl
+
+when:
+- condition: flag(dstoken)
+  then:
+    cpp-options: -DHAS_DSTOKEN
+    dependencies:
+    - morley-dstoken
+  else:
+    cpp-options: -DNO_DSTOKEN
 
 library:
   source-dirs: src
 
 executables:
-  dstoken-forwarder-contract:
+  prototype-forwarder-contract:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
@@ -50,12 +64,19 @@ executables:
     - prototype-forwarder-contract
     - morley
     # - morley-prelude
-    - morley-dstoken
     - morley-nettest
     - fmt
     - optparse-applicative
     - random
     - universum
+    when:
+    - condition: flag(dstoken)
+      then:
+        cpp-options: -DHAS_DSTOKEN
+        dependencies:
+        - morley-dstoken
+      else:
+        cpp-options: -DNO_DSTOKEN
 
 tests:
   prototype-forwarder-contract-test:

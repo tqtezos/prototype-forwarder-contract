@@ -15,16 +15,17 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE OverloadedLabels #-}
+{-# LANGUAGE CPP #-}
 
 {-# OPTIONS -Wall -Wno-unused-do-bind -Wno-orphans #-}
 
 module Lorentz.Contracts.Forwarder.DS.V1 where
 
+#ifdef HAS_DSTOKEN
+
 import Lorentz.Run (analyzeLorentz)
 import Michelson.Text
 import Lorentz
-import Michelson.Typed.Value
-import Michelson.Typed.Instr (Instr)
 import Michelson.Analyzer (AnalyzerRes)
 
 import qualified Lorentz.Contracts.DS.V1 as DS
@@ -32,15 +33,9 @@ import qualified Lorentz.Contracts.DS.V1.Registry.Types as Registry
 import qualified Lorentz.Contracts.DS.V1.Token.Types as Token
 
 import GHC.TypeLits (KnownSymbol)
-import Prelude (Enum(..), ($), id)
+import Prelude (Enum(..), ($))
 
 import Data.Vinyl.Derived (Label)
-
-
-instance IsoValue (Value' Instr a) where
-  type ToT (Value' Instr a) = a
-  toVal = id
-  fromVal = id
 
 -- | Construct a 'UParam' safely. See `mkUParam`.
 toUParam
@@ -126,3 +121,4 @@ forwarderContract = do
 analyzeForwarder :: AnalyzerRes
 analyzeForwarder = analyzeLorentz forwarderContract
 
+#endif

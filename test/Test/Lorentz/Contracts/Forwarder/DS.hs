@@ -4,11 +4,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE CPP #-}
 
-module Test.Lorentz.Contracts.Forwarder.DS
-  ( spec_SpecializedDSForwarder
-  , spec_ValidatedDSForwarder
-  ) where
+module Test.Lorentz.Contracts.Forwarder.DS where
+
+#ifdef HAS_DSTOKEN
 
 import Lorentz
 
@@ -108,3 +108,13 @@ spec_ValidatedDSForwarder = do
 
 instance Buildable (Set InvestorId) where
   build = listF
+
+#else
+import Test.Hspec (Spec)
+-- stub specs
+spec_SpecializedDSForwarder :: Spec
+spec_SpecializedDSForwarder = return ()
+
+spec_ValidatedDSForwarder :: Spec
+spec_ValidatedDSForwarder = return ()
+#endif

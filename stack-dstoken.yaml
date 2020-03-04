@@ -30,5 +30,12 @@ extra-deps:
 - git: https://github.com/int-index/caps.git
   commit: ab4345eabd58fc6f05d3b46bea2c5acdba3ec6f8
 
+- git:
+    git@gitlab.com:elevated-returns/morley-dstoken.git
+  commit:
+    dbfc4980249410a0df1c8c5bdf3d1dd0765d70d3 # master
+  subdirs:
+    - .
+
 nix:
   shell-file: shell.nix

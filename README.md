@@ -1,5 +1,21 @@
 # prototype-forwarder-contract
 
+## Building
+
+To build without `DS Token`:
+
+```bash
+stack build
+```
+
+To build with `DS Token`:
+
+```bash
+stack build --stack-yaml stack-dstoken.yaml --flag prototype-forwarder-contract:dstoken
+```
+
+## Introduction
+
 A prototype sub-token forwarder contract:
 
   1. investor has sub-tokens

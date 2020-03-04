@@ -5,17 +5,11 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE CPP #-}
 
-module Test.Lorentz.Contracts.Forwarder.DS.Common
-  ( DSRef
-  , investor1
-  , investor2
-  , investor3
-  , mint
-  , originateDSToken
-  , registerInvestor
-  ) where
+module Test.Lorentz.Contracts.Forwarder.DS.Common where
 
+#ifdef HAS_DSTOKEN
 
 import Control.Monad (forM_)
 import Lorentz
@@ -111,3 +105,5 @@ mint dsRef beneficiary amount =
     dsCall #callTokenMint dsRef $
       Token.Mint (Token.mintParamSimple wallet amount, Token.CommitRun)
   where wallet = WalletId beneficiary
+
+#endif
