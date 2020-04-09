@@ -33,12 +33,16 @@ data (:|:) cp1 cp2
   | RightParameter !cp2
   deriving  (Generic)
 
+instance (HasTypeAnn cp1, HasTypeAnn cp2) => HasTypeAnn ((:|:) cp1 cp2)
+
 instance ( NiceParameter cp1
-         , HasNoOp (ToT cp1)
-         , HasNoNestedBigMaps (ToT cp1)
          , NiceParameter cp2
+         , HasNoOp (ToT cp1)
          , HasNoOp (ToT cp2)
+         , HasNoNestedBigMaps (ToT cp1)
          , HasNoNestedBigMaps (ToT cp2)
+         , HasTypeAnn cp1
+         , HasTypeAnn cp2
          ) => ParameterHasEntryPoints (cp1 :|: cp2) where
   -- parameterEntryPoints = pepNone
   type ParameterEntryPointsDerivation (cp1 :|: cp2) = EpdNone
@@ -74,9 +78,9 @@ toStorage = forcedCoerce_
 -- accepting parameters from either (`:|:`) and holding storage
 -- for both (`:&:`)
 productContract :: forall cp1 st1 cp2 st2. (IsoValue cp1, IsoValue cp2)
-  => Contract cp1 st1
-  -> Contract cp2 st2
-  -> Contract (cp1 :|: cp2) (st1 :&: st2)
+  => ContractCode cp1 st1
+  -> ContractCode cp2 st2
+  -> ContractCode (cp1 :|: cp2) (st1 :&: st2)
 productContract wrappedLeft wrappedRight = do
   unpair
   caseT @(cp1 :|: cp2)

@@ -33,12 +33,11 @@ import Lorentz.Contracts.Spec.AbstractLedgerInterface (TransferParams)
 import qualified Lorentz.Contracts.Spec.AbstractLedgerInterface as AL
 import qualified Lorentz.Contracts.Forwarder.Specialized as Specialized
 
-import Data.Singletons
 import Data.Type.Equality
 import Data.Typeable
 import Prelude (Show(..), Enum(..), Eq(..), ($), String, show)
 
-import GHC.Natural.Orphans ()
+import Michelson.Typed.Value.Orphans ()
 
 
 -- | The number of sub-tokens to forward and which token to forward it on
@@ -49,6 +48,8 @@ data Parameter = Parameter
   deriving stock Show
   deriving stock Generic
   deriving anyclass IsoValue
+
+instance HasTypeAnn Parameter
 
 instance ParameterHasEntryPoints Parameter where
   type ParameterEntryPointsDerivation Parameter = EpdNone
@@ -72,7 +73,7 @@ mkParameter amountToFlush' tokenContract' =
     mkEPCallRes' =
       case mkEntryPointCall @(ToT AL.Parameter)
         (EpNameUnsafe "transfer")
-        (sing, epParamNotes') of
+        epParamNotes' of
         Nothing -> error "mkParameter: TransferParams does not have label 'transfer'"
         Just xs -> xs
 
@@ -108,7 +109,7 @@ runSpecializedAnyTransfer centralWalletAddr' = do
 
 -- | Forwarder contract: forwards the given number of sub-tokens
 -- from its own address to the central wallet.
-specializedAnyForwarderContract :: Address -> Contract Parameter Storage
+specializedAnyForwarderContract :: Address -> ContractCode Parameter Storage
 specializedAnyForwarderContract centralWalletAddr' = do
   car
   unParameter
@@ -126,7 +127,7 @@ analyzeSpecializedAnyForwarder centralWalletAddr' =
 -- | Verify that `SomeContract` is an instance of `specializedAnyForwarderContract`, for some
 -- particular central wallet address and token address.
 verifyForwarderContract :: Address -> SomeContract -> Either String ()
-verifyForwarderContract centralWalletAddr' (SomeContract (contract' :: Contract cp st)) =
+verifyForwarderContract centralWalletAddr' (SomeContract (contract' :: ContractCode cp st)) =
   case eqT @(ToT cp) @(ToT Parameter) of
     Nothing -> Left $ "Unexpected parameter type: " <> show (typeRep (Proxy @(ToT cp)))
     Just Refl ->

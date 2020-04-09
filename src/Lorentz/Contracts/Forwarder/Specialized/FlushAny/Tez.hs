@@ -37,7 +37,7 @@ import Data.Type.Equality
 import Data.Typeable
 import Prelude (Show(..), Enum(..), Eq(..), ($), String, show)
 
-import GHC.Natural.Orphans ()
+import Michelson.Typed.Value.Orphans ()
 
 -- | We have the addresses of:
 -- - The central wallet to transfer sub-tokens to
@@ -73,7 +73,7 @@ runSpecializedAnyTezTransfer centralWalletAddr' = do
 -- from its own address to the central wallet.
 --
 -- It also forwards all held Tez to the central wallet.
-specializedAnyTezForwarderContract :: Address -> Contract Parameter Storage
+specializedAnyTezForwarderContract :: Address -> ContractCode Parameter Storage
 specializedAnyTezForwarderContract centralWalletAddr' = do
   car
   FlushAny.unParameter
@@ -89,7 +89,7 @@ analyzeSpecializedAnyTezForwarder centralWalletAddr' =
 -- | Verify that `SomeContract` is an instance of `specializedAnyTezForwarderContract`, for some
 -- particular central wallet address and token address.
 verifyForwarderContract :: Address -> SomeContract -> Either String ()
-verifyForwarderContract centralWalletAddr' (SomeContract (contract' :: Contract cp st)) =
+verifyForwarderContract centralWalletAddr' (SomeContract (contract' :: ContractCode cp st)) =
   case eqT @(ToT cp) @(ToT Parameter) of
     Nothing -> Left $ "Unexpected parameter type: " <> show (typeRep (Proxy @(ToT cp)))
     Just Refl ->

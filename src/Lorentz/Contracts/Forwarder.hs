@@ -21,6 +21,7 @@ module Lorentz.Contracts.Forwarder where
 
 import Lorentz
 import qualified Lorentz.Contracts.ManagedLedger as ManagedLedger
+import qualified Lorentz.Contracts.Spec.AbstractLedgerInterface as ManagedLedger (TransferParams)
 
 import Prelude (Show(..), Enum(..))
 
@@ -92,7 +93,7 @@ processRefund = do
 
 -- | Given a method to calculate the number of `Mutez` to refund from the number
 -- of sub-tokens transferred, produce a forwarder contract.
-forwarderContract :: (forall s. (Natural & s) :-> (Mutez & s)) -> Contract Parameter Storage
+forwarderContract :: (forall s. (Natural & s) :-> (Mutez & s)) -> ContractCode Parameter Storage
 forwarderContract calculateGasCost = do
   unpair
   dup

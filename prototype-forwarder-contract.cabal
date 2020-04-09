@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.1.
+-- This file has been generated from package.yaml by hpack version 0.31.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e7222fd6fc9c99f39ba4ef0ed09be6d93bb3f430ed9c84aebf62c7126ebbc38f
+-- hash: 8dd11b0d753bd02e4d5444d784136fd7caf894e26118b1a805f85c279f82c371
 
 name:           prototype-forwarder-contract
 version:        0.1.0.0
@@ -32,7 +32,6 @@ flag dstoken
 
 library
   exposed-modules:
-      GHC.Natural.Orphans
       Lorentz.Contracts.Expiring
       Lorentz.Contracts.Forwarder
       Lorentz.Contracts.Forwarder.DS.V1
@@ -46,6 +45,7 @@ library
       Lorentz.Contracts.Product
       Lorentz.Contracts.Validate.Reception
       Lorentz.Contracts.View
+      Michelson.Typed.Value.Orphans
   other-modules:
       Paths_prototype_forwarder_contract
   hs-source-dirs:
@@ -54,6 +54,7 @@ library
       base >=4.7 && <5
     , constraints
     , containers
+    , lorentz
     , morley
     , morley-ledgers
     , morley-nettest
@@ -84,6 +85,7 @@ executable prototype-forwarder-contract
     , constraints
     , containers
     , fmt
+    , lorentz
     , morley
     , morley-ledgers
     , morley-nettest
@@ -129,6 +131,7 @@ test-suite prototype-forwarder-contract-test
     , containers
     , fmt
     , hspec
+    , lorentz
     , morley
     , morley-ledgers
     , morley-nettest

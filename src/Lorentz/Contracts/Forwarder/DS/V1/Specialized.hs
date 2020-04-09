@@ -64,7 +64,7 @@ runSpecializedTransfer centralWalletAddr' (ContractRef contractAddr' _) = do
 
 -- | Forwarder contract: forwards the given number of sub-tokens
 -- from its own address to the central wallet.
-specializedForwarderContract :: Address -> ContractRef DS.Parameter -> Contract Parameter Storage
+specializedForwarderContract :: Address -> ContractRef DS.Parameter -> ContractCode Parameter Storage
 specializedForwarderContract centralWalletAddr' contractAddr' = do
   car
   runSpecializedTransfer centralWalletAddr' contractAddr'
@@ -77,13 +77,13 @@ analyzeSpecializedForwarder :: Address -> ContractRef DS.Parameter -> AnalyzerRe
 analyzeSpecializedForwarder centralWalletAddr' contractAddr' =
   analyzeLorentz $ specializedForwarderContract centralWalletAddr' contractAddr'
 
-contractOverValue :: forall cp st. Contract cp st -> Contract (Value (ToT cp)) (Value (ToT st))
+contractOverValue :: forall cp st. ContractCode cp st -> ContractCode (Value (ToT cp)) (Value (ToT st))
 contractOverValue x = forcedCoerce_ # x # forcedCoerce_
 
 -- | Verify that `SomeContract` is an instance of `specializedForwarderContract`, for some
 -- particular central wallet address and DS Token address.
 verifyForwarderContract :: Address -> ContractRef DS.Parameter -> SomeContract -> Either String ()
-verifyForwarderContract centralWalletAddr' dsTokenContractRef' (SomeContract (contract' :: Contract cp st)) =
+verifyForwarderContract centralWalletAddr' dsTokenContractRef' (SomeContract (contract' :: ContractCode cp st)) =
   case eqT @(ToT cp) @(ToT Parameter) of
     Nothing -> Left $ "Unexpected parameter type: " <> show (typeRep (Proxy @(ToT cp)))
     Just Refl ->

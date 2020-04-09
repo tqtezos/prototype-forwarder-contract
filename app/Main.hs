@@ -502,7 +502,7 @@ someLorentzContract (SomeContract (contract' :: FullContract cp st)) =
           assertNestedBigMapAbsense @st $
           assertContractTypeAbsense @st $
           L.SomeContract $
-          (L.I fcCode :: L.Contract param (L.Value st))
+          (L.I fcCode :: L.ContractCode param (L.Value st))
 
 main :: IO ()
 main = do

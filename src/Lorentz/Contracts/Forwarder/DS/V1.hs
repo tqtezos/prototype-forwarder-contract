@@ -110,7 +110,7 @@ runTransfer = do
 
 -- | Forwarder contract: forwards the given number of sub-tokens
 -- from its own address to the central wallet.
-forwarderContract :: Contract Parameter Storage
+forwarderContract :: ContractCode Parameter Storage
 forwarderContract = do
   unpair
   runTransfer

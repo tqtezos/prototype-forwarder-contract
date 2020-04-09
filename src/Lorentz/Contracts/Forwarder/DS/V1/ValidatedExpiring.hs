@@ -42,7 +42,7 @@ mkStorageWithInvestorIds whitelist' =
 -- - Expires after the given timestamp in `Expiring.Storage`
 -- - Offers a `Forwarder.specializedForwarderContract` interface
 -- - Offers a `ValidateReception.validateReceptionContract` interface
-validatedExpiringForwarderContract :: Address -> ContractRef DS.Parameter -> Contract Parameter Storage
+validatedExpiringForwarderContract :: Address -> ContractRef DS.Parameter -> ContractCode Parameter Storage
 validatedExpiringForwarderContract centralWalletAddr' contractAddr' =
   Expiring.expiringContract $
   productContract

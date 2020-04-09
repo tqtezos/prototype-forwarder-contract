@@ -39,7 +39,7 @@ mkStorageWithInvestorIds whitelist' =
 -- | A contract that:
 -- - Offers a `Forwarder.specializedForwarderContract` interface
 -- - Offers a `ValidateReception.validateReceptionContract` interface
-validatedForwarderContract :: Address -> ContractRef DS.Parameter -> Contract Parameter Storage
+validatedForwarderContract :: Address -> ContractRef DS.Parameter -> ContractCode Parameter Storage
 validatedForwarderContract centralWalletAddr' contractAddr' =
   productContract
     (Forwarder.specializedForwarderContract centralWalletAddr' contractAddr')

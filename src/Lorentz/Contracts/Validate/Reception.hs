@@ -84,7 +84,7 @@ assertInWhitelist = do
   assert $ mkMTextUnsafe "not in whitelist"
 
 validateReceptionContract :: ()
-  => Contract Parameter Storage
+  => ContractCode Parameter Storage
 validateReceptionContract = do
   unpair
   caseT @Parameter

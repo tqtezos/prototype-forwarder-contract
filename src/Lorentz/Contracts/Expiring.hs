@@ -41,7 +41,9 @@ data Parameter cp
   | GetExpiration (View_ Timestamp)
   deriving  (Generic)
 
-instance NiceParameter cp => ParameterHasEntryPoints (Parameter cp) where
+instance HasTypeAnn cp => HasTypeAnn (Parameter cp)
+
+instance (HasTypeAnn cp, NiceParameter cp) => ParameterHasEntryPoints (Parameter cp) where
   type ParameterEntryPointsDerivation (Parameter cp) = EpdNone
 
 deriving instance Read cp => Read (Parameter cp)
@@ -92,8 +94,8 @@ assertNotExpired = do
 --
 -- Caveat: Up to error due to `now`, see `assertNotExpired` for more info
 expiringContract :: forall cp st. IsoValue cp
-  => Contract cp st
-  -> Contract (Parameter cp) (Storage st)
+  => ContractCode cp st
+  -> ContractCode (Parameter cp) (Storage st)
 expiringContract wrappedContract = do
   unpair
   caseT @(Parameter cp)
