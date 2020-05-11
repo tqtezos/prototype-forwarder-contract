@@ -28,11 +28,10 @@ import Lorentz.Base (SomeContract(..))
 import Michelson.Analyzer (AnalyzerRes)
 import Michelson.Text
 
-import Lorentz.Contracts.Spec.AbstractLedgerInterface (TransferParams)
-import Lorentz.Contracts.Forwarder.Specialized.FlushAny (Parameter(..))
 import qualified Lorentz.Contracts.Forwarder.Specialized as Specialized
 import qualified Lorentz.Contracts.Forwarder.Specialized.FlushAny as FlushAny
 
+import Data.Singletons
 import Data.Type.Equality
 import Data.Typeable
 import Prelude (Show(..), Enum(..), Eq(..), ($), String, show)
@@ -43,17 +42,35 @@ import Michelson.Typed.Value.Orphans ()
 -- - The central wallet to transfer sub-tokens to
 type Storage = ()
 
-runSpecializedAnyTezTransfer :: Address -> (Natural & ContractRef TransferParams & s) :-> ([Operation] & s)
+
+data Parameter = Default () | Flush FlushAny.Parameter
+  deriving  (Generic, IsoValue, Show)
+
+instance ParameterHasEntryPoints Parameter where
+  type ParameterEntryPointsDerivation Parameter = EpdPlain
+
+instance (SingI t) => ParameterHasEntryPoints (Value t) where
+  type ParameterEntryPointsDerivation (Value t) = EpdNone
+
+runSpecializedAnyTezTransfer :: Address -> (Maybe FlushAny.Parameter & s) :-> ([Operation] & s)
 runSpecializedAnyTezTransfer centralWalletAddr' = do
-  push centralWalletAddr'
-  nil @Operation
+  dip $ push centralWalletAddr'
+  ifNone nil $ do
+       dip dup
+       FlushAny.unParameter
+       unpair
+       dig @2
+       FlushAny.toTransferParameter
+       dip . push $ toEnum @Mutez 0
+       transferTokens
+       dip nil
+       cons
   balance
   push $ toEnum @Mutez 0
   ifEq
-    nop
+    (dip drop)
     (do
       dip $ do
-        dup
         contract @()
         assertSome $ mkMTextUnsafe "not a wallet"
         balance
@@ -62,12 +79,6 @@ runSpecializedAnyTezTransfer centralWalletAddr' = do
       swap
       cons
     )
-  dip $ do
-    FlushAny.toTransferParameter
-    dip . push $ toEnum @Mutez 0
-    transferTokens
-  swap
-  cons
 
 -- | Forwarder contract: forwards the given number of sub-tokens
 -- from its own address to the central wallet.
@@ -76,8 +87,10 @@ runSpecializedAnyTezTransfer centralWalletAddr' = do
 specializedAnyTezForwarderContract :: Address -> ContractCode Parameter Storage
 specializedAnyTezForwarderContract centralWalletAddr' = do
   car
-  FlushAny.unParameter
-  unpair
+  caseT @Parameter
+    ( #cDefault /-> drop >> none
+    , #cFlush /-> some
+    )
   runSpecializedAnyTezTransfer centralWalletAddr'
   dip unit
   pair
@@ -110,4 +123,3 @@ verifyForwarderContract centralWalletAddr' (SomeContract (contract' :: ContractC
            forceOneline
            (specializedAnyTezForwarderContract
               centralWalletAddr')
-
