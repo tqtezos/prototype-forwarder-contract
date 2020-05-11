@@ -486,3 +486,8 @@ Pair (Pair Unit (Pair "tz1R3vJ5TV8Y5pVj8dicBR23Zv8JArusDkYr" (Pair { "alice" } 7
      "2020-01-10T09:00:00Z"
 ```
 
+<
+
+## Forward-Any-Contract
+
+There is another contract (named ForwardAny). It's documentation can be found here ./README-forward-any-tez.md
