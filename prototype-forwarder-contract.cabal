@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.2.
+-- This file has been generated from package.yaml by hpack version 0.33.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8dd11b0d753bd02e4d5444d784136fd7caf894e26118b1a805f85c279f82c371
+-- hash: 98e871bb2d97ba643d5d0fb7a8082ebaacf367fb27e307e92c9de5d25bba35a9
 
 name:           prototype-forwarder-contract
 version:        0.1.0.0
@@ -40,6 +40,7 @@ library
       Lorentz.Contracts.Forwarder.DS.V1.ValidatedExpiring
       Lorentz.Contracts.Forwarder.Specialized
       Lorentz.Contracts.Forwarder.Specialized.FlushAny
+      Lorentz.Contracts.Forwarder.Specialized.FlushAny.ForwardAnyFA12
       Lorentz.Contracts.Forwarder.Specialized.FlushAny.Tez
       Lorentz.Contracts.Forwarder.TestScenario
       Lorentz.Contracts.Product
