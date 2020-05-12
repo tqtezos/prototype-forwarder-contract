@@ -20,7 +20,7 @@
 
 {-# OPTIONS -Wall -Wno-unused-do-bind -Wno-orphans #-}
 
-module Lorentz.Contracts.Forwarder.Specialized.FlushAny.Tez where
+module Lorentz.Contracts.Forwarder.Specialized.FlushAny.ForwardAnyFA12 where
 
 import Lorentz hiding (SomeContract(..))
 import Lorentz.Run (analyzeLorentz)

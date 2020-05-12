@@ -88,7 +88,7 @@ import qualified Lorentz.Contracts.Forwarder.DS.V1.ValidatedExpiring as Validate
 
 import qualified Lorentz.Contracts.Forwarder.Specialized as Specialized
 import qualified Lorentz.Contracts.Forwarder.Specialized.FlushAny as Specialized
-import qualified Lorentz.Contracts.Forwarder.Specialized.FlushAny.Tez as Specialized (specializedAnyTezForwarderContract)
+import qualified Lorentz.Contracts.Forwarder.Specialized.FlushAny.ForwardAnyFA12 as Specialized (specializedAnyTezForwarderContract)
 import qualified Michelson.Untyped.Type as U
 
 #ifdef HAS_DSTOKEN
@@ -172,7 +172,7 @@ data CmdLnArgs
   = PrintSpecializedFA12 !Address !Address !(Maybe FilePath) !Bool
   #endif
   | PrintSpecializedAnyFA12 !Address !(Maybe FilePath) !Bool
-  | PrintSpecializedAnyTezFA12 !Address !(Maybe FilePath) !Bool
+  | PrintSpecializedForwardAnyFA12 !Address !(Maybe FilePath) !Bool
   #ifdef HAS_DSTOKEN
   | PrintValidatedExpiring !Address !(L.FutureContract DSToken.Parameter) !(Maybe FilePath) !Bool
   | PrintValidated !Address !(L.FutureContract DSToken.Parameter) !(Maybe FilePath) !Bool
@@ -213,7 +213,7 @@ argParser = Opt.subparser $ mconcat
   , printSpecializedSubCmd
   , printSpecializedFA12SubCmd
   , printSpecializedAnyFA12SubCmd
-  , printSpecializedAnyTezFA12SubCmd
+  , printSpecializedForwardAnyFA12SubCmd
   , printValidatedExpiringSubCmd
   , printValidatedSubCmd
   , initialStorageSubCmd
@@ -232,7 +232,7 @@ argParser = Opt.subparser $ mconcat
   #else
   [ printSpecializedFA12SubCmd
   , printSpecializedAnyFA12SubCmd
-  , printSpecializedAnyTezFA12SubCmd
+  , printSpecializedForwardAnyFA12SubCmd
   , flushSpecializedAnyForwarderSubCmd
   ]
   #endif
@@ -271,9 +271,9 @@ argParser = Opt.subparser $ mconcat
       "specialized to paricular addresses, " <>
       "in the form of Michelson code")
 
-    printSpecializedAnyTezFA12SubCmd =
-      mkCommandParser "print-specialized-any-tez-fa12"
-      (PrintSpecializedAnyTezFA12 <$>
+    printSpecializedForwardAnyFA12SubCmd =
+      mkCommandParser "print-specialized-forward-any-fa12"
+      (PrintSpecializedForwardAnyFA12 <$>
         parseAddress "central-wallet" "Address of central wallet" <*>
         outputOption <*>
         onelineOption
@@ -546,7 +546,7 @@ main = do
           L.printLorentzContract
             forceOneline $
             Specialized.specializedAnyForwarderContract centralWalletAddr'
-      PrintSpecializedAnyTezFA12 centralWalletAddr' mOutput forceOneline ->
+      PrintSpecializedForwardAnyFA12 centralWalletAddr' mOutput forceOneline ->
         writeFunc mOutput $
           L.printLorentzContract
             forceOneline $
