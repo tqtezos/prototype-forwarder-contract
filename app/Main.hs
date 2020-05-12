@@ -293,7 +293,7 @@ argParser = Opt.subparser $ mconcat
         outputOption <*>
         onelineOption
       )
-      ("Dump FA1.2 Token Forwarder contract for any FA1.2 token or Tez, " <>
+      ("Dump FA1.2 Token Forwarder contract for any FA1.2 token, " <>
       "specialized to paricular addresses, " <>
       "in the form of Michelson code")
 
