@@ -5,7 +5,7 @@
 
 
 ```bash
-$ tezos-client --wait none originate contract ForwardAnyTezContract transferring 0 from $ALICE_ADDRESS running "$(stack exec -- prototype-forwarder-contract print-specialized-any-tez-fa12 --central-wallet $ALICE_ADDRESS)" --burn-cap 0.645
+$ tezos-client --wait none originate contract ForwardAnyTezContract transferring 0 from $ALICE_ADDRESS running "$(stack exec -- prototype-forwarder-contract print-specialized-forward-any-fa12 --central-wallet $ALICE_ADDRESS)" --burn-cap 0.645
 
 Waiting for the node to be bootstrapped before injection...
 Current head: BM1Libhmip9v (timestamp: 2020-05-11T18:53:09-00:00, validation: 2020-05-11T18:54:01-00:00)

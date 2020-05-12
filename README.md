@@ -488,6 +488,6 @@ Pair (Pair Unit (Pair "tz1R3vJ5TV8Y5pVj8dicBR23Zv8JArusDkYr" (Pair { "alice" } 7
 
 <
 
-## Forward-Any-Contract
+## Forward-AnyFA12-Contract
 
-There is another contract (named ForwardAny). It's documentation can be found here ./README-forward-any-tez.md
+There is another contract (named ForwardAny). It's documentation can be found here ./README-forward-any-fa12.md
