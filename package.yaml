@@ -92,3 +92,4 @@ tests:
     - hspec
     - tasty
     - tasty-hspec
+    - tasty-discover
