@@ -40,7 +40,8 @@ import Prelude (Show(..), Enum(..), Eq(..), ($), String, show)
 import Michelson.Typed.Value.Orphans ()
 
 
--- | The number of sub-tokens to forward and which token to forward it on
+-- | The number of sub-tokens to forward and the typed contract address of the
+-- token to forward it on
 data Parameter = Parameter
   { amountToFlush :: !Natural
   , tokenContract :: !(ContractRef TransferParams)
@@ -54,6 +55,7 @@ instance HasTypeAnn Parameter
 instance ParameterHasEntryPoints Parameter where
   type ParameterEntryPointsDerivation Parameter = EpdNone
 
+-- | Unwrap a `Parameter`
 unParameter :: Parameter & s :-> (Natural, ContractRef TransferParams) & s
 unParameter = forcedCoerce_
 
@@ -92,6 +94,8 @@ mkParameter amountToFlush' tokenContract' =
 -- - The central wallet to transfer sub-tokens to
 type Storage = ()
 
+-- | Wrap a @to@ `Address` and number of tokens to transfer
+-- in `TransferParams`, sending from `self`
 toTransferParameter :: forall s. Address & Natural & s :-> TransferParams & s
 toTransferParameter = do
   pair
@@ -100,6 +104,8 @@ toTransferParameter = do
   pair
   forcedCoerce_ @(Address, (Address, Natural)) @TransferParams
 
+-- | Run a transfer to the given central wallet `Address`, given the token
+-- contract `Address` and the number of tokens to transfer
 runSpecializedAnyTransfer :: Address -> (Natural & ContractRef TransferParams & s) :-> (Operation & s)
 runSpecializedAnyTransfer centralWalletAddr' = do
   push centralWalletAddr'
@@ -120,6 +126,7 @@ specializedAnyForwarderContract centralWalletAddr' = do
   dip unit
   pair
 
+-- | `analyzeLorentz` specialized to the `specializedAnyForwarderContract`
 analyzeSpecializedAnyForwarder :: Address -> AnalyzerRes
 analyzeSpecializedAnyForwarder centralWalletAddr' =
   analyzeLorentz $ specializedAnyForwarderContract centralWalletAddr'

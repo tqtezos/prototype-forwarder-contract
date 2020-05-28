@@ -52,6 +52,10 @@ instance ParameterHasEntryPoints Parameter where
 instance (SingI t) => ParameterHasEntryPoints (Value t) where
   type ParameterEntryPointsDerivation (Value t) = EpdNone
 
+-- | Run a transfer to the given central wallet `Address`, given `FlushAny.Parameter`.
+-- If no `FlushAny.Parameter` is provided, skip forwarding contract tokens.
+--
+-- Always attempt to forward any Tez in `balance`.
 runSpecializedAnyTezTransfer :: Address -> (Maybe FlushAny.Parameter & s) :-> ([Operation] & s)
 runSpecializedAnyTezTransfer centralWalletAddr' = do
   dip $ push centralWalletAddr'
@@ -95,6 +99,7 @@ specializedAnyFA12ForwarderContract centralWalletAddr' = do
   dip unit
   pair
 
+-- | `analyzeLorentz` specialized to the `specializedAnyFA12ForwarderContract`
 analyzeSpecializedAnyTezForwarder :: Address -> AnalyzerRes
 analyzeSpecializedAnyTezForwarder centralWalletAddr' =
   analyzeLorentz $ specializedAnyFA12ForwarderContract centralWalletAddr'
@@ -123,3 +128,4 @@ verifyForwarderContract centralWalletAddr' (SomeContract (contract' :: ContractC
            forceOneline
            (specializedAnyFA12ForwarderContract
               centralWalletAddr')
+

@@ -196,7 +196,7 @@ argParser = Opt.subparser $ mconcat
         parseAddress "tokens-contract" "Address of FA1.2 token contract" <*>
         outputOption
       )
-      "Parameter to flush spzialized any-token forwarder"
+      "Parameter to flush specialized any-token forwarder"
 
     outputOption = Opt.optional $ Opt.strOption $ mconcat
       [ Opt.short 'o'
