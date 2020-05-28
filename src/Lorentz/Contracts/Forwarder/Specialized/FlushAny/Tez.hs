@@ -43,6 +43,10 @@ import Michelson.Typed.Value.Orphans ()
 -- - The central wallet to transfer sub-tokens to
 type Storage = ()
 
+-- | Run a transfer to the given central wallet `Address`, given the number of
+-- tokens to forward and the token contract reference.
+--
+-- Always attempt to forward any Tez in `balance`.
 runSpecializedAnyTezTransfer :: Address -> (Natural & ContractRef TransferParams & s) :-> ([Operation] & s)
 runSpecializedAnyTezTransfer centralWalletAddr' = do
   push centralWalletAddr'
@@ -82,6 +86,7 @@ specializedAnyTezForwarderContract centralWalletAddr' = do
   dip unit
   pair
 
+-- | `analyzeLorentz` specialized to the `specializedAnyTezForwarderContract`
 analyzeSpecializedAnyTezForwarder :: Address -> AnalyzerRes
 analyzeSpecializedAnyTezForwarder centralWalletAddr' =
   analyzeLorentz $ specializedAnyTezForwarderContract centralWalletAddr'
@@ -110,3 +115,4 @@ verifyForwarderContract centralWalletAddr' (SomeContract (contract' :: ContractC
            forceOneline
            (specializedAnyTezForwarderContract
               centralWalletAddr')
+

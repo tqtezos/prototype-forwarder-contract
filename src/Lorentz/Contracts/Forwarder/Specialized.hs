@@ -45,6 +45,8 @@ type Parameter = Natural
 -- - The central wallet to transfer sub-tokens to
 type Storage = ()
 
+-- | Wrap a @to@ `Address` and number of tokens to transfer
+-- in `TransferParams`, sending from `self`
 toTransferParameter :: forall s. Address & Natural & s :-> TransferParams & s
 toTransferParameter = do
   pair
@@ -53,6 +55,8 @@ toTransferParameter = do
   pair
   forcedCoerce_ @(Address, (Address, Natural)) @TransferParams
 
+-- | Run a transfer to the given central wallet `Address`, given the token
+-- contract `Address` and the number of tokens to transfer
 runSpecializedTransfer :: Address -> Address -> (Natural & s) :-> (Operation & s)
 runSpecializedTransfer centralWalletAddr' contractAddr' = do
   push centralWalletAddr'
@@ -76,6 +80,7 @@ specializedForwarderContract centralWalletAddr' contractAddr' = do
   dip unit
   pair
 
+-- | `analyzeLorentz` specialized to the `specializedForwarderContract`
 analyzeSpecializedForwarder :: Address -> Address -> AnalyzerRes
 analyzeSpecializedForwarder centralWalletAddr' contractAddr' =
   analyzeLorentz $ specializedForwarderContract centralWalletAddr' contractAddr'
