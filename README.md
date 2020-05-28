@@ -2,17 +2,16 @@
 
 ## Building
 
-To build without `DS Token`:
-
 ```bash
 stack build
 ```
 
-To build with `DS Token`:
+To install binaries to your `PATH` so that `stack exec` is not needed, run:
 
 ```bash
-stack build --stack-yaml stack-dstoken.yaml --flag prototype-forwarder-contract:dstoken
+stack install
 ```
+
 
 ## Introduction
 
@@ -491,3 +490,9 @@ Pair (Pair Unit (Pair "tz1R3vJ5TV8Y5pVj8dicBR23Zv8JArusDkYr" (Pair { "alice" } 7
 ## Forward-AnyFA12-Contract
 
 There is another contract (named ForwardAny). It's documentation can be found here ./README-forward-any-fa12.md
+
+## DS Token Forwarders
+
+Forwarder contracts for DS Token are available [here](https://github.com/tqtezos/dstoken-forwarder-contract)
+(deprecated).
+

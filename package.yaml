@@ -1,10 +1,10 @@
 name:                prototype-forwarder-contract
-version:             0.1.0.0
-github:              "githubuser/prototype-forwarder-contract"
+version:             1.0.0.0
+github:              "tqtezos/prototype-forwarder-contract"
 license:             MIT
 author:              "Michael J. Klein"
 maintainer:          "michael@tqgroup.io"
-copyright:           "2019 Michael J. Klein"
+copyright:           "2019-2020 Michael J. Klein, TQ Tezos"
 
 extra-source-files:
 - README.md
@@ -18,12 +18,6 @@ extra-source-files:
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
 description:         Please see the README on GitHub at <https://github.com/tqtezos/prototype-forwarder-contract#readme>
-
-flags:
-  dstoken:
-    description: Include DS Token
-    manual: true
-    default: false
 
 dependencies:
 - base >= 4.7 && < 5
@@ -40,15 +34,6 @@ dependencies:
 - containers
 - universum
 - vinyl
-
-when:
-- condition: flag(dstoken)
-  then:
-    cpp-options: -DHAS_DSTOKEN
-    dependencies:
-    - morley-dstoken
-  else:
-    cpp-options: -DNO_DSTOKEN
 
 library:
   source-dirs: src
@@ -69,14 +54,6 @@ executables:
     - optparse-applicative
     - random
     - universum
-    when:
-    - condition: flag(dstoken)
-      then:
-        cpp-options: -DHAS_DSTOKEN
-        dependencies:
-        - morley-dstoken
-      else:
-        cpp-options: -DNO_DSTOKEN
 
 tests:
   prototype-forwarder-contract-test:

@@ -1,19 +1,19 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.31.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 98e871bb2d97ba643d5d0fb7a8082ebaacf367fb27e307e92c9de5d25bba35a9
+-- hash: e3bc4f283843e54c6ae715ff6a2fd8848e7dca8f04594175d4876acf128ee13a
 
 name:           prototype-forwarder-contract
-version:        0.1.0.0
+version:        1.0.0.0
 description:    Please see the README on GitHub at <https://github.com/tqtezos/prototype-forwarder-contract#readme>
-homepage:       https://github.com/githubuser/prototype-forwarder-contract#readme
-bug-reports:    https://github.com/githubuser/prototype-forwarder-contract/issues
+homepage:       https://github.com/tqtezos/prototype-forwarder-contract#readme
+bug-reports:    https://github.com/tqtezos/prototype-forwarder-contract/issues
 author:         Michael J. Klein
 maintainer:     michael@tqgroup.io
-copyright:      2019 Michael J. Klein
+copyright:      2019-2020 Michael J. Klein, TQ Tezos
 license:        MIT
 license-file:   LICENSE
 build-type:     Simple
@@ -23,28 +23,17 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/githubuser/prototype-forwarder-contract
-
-flag dstoken
-  description: Include DS Token
-  manual: True
-  default: False
+  location: https://github.com/tqtezos/prototype-forwarder-contract
 
 library
   exposed-modules:
       Lorentz.Contracts.Expiring
       Lorentz.Contracts.Forwarder
-      Lorentz.Contracts.Forwarder.DS.V1
-      Lorentz.Contracts.Forwarder.DS.V1.Specialized
-      Lorentz.Contracts.Forwarder.DS.V1.Validated
-      Lorentz.Contracts.Forwarder.DS.V1.ValidatedExpiring
       Lorentz.Contracts.Forwarder.Specialized
       Lorentz.Contracts.Forwarder.Specialized.FlushAny
       Lorentz.Contracts.Forwarder.Specialized.FlushAny.ForwardAnyFA12
       Lorentz.Contracts.Forwarder.Specialized.FlushAny.Tez
-      Lorentz.Contracts.Forwarder.TestScenario
       Lorentz.Contracts.Product
-      Lorentz.Contracts.Validate.Reception
       Lorentz.Contracts.View
       Michelson.Typed.Value.Orphans
   other-modules:
@@ -65,12 +54,6 @@ library
     , text
     , universum
     , vinyl
-  if flag(dstoken)
-    cpp-options: -DHAS_DSTOKEN
-    build-depends:
-        morley-dstoken
-  else
-    cpp-options: -DNO_DSTOKEN
   default-language: Haskell2010
 
 executable prototype-forwarder-contract
@@ -99,18 +82,6 @@ executable prototype-forwarder-contract
     , text
     , universum
     , vinyl
-  if flag(dstoken)
-    cpp-options: -DHAS_DSTOKEN
-    build-depends:
-        morley-dstoken
-  else
-    cpp-options: -DNO_DSTOKEN
-  if flag(dstoken)
-    cpp-options: -DHAS_DSTOKEN
-    build-depends:
-        morley-dstoken
-  else
-    cpp-options: -DNO_DSTOKEN
   default-language: Haskell2010
 
 test-suite prototype-forwarder-contract-test
@@ -118,8 +89,6 @@ test-suite prototype-forwarder-contract-test
   main-is: Spec.hs
   other-modules:
       Test.Lorentz.Contracts.Forwarder.Common
-      Test.Lorentz.Contracts.Forwarder.DS
-      Test.Lorentz.Contracts.Forwarder.DS.Common
       Test.Lorentz.Contracts.Forwarder.Specialized
       Tree
       Paths_prototype_forwarder_contract
@@ -141,14 +110,9 @@ test-suite prototype-forwarder-contract-test
     , prototype-forwarder-contract
     , singletons
     , tasty
+    , tasty-discover
     , tasty-hspec
     , text
     , universum
     , vinyl
-  if flag(dstoken)
-    cpp-options: -DHAS_DSTOKEN
-    build-depends:
-        morley-dstoken
-  else
-    cpp-options: -DNO_DSTOKEN
   default-language: Haskell2010
