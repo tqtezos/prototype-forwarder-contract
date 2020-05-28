@@ -1,0 +1,428 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE CPP #-}</span><span>
+</span><a name="line-2"></a><span class="hs-pragma">{-# LANGUAGE BangPatterns #-}</span><span>
+</span><a name="line-3"></a><span class="hs-pragma">{-# LANGUAGE DeriveDataTypeable #-}</span><span>
+</span><a name="line-4"></a><span class="hs-pragma">{-# LANGUAGE ScopedTypeVariables #-}</span><span>
+</span><a name="line-5"></a><span class="hs-comment">-- |</span><span>
+</span><a name="line-6"></a><span class="hs-comment">-- Module      : Network.Connection</span><span>
+</span><a name="line-7"></a><span class="hs-comment">-- License     : BSD-style</span><span>
+</span><a name="line-8"></a><span class="hs-comment">-- Maintainer  : Vincent Hanquez &lt;vincent@snarc.org&gt;</span><span>
+</span><a name="line-9"></a><span class="hs-comment">-- Stability   : experimental</span><span>
+</span><a name="line-10"></a><span class="hs-comment">-- Portability : portable</span><span>
+</span><a name="line-11"></a><span class="hs-comment">--</span><span>
+</span><a name="line-12"></a><span class="hs-comment">-- Simple connection abstraction</span><span>
+</span><a name="line-13"></a><span class="hs-comment">--</span><span>
+</span><a name="line-14"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Network.Connection</span><span>
+</span><a name="line-15"></a><span>    </span><span class="hs-special">(</span><span>
+</span><a name="line-16"></a><span>    </span><span class="hs-comment">-- * Type for a connection</span><span>
+</span><a name="line-17"></a><span>      </span><a href="Network.Connection.Types.html#Connection"><span class="hs-identifier hs-type">Connection</span></a><span>
+</span><a name="line-18"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Network.Connection.Types.html#connectionID"><span class="hs-identifier hs-var">connectionID</span></a><span>
+</span><a name="line-19"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Network.Connection.Types.html#ConnectionParams"><span class="hs-identifier hs-type">ConnectionParams</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-20"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Network.Connection.Types.html#TLSSettings"><span class="hs-identifier hs-type">TLSSettings</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-21"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Network.Connection.Types.html#ProxySettings"><span class="hs-identifier hs-type">ProxySettings</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-22"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Network.Connection.Types.html#SockSettings"><span class="hs-identifier hs-type">SockSettings</span></a><span>
+</span><a name="line-23"></a><span>
+</span><a name="line-24"></a><span>    </span><span class="hs-comment">-- * Exceptions</span><span>
+</span><a name="line-25"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Network.Connection.html#LineTooLong"><span class="hs-identifier hs-type">LineTooLong</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-26"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Network.Connection.html#HostNotResolved"><span class="hs-identifier hs-type">HostNotResolved</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-27"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Network.Connection.html#HostCannotConnect"><span class="hs-identifier hs-type">HostCannotConnect</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-28"></a><span>
+</span><a name="line-29"></a><span>    </span><span class="hs-comment">-- * Library initialization</span><span>
+</span><a name="line-30"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Network.Connection.html#initConnectionContext"><span class="hs-identifier hs-var">initConnectionContext</span></a><span>
+</span><a name="line-31"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Network.Connection.Types.html#ConnectionContext"><span class="hs-identifier hs-type">ConnectionContext</span></a><span>
+</span><a name="line-32"></a><span>
+</span><a name="line-33"></a><span>    </span><span class="hs-comment">-- * Connection operation</span><span>
+</span><a name="line-34"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Network.Connection.html#connectFromHandle"><span class="hs-identifier hs-var">connectFromHandle</span></a><span>
+</span><a name="line-35"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Network.Connection.html#connectFromSocket"><span class="hs-identifier hs-var">connectFromSocket</span></a><span>
+</span><a name="line-36"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Network.Connection.html#connectTo"><span class="hs-identifier hs-var">connectTo</span></a><span>
+</span><a name="line-37"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Network.Connection.html#connectionClose"><span class="hs-identifier hs-var">connectionClose</span></a><span>
+</span><a name="line-38"></a><span>
+</span><a name="line-39"></a><span>    </span><span class="hs-comment">-- * Sending and receiving data</span><span>
+</span><a name="line-40"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Network.Connection.html#connectionGet"><span class="hs-identifier hs-var">connectionGet</span></a><span>
+</span><a name="line-41"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Network.Connection.html#connectionGetExact"><span class="hs-identifier hs-var">connectionGetExact</span></a><span>
+</span><a name="line-42"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Network.Connection.html#connectionGetChunk"><span class="hs-identifier hs-var">connectionGetChunk</span></a><span>
+</span><a name="line-43"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Network.Connection.html#connectionGetChunk%27"><span class="hs-identifier hs-var">connectionGetChunk'</span></a><span>
+</span><a name="line-44"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Network.Connection.html#connectionGetLine"><span class="hs-identifier hs-var">connectionGetLine</span></a><span>
+</span><a name="line-45"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Network.Connection.html#connectionWaitForInput"><span class="hs-identifier hs-var">connectionWaitForInput</span></a><span>
+</span><a name="line-46"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Network.Connection.html#connectionPut"><span class="hs-identifier hs-var">connectionPut</span></a><span>
+</span><a name="line-47"></a><span>
+</span><a name="line-48"></a><span>    </span><span class="hs-comment">-- * TLS related operation</span><span>
+</span><a name="line-49"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Network.Connection.html#connectionSetSecure"><span class="hs-identifier hs-var">connectionSetSecure</span></a><span>
+</span><a name="line-50"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Network.Connection.html#connectionIsSecure"><span class="hs-identifier hs-var">connectionIsSecure</span></a><span>
+</span><a name="line-51"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Network.Connection.html#connectionSessionManager"><span class="hs-identifier hs-var">connectionSessionManager</span></a><span>
+</span><a name="line-52"></a><span>    </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-53"></a><span>
+</span><a name="line-54"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Control.Concurrent.MVar</span><span>
+</span><a name="line-55"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Control.Monad</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">join</span><span class="hs-special">)</span><span>
+</span><a name="line-56"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Control.Exception</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">E</span><span>
+</span><a name="line-57"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">System.IO.Error</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">E</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">mkIOError</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">eofErrorType</span><span class="hs-special">)</span><span>
+</span><a name="line-58"></a><span>
+</span><a name="line-59"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Network.TLS</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">TLS</span><span>
+</span><a name="line-60"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Network.TLS.Extra</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">TLS</span><span>
+</span><a name="line-61"></a><span>
+</span><a name="line-62"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">System.X509</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">getSystemCertificateStore</span><span class="hs-special">)</span><span>
+</span><a name="line-63"></a><span>
+</span><a name="line-64"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Network.Socks5</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">defaultSocksConf</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">socksConnectWithSocket</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">SocksAddress</span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">SocksHostAddress</span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-65"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Network.Socket</span><span>
+</span><a name="line-66"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Network.Socket.ByteString</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">N</span><span>
+</span><a name="line-67"></a><span>
+</span><a name="line-68"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Tuple</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">swap</span><span class="hs-special">)</span><span>
+</span><a name="line-69"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Default.Class</span><span>
+</span><a name="line-70"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Data</span><span>
+</span><a name="line-71"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.ByteString</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">ByteString</span><span class="hs-special">)</span><span>
+</span><a name="line-72"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data.ByteString</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">B</span><span>
+</span><a name="line-73"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data.ByteString.Char8</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">BC</span><span>
+</span><a name="line-74"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data.ByteString.Lazy</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">L</span><span>
+</span><a name="line-75"></a><span>
+</span><a name="line-76"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">System.Environment</span><span>
+</span><a name="line-77"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">System.Timeout</span><span>
+</span><a name="line-78"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">System.IO</span><span>
+</span><a name="line-79"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data.Map</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">M</span><span>
+</span><a name="line-80"></a><span>
+</span><a name="line-81"></a><span class="hs-keyword">import</span><span> </span><a href="Network.Connection.Types.html"><span class="hs-identifier">Network.Connection.Types</span></a><span>
+</span><a name="line-82"></a><span>
+</span><a name="line-83"></a><span class="hs-keyword">type</span><span> </span><a name="Manager"><a href="Network.Connection.html#Manager"><span class="hs-identifier">Manager</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-type">MVar</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">M.Map</span><span> </span><span class="hs-identifier hs-type">TLS.SessionID</span><span> </span><span class="hs-identifier hs-type">TLS.SessionData</span><span class="hs-special">)</span><span>
+</span><a name="line-84"></a><span>
+</span><a name="line-85"></a><span class="hs-comment">-- | This is the exception raised if we reached the user specified limit for</span><span>
+</span><a name="line-86"></a><span class="hs-comment">-- the line in ConnectionGetLine.</span><span>
+</span><a name="line-87"></a><span class="hs-keyword">data</span><span> </span><a name="LineTooLong"><a href="Network.Connection.html#LineTooLong"><span class="hs-identifier">LineTooLong</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="LineTooLong"><a href="Network.Connection.html#LineTooLong"><span class="hs-identifier">LineTooLong</span></a></a><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Show</span><span class="hs-special">,</span><span class="hs-identifier hs-type">Typeable</span><span class="hs-special">)</span><span>
+</span><a name="line-88"></a><span>
+</span><a name="line-89"></a><span class="hs-comment">-- | Exception raised when there's no resolution for a specific host</span><span>
+</span><a name="line-90"></a><span class="hs-keyword">data</span><span> </span><a name="HostNotResolved"><a href="Network.Connection.html#HostNotResolved"><span class="hs-identifier">HostNotResolved</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="HostNotResolved"><a href="Network.Connection.html#HostNotResolved"><span class="hs-identifier">HostNotResolved</span></a></a><span> </span><span class="hs-identifier hs-type">String</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Show</span><span class="hs-special">,</span><span class="hs-identifier hs-type">Typeable</span><span class="hs-special">)</span><span>
+</span><a name="line-91"></a><span>
+</span><a name="line-92"></a><span class="hs-comment">-- | Exception raised when the connect failed</span><span>
+</span><a name="line-93"></a><span class="hs-keyword">data</span><span> </span><a name="HostCannotConnect"><a href="Network.Connection.html#HostCannotConnect"><span class="hs-identifier">HostCannotConnect</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="HostCannotConnect"><a href="Network.Connection.html#HostCannotConnect"><span class="hs-identifier">HostCannotConnect</span></a></a><span> </span><span class="hs-identifier hs-type">String</span><span> </span><span class="hs-special">[</span><span class="hs-identifier hs-type">E.IOException</span><span class="hs-special">]</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Show</span><span class="hs-special">,</span><span class="hs-identifier hs-type">Typeable</span><span class="hs-special">)</span><span>
+</span><a name="line-94"></a><span>
+</span><a name="line-95"></a><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier hs-type">E.Exception</span><span> </span><a href="Network.Connection.html#LineTooLong"><span class="hs-identifier hs-type">LineTooLong</span></a><span>
+</span><a name="line-96"></a><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier hs-type">E.Exception</span><span> </span><a href="Network.Connection.html#HostNotResolved"><span class="hs-identifier hs-type">HostNotResolved</span></a><span>
+</span><a name="line-97"></a><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier hs-type">E.Exception</span><span> </span><a href="Network.Connection.html#HostCannotConnect"><span class="hs-identifier hs-type">HostCannotConnect</span></a><span>
+</span><a name="line-98"></a><span>
+</span><a name="line-99"></a><span class="hs-identifier">connectionSessionManager</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Network.Connection.html#Manager"><span class="hs-identifier hs-type">Manager</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-type">TLS.SessionManager</span><span>
+</span><a name="line-100"></a><a name="connectionSessionManager"><a href="Network.Connection.html#connectionSessionManager"><span class="hs-identifier">connectionSessionManager</span></a></a><span> </span><a name="local-6989586621679052462"><a href="#local-6989586621679052462"><span class="hs-identifier">mvar</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">TLS.SessionManager</span><span>
+</span><a name="line-101"></a><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-identifier">TLS.sessionResume</span><span>     </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><a name="local-6989586621679052463"><a href="#local-6989586621679052463"><span class="hs-identifier">sessionID</span></a></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-var">withMVar</span><span> </span><a href="#local-6989586621679052462"><span class="hs-identifier hs-var">mvar</span></a><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">return</span><span> </span><span class="hs-operator hs-var">.</span><span> </span><span class="hs-identifier hs-var">M.lookup</span><span> </span><a href="#local-6989586621679052463"><span class="hs-identifier hs-var">sessionID</span></a><span class="hs-special">)</span><span>
+</span><a name="line-102"></a><span>    </span><span class="hs-special">,</span><span> </span><span class="hs-identifier">TLS.sessionEstablish</span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><a name="local-6989586621679052464"><a href="#local-6989586621679052464"><span class="hs-identifier">sessionID</span></a></a><span> </span><a name="local-6989586621679052465"><a href="#local-6989586621679052465"><span class="hs-identifier">sessionData</span></a></a><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><a name="line-103"></a><span>                               </span><span class="hs-identifier hs-var">modifyMVar_</span><span> </span><a href="#local-6989586621679052462"><span class="hs-identifier hs-var">mvar</span></a><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">return</span><span> </span><span class="hs-operator hs-var">.</span><span> </span><span class="hs-identifier hs-var">M.insert</span><span> </span><a href="#local-6989586621679052464"><span class="hs-identifier hs-var">sessionID</span></a><span> </span><a href="#local-6989586621679052465"><span class="hs-identifier hs-var">sessionData</span></a><span class="hs-special">)</span><span>
+</span><a name="line-104"></a><span>    </span><span class="hs-special">,</span><span> </span><span class="hs-identifier">TLS.sessionInvalidate</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><a name="local-6989586621679052466"><a href="#local-6989586621679052466"><span class="hs-identifier">sessionID</span></a></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-var">modifyMVar_</span><span> </span><a href="#local-6989586621679052462"><span class="hs-identifier hs-var">mvar</span></a><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">return</span><span> </span><span class="hs-operator hs-var">.</span><span> </span><span class="hs-identifier hs-var">M.delete</span><span> </span><a href="#local-6989586621679052466"><span class="hs-identifier hs-var">sessionID</span></a><span class="hs-special">)</span><span>
+</span><a name="line-105"></a><span class="hs-cpp">#if MIN_VERSION_tls(1,5,0)
+</span><span>    </span><span class="hs-special">,</span><span> </span><span class="hs-identifier">TLS.sessionResumeOnlyOnce</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-identifier">sessionID</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><a name="line-107"></a><span>         </span><span class="hs-identifier">modifyMVar</span><span> </span><span class="hs-identifier">mvar</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">pure</span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier">swap</span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier">M.updateLookupWithKey</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">Nothing</span><span class="hs-special">)</span><span> </span><span class="hs-identifier">sessionID</span><span class="hs-special">)</span><span>
+</span><a name="line-108"></a><span class="hs-cpp">#endif
+</span><span class="">    }
+
+-- | Initialize the library with shared parameters between connection.
+initConnectionContext :: IO ConnectionContext
+initConnectionContext = ConnectionContext &lt;$&gt; getSystemCertificateStore
+
+-- | Create a final TLS 'ClientParams' according to the destination and the
+-- TLSSettings.
+makeTLSParams :: ConnectionContext -&gt; ConnectionID -&gt; TLSSettings -&gt; TLS.ClientParams
+makeTLSParams cg cid ts@(TLSSettingsSimple {}) =
+    (TLS.defaultParamsClient (fst cid) portString)
+        { TLS.clientSupported = def { TLS.supportedCiphers = TLS.ciphersuite_default }
+        , TLS.clientShared    = def
+            { TLS.sharedCAStore         = globalCertificateStore cg
+            , TLS.sharedValidationCache = validationCache
+            -- , TLS.sharedSessionManager  = connectionSessionManager
+            }
+        }
+  where validationCache
+            | settingDisableCertificateValidation ts =
+                TLS.ValidationCache (\_ _ _ -&gt; return TLS.ValidationCachePass)
+                                    (\_ _ _ -&gt; return ())
+            | otherwise = def
+        portString = BC.pack $ show $ snd cid
+makeTLSParams _ cid (TLSSettings p) =
+    p { TLS.clientServerIdentification = (fst cid, portString) }
+ where portString = BC.pack $ show $ snd cid
+
+withBackend :: (ConnectionBackend -&gt; IO a) -&gt; Connection -&gt; IO a
+withBackend f conn = readMVar (connectionBackend conn) &gt;&gt;= f
+
+connectionNew :: ConnectionID -&gt; ConnectionBackend -&gt; IO Connection
+connectionNew cid backend =
+    Connection &lt;$&gt; newMVar backend
+               &lt;*&gt; newMVar (Just B.empty)
+               &lt;*&gt; pure cid
+
+-- | Use an already established handle to create a connection object.
+--
+-- if the TLS Settings is set, it will do the handshake with the server.
+-- The SOCKS settings have no impact here, as the handle is already established
+connectFromHandle :: ConnectionContext
+                  -&gt; Handle
+                  -&gt; ConnectionParams
+                  -&gt; IO Connection
+connectFromHandle cg h p = withSecurity (connectionUseSecure p)
+    where withSecurity Nothing            = connectionNew cid $ ConnectionStream h
+          withSecurity (Just tlsSettings) = tlsEstablish h (makeTLSParams cg cid tlsSettings) &gt;&gt;= connectionNew cid . ConnectionTLS
+          cid = (connectionHostname p, connectionPort p)
+
+-- | Use an already established handle to create a connection object.
+--
+-- if the TLS Settings is set, it will do the handshake with the server.
+-- The SOCKS settings have no impact here, as the handle is already established
+connectFromSocket :: ConnectionContext
+                  -&gt; Socket
+                  -&gt; ConnectionParams
+                  -&gt; IO Connection
+connectFromSocket cg sock p = withSecurity (connectionUseSecure p)
+    where withSecurity Nothing            = connectionNew cid $ ConnectionSocket sock
+          withSecurity (Just tlsSettings) = tlsEstablish sock (makeTLSParams cg cid tlsSettings) &gt;&gt;= connectionNew cid . ConnectionTLS
+          cid = (connectionHostname p, connectionPort p)
+
+-- | connect to a destination using the parameter
+connectTo :: ConnectionContext -- ^ The global context of this connection.
+          -&gt; ConnectionParams  -- ^ The parameters for this connection (where to connect, and such).
+          -&gt; IO Connection     -- ^ The new established connection on success.
+connectTo cg cParams = do
+    let conFct = doConnect (connectionUseSocks cParams)
+                           (connectionHostname cParams)
+                           (connectionPort cParams)
+    E.bracketOnError conFct (close . fst) $ \(h, _) -&gt;
+        connectFromSocket cg h cParams
+  where
+    sockConnect sockHost sockPort h p = do
+        (sockServ, servAddr) &lt;- resolve' sockHost sockPort
+        let sockConf = defaultSocksConf servAddr
+        let destAddr = SocksAddress (SocksAddrDomainName $ BC.pack h) p
+        (dest, _) &lt;- socksConnectWithSocket sockServ sockConf destAddr
+        case dest of
+            SocksAddrIPV4 h4 -&gt; return (sockServ, SockAddrInet p h4)
+            SocksAddrIPV6 h6 -&gt; return (sockServ, SockAddrInet6 p 0 h6 0)
+            SocksAddrDomainName _ -&gt; error &quot;internal error: socks connect return a resolved address as domain name&quot;
+
+
+    doConnect proxy h p =
+        case proxy of
+            Nothing                 -&gt; resolve' h p
+            Just (OtherProxy proxyHost proxyPort) -&gt; resolve' proxyHost proxyPort
+            Just (SockSettingsSimple sockHost sockPort) -&gt;
+                sockConnect sockHost sockPort h p
+            Just (SockSettingsEnvironment envName) -&gt; do
+                -- if we can't get the environment variable or that the string cannot be parsed
+                -- we connect directly.
+                let name = maybe &quot;SOCKS_SERVER&quot; id envName
+                evar &lt;- E.try (getEnv name)
+                case evar of
+                    Left (_ :: E.IOException) -&gt; resolve' h p
+                    Right var                 -&gt;
+                        case parseSocks var of
+                            Nothing                   -&gt; resolve' h p
+                            Just (sockHost, sockPort) -&gt; sockConnect sockHost sockPort h p
+
+    -- Try to parse &quot;host:port&quot; or &quot;host&quot;
+    -- if port is ommited then the default SOCKS port (1080) is assumed
+    parseSocks :: String -&gt; Maybe (String, PortNumber)
+    parseSocks s =
+        case break (== ':') s of
+            (sHost, &quot;&quot;)        -&gt; Just (sHost, 1080)
+            (sHost, ':':portS) -&gt;
+                case reads portS of
+                    [(sPort,&quot;&quot;)] -&gt; Just (sHost, sPort)
+                    _            -&gt; Nothing
+            _                  -&gt; Nothing
+
+    -- Try to resolve the host/port into an address (zero to many of them), then
+    -- try to connect from the first address to the last, returning the first one that
+    -- succeed
+    resolve' :: String -&gt; PortNumber -&gt; IO (Socket, SockAddr)
+    resolve' host port = do
+        let hints = defaultHints { addrFlags = [AI_ADDRCONFIG], addrSocketType = Stream }
+        addrs &lt;- getAddrInfo (Just hints) (Just host) (Just $ show port)
+        firstSuccessful $ map tryToConnect addrs
+      where
+        tryToConnect addr =
+            E.bracketOnError
+                (socket (addrFamily addr) (addrSocketType addr) (addrProtocol addr))
+                (close)
+                (\sock -&gt; connect sock (addrAddress addr) &gt;&gt; return (sock, addrAddress addr))
+        firstSuccessful = go []
+          where
+            go :: [E.IOException] -&gt; [IO a] -&gt; IO a
+            go []      [] = E.throwIO $ HostNotResolved host
+            go l@(_:_) [] = E.throwIO $ HostCannotConnect host l
+            go acc     (act:followingActs) = do
+                er &lt;- E.try act
+                case er of
+                    Left err -&gt; go (err:acc) followingActs
+                    Right r  -&gt; return r
+
+-- | Put a block of data in the connection.
+connectionPut :: Connection -&gt; ByteString -&gt; IO ()
+connectionPut connection content = withBackend doWrite connection
+    where doWrite (ConnectionStream h) = B.hPut h content &gt;&gt; hFlush h
+          doWrite (ConnectionSocket s) = N.sendAll s content
+          doWrite (ConnectionTLS ctx)  = TLS.sendData ctx $ L.fromChunks [content]
+
+-- | Get exact count of bytes from a connection.
+--
+-- The size argument is the exact amount that must be returned to the user.
+-- The call will wait until all data is available.  Hence, it behaves like
+-- 'B.hGet'.
+--
+-- On end of input, 'connectionGetExact' will throw an 'E.isEOFError'
+-- exception.
+connectionGetExact :: Connection -&gt; Int -&gt; IO ByteString
+connectionGetExact conn x = loop B.empty 0
+  where loop bs y
+          | y == x = return bs
+          | otherwise = do
+            next &lt;- connectionGet conn (x - y)
+            loop (B.append bs next) (y + (B.length next))
+
+-- | Get some bytes from a connection.
+--
+-- The size argument is just the maximum that could be returned to the user.
+-- The call will return as soon as there's data, even if there's less
+-- than requested.  Hence, it behaves like 'B.hGetSome'.
+--
+-- On end of input, 'connectionGet' returns 0, but subsequent calls will throw
+-- an 'E.isEOFError' exception.
+connectionGet :: Connection -&gt; Int -&gt; IO ByteString
+connectionGet conn size
+  | size &lt; 0  = fail &quot;Network.Connection.connectionGet: size &lt; 0&quot;
+  | size == 0 = return B.empty
+  | otherwise = connectionGetChunkBase &quot;connectionGet&quot; conn $ B.splitAt size
+
+-- | Get the next block of data from the connection.
+connectionGetChunk :: Connection -&gt; IO ByteString
+connectionGetChunk conn =
+    connectionGetChunkBase &quot;connectionGetChunk&quot; conn $ \s -&gt; (s, B.empty)
+
+-- | Like 'connectionGetChunk', but return the unused portion to the buffer,
+-- where it will be the next chunk read.
+connectionGetChunk' :: Connection -&gt; (ByteString -&gt; (a, ByteString)) -&gt; IO a
+connectionGetChunk' = connectionGetChunkBase &quot;connectionGetChunk'&quot;
+
+-- | Wait for input to become available on a connection.
+--
+-- As with 'hWaitForInput', the timeout value is given in milliseconds.  If the
+-- timeout value is less than zero, then 'connectionWaitForInput' waits
+-- indefinitely.
+--
+-- Unlike 'hWaitForInput', this function does not do any decoding, so it
+-- returns true when there is /any/ available input, not just full characters.
+connectionWaitForInput :: Connection -&gt; Int -&gt; IO Bool
+connectionWaitForInput conn timeout_ms = maybe False (const True) &lt;$&gt; timeout timeout_ns tryGetChunk
+  where tryGetChunk = connectionGetChunkBase &quot;connectionWaitForInput&quot; conn $ \buf -&gt; ((), buf)
+        timeout_ns  = timeout_ms * 1000
+
+connectionGetChunkBase :: String -&gt; Connection -&gt; (ByteString -&gt; (a, ByteString)) -&gt; IO a
+connectionGetChunkBase loc conn f =
+    modifyMVar (connectionBuffer conn) $ \m -&gt;
+        case m of
+            Nothing -&gt; throwEOF conn loc
+            Just buf
+              | B.null buf -&gt; do
+                  chunk &lt;- withBackend getMoreData conn
+                  if B.null chunk
+                     then closeBuf chunk
+                     else updateBuf chunk
+              | otherwise -&gt;
+                  updateBuf buf
+  where
+    getMoreData (ConnectionTLS tlsctx) = TLS.recvData tlsctx
+    getMoreData (ConnectionSocket sock) = N.recv sock 1500
+    getMoreData (ConnectionStream h)   = B.hGetSome h (16 * 1024)
+
+    updateBuf buf = case f buf of (a, !buf') -&gt; return (Just buf', a)
+    closeBuf  buf = case f buf of (a, _buf') -&gt; return (Nothing, a)
+
+-- | Get the next line, using ASCII LF as the line terminator.
+--
+-- This throws an 'isEOFError' exception on end of input, and LineTooLong when
+-- the number of bytes gathered is over the limit without a line terminator.
+--
+-- The actual line returned can be bigger than the limit specified, provided
+-- that the last chunk returned by the underlaying backend contains a LF.
+-- In another world only when we need more input and limit is reached that the
+-- LineTooLong exception will be raised.
+--
+-- An end of file will be considered as a line terminator too, if line is
+-- not empty.
+connectionGetLine :: Int           -- ^ Maximum number of bytes before raising a LineTooLong exception
+                  -&gt; Connection    -- ^ Connection
+                  -&gt; IO ByteString -- ^ The received line with the LF trimmed
+connectionGetLine limit conn = more (throwEOF conn loc) 0 id
+  where
+    loc = &quot;connectionGetLine&quot;
+    lineTooLong = E.throwIO LineTooLong
+
+    -- Accumulate chunks using a difference list, and concatenate them
+    -- when an end-of-line indicator is reached.
+    more eofK !currentSz !dl =
+        getChunk (\s -&gt; let len = B.length s
+                         in if currentSz + len &gt; limit
+                               then lineTooLong
+                               else more eofK (currentSz + len) (dl . (s:)))
+                 (\s -&gt; done (dl . (s:)))
+                 (done dl)
+
+    done :: ([ByteString] -&gt; [ByteString]) -&gt; IO ByteString
+    done dl = return $! B.concat $ dl []
+
+    -- Get another chunk, and call one of the continuations
+    getChunk :: (ByteString -&gt; IO r) -- moreK: need more input
+             -&gt; (ByteString -&gt; IO r) -- doneK: end of line (line terminator found)
+             -&gt; IO r                 -- eofK:  end of file
+             -&gt; IO r
+    getChunk moreK doneK eofK =
+      join $ connectionGetChunkBase loc conn $ \s -&gt;
+        if B.null s
+          then (eofK, B.empty)
+          else case B.break (== 10) s of
+                 (a, b)
+                   | B.null b  -&gt; (moreK a, B.empty)
+                   | otherwise -&gt; (doneK a, B.tail b)
+
+throwEOF :: Connection -&gt; String -&gt; IO a
+throwEOF conn loc =
+    E.throwIO $ E.mkIOError E.eofErrorType loc' Nothing (Just path)
+  where
+    loc' = &quot;Network.Connection.&quot; ++ loc
+    path = let (host, port) = connectionID conn
+            in host ++ &quot;:&quot; ++ show port
+
+-- | Close a connection.
+connectionClose :: Connection -&gt; IO ()
+connectionClose = withBackend backendClose
+    where backendClose (ConnectionTLS ctx)  = ignoreIOExc (TLS.bye ctx) `E.finally` TLS.contextClose ctx
+          backendClose (ConnectionSocket sock) = close sock
+          backendClose (ConnectionStream h) = hClose h
+
+          ignoreIOExc action = action `E.catch` \(_ :: E.IOException) -&gt; return ()
+
+-- | Activate secure layer using the parameters specified.
+--
+-- This is typically used to negociate a TLS channel on an already
+-- establish channel, e.g. supporting a STARTTLS command. it also
+-- flush the received buffer to prevent application confusing
+-- received data before and after the setSecure call.
+--
+-- If the connection is already using TLS, nothing else happens.
+connectionSetSecure :: ConnectionContext
+                    -&gt; Connection
+                    -&gt; TLSSettings
+                    -&gt; IO ()
+connectionSetSecure cg connection params =
+    modifyMVar_ (connectionBuffer connection) $ \b -&gt;
+    modifyMVar (connectionBackend connection) $ \backend -&gt;
+        case backend of
+            (ConnectionStream h) -&gt; do ctx &lt;- tlsEstablish h (makeTLSParams cg (connectionID connection) params)
+                                       return (ConnectionTLS ctx, Just B.empty)
+            (ConnectionSocket s) -&gt; do ctx &lt;- tlsEstablish s (makeTLSParams cg (connectionID connection) params)
+                                       return (ConnectionTLS ctx, Just B.empty)
+            (ConnectionTLS _)    -&gt; return (backend, b)
+
+-- | Returns if the connection is establish securely or not.
+connectionIsSecure :: Connection -&gt; IO Bool
+connectionIsSecure conn = withBackend isSecure conn
+    where isSecure (ConnectionStream _) = return False
+          isSecure (ConnectionSocket _) = return False
+          isSecure (ConnectionTLS _)    = return True
+
+tlsEstablish :: TLS.HasBackend backend =&gt; backend -&gt; TLS.ClientParams -&gt; IO TLS.Context
+tlsEstablish handle tlsParams = do
+    ctx &lt;- TLS.contextNew handle tlsParams
+    TLS.handshake ctx
+    return ctx
+</span></pre></body></html>

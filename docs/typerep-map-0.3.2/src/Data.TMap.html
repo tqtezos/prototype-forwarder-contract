@@ -1,0 +1,171 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE AllowAmbiguousTypes #-}</span><span>
+</span><a name="line-2"></a><span class="hs-pragma">{-# LANGUAGE Rank2Types          #-}</span><span>
+</span><a name="line-3"></a><span>
+</span><a name="line-4"></a><span class="hs-comment">{- |
+'TMap' is a heterogeneous data structure similar in its essence to
+'Data.Map.Map' with types as keys, where each value has the type of its key.
+
+Here is an example of a 'TMap' with a comparison to 'Data.Map.Map':
+
+@
+ 'Data.Map.Map' 'Prelude.String' 'Prelude.String'             'TMap'
+--------------------     -----------------
+ \&quot;Int\&quot;  -&gt; \&quot;5\&quot;             'Prelude.Int'  -&gt; 5
+ \&quot;Bool\&quot; -&gt; \&quot;True\&quot;          'Prelude.Bool' -&gt; 'Prelude.True'
+ \&quot;Char\&quot; -&gt; \&quot;\'x\'\&quot;           'Prelude.Char' -&gt; \'x\'
+@
+
+The runtime representation of 'TMap' is an array, not a tree. This makes
+'lookup' significantly more efficient.
+
+-}</span><span>
+</span><a name="line-22"></a><span>
+</span><a name="line-23"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Data.TMap</span><span>
+</span><a name="line-24"></a><span>       </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- * Map type</span><span>
+</span><a name="line-25"></a><span>         </span><a href="Data.TMap.html#TMap"><span class="hs-identifier hs-type">TMap</span></a><span>
+</span><a name="line-26"></a><span>
+</span><a name="line-27"></a><span>         </span><span class="hs-comment">-- * Construction</span><span>
+</span><a name="line-28"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Data.TMap.html#empty"><span class="hs-identifier hs-var">empty</span></a><span>
+</span><a name="line-29"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Data.TMap.html#one"><span class="hs-identifier hs-var">one</span></a><span>
+</span><a name="line-30"></a><span>
+</span><a name="line-31"></a><span>         </span><span class="hs-comment">-- * Modification</span><span>
+</span><a name="line-32"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Data.TMap.html#insert"><span class="hs-identifier hs-var">insert</span></a><span>
+</span><a name="line-33"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Data.TMap.html#delete"><span class="hs-identifier hs-var">delete</span></a><span>
+</span><a name="line-34"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Data.TMap.html#unionWith"><span class="hs-identifier hs-var">unionWith</span></a><span>
+</span><a name="line-35"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Data.TMap.html#union"><span class="hs-identifier hs-var">union</span></a><span>
+</span><a name="line-36"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Data.TMap.html#map"><span class="hs-identifier hs-var">map</span></a><span>
+</span><a name="line-37"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Data.TMap.html#adjust"><span class="hs-identifier hs-var">adjust</span></a><span>
+</span><a name="line-38"></a><span>
+</span><a name="line-39"></a><span>         </span><span class="hs-comment">-- * Query</span><span>
+</span><a name="line-40"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Data.TMap.html#lookup"><span class="hs-identifier hs-var">lookup</span></a><span>
+</span><a name="line-41"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Data.TMap.html#member"><span class="hs-identifier hs-var">member</span></a><span>
+</span><a name="line-42"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Data.TMap.html#size"><span class="hs-identifier hs-var">size</span></a><span>
+</span><a name="line-43"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Data.TMap.html#keys"><span class="hs-identifier hs-var">keys</span></a><span>
+</span><a name="line-44"></a><span>       </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-45"></a><span>
+</span><a name="line-46"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Prelude</span><span> </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">lookup</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">map</span><span class="hs-special">)</span><span>
+</span><a name="line-47"></a><span>
+</span><a name="line-48"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Functor.Identity</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Identity</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-49"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Typeable</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Typeable</span><span class="hs-special">)</span><span>
+</span><a name="line-50"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">GHC.Exts</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">coerce</span><span class="hs-special">)</span><span>
+</span><a name="line-51"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Type.Reflection</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">SomeTypeRep</span><span class="hs-special">)</span><span>
+</span><a name="line-52"></a><span>
+</span><a name="line-53"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><a href="Data.TypeRepMap.html"><span class="hs-identifier">Data.TypeRepMap</span></a><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">F</span><span>
+</span><a name="line-54"></a><span>
+</span><a name="line-55"></a><span class="hs-comment">-- | 'TMap' is a special case of 'F.TypeRepMap' when the interpretation is</span><span>
+</span><a name="line-56"></a><span class="hs-comment">-- 'Identity'.</span><span>
+</span><a name="line-57"></a><span class="hs-keyword">type</span><span> </span><a name="TMap"><a href="Data.TMap.html#TMap"><span class="hs-identifier">TMap</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Data.TypeRepMap.Internal.html#TypeRepMap"><span class="hs-identifier hs-type">F.TypeRepMap</span></a><span> </span><span class="hs-identifier hs-type">Identity</span><span>
+</span><a name="line-58"></a><span>
+</span><a name="line-59"></a><span class="hs-comment">{- |
+
+A 'TMap' with no values stored in it.
+
+prop&gt; size empty == 0
+prop&gt; member @a empty == False
+
+-}</span><span>
+</span><a name="line-67"></a><span class="hs-identifier">empty</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Data.TMap.html#TMap"><span class="hs-identifier hs-type">TMap</span></a><span>
+</span><a name="line-68"></a><a name="empty"><a href="Data.TMap.html#empty"><span class="hs-identifier">empty</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Data.TypeRepMap.Internal.html#empty"><span class="hs-identifier hs-var">F.empty</span></a><span>
+</span><a name="line-69"></a><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">empty</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><a name="line-70"></a><span>
+</span><a name="line-71"></a><span class="hs-comment">{- |
+
+Construct a 'TMap' with a single element.
+
+prop&gt; size (one x) == 1
+prop&gt; member @a (one (x :: a)) == True
+
+-}</span><span>
+</span><a name="line-79"></a><span class="hs-identifier">one</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-keyword">forall</span><span> </span><a name="local-6989586621679052683"><a href="#local-6989586621679052683"><span class="hs-identifier">a</span></a></a><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier hs-type">Typeable</span><span> </span><a href="#local-6989586621679052683"><span class="hs-identifier hs-type">a</span></a><span> </span><span class="hs-glyph">=&gt;</span><span> </span><a href="#local-6989586621679052683"><span class="hs-identifier hs-type">a</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="Data.TMap.html#TMap"><span class="hs-identifier hs-type">TMap</span></a><span>
+</span><a name="line-80"></a><a name="one"><a href="Data.TMap.html#one"><span class="hs-identifier">one</span></a></a><span> </span><a name="local-6989586621679052684"><a href="#local-6989586621679052684"><span class="hs-identifier">x</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">coerce</span><span> </span><span class="hs-special">(</span><a href="Data.TypeRepMap.Internal.html#one"><span class="hs-identifier hs-var">F.one</span></a><span> </span><span class="hs-glyph">@</span><a href="#local-6989586621679052683"><span class="hs-identifier hs-type">a</span></a><span> </span><span class="hs-glyph">@</span><span class="hs-identifier hs-type">Identity</span><span> </span><span class="hs-operator hs-var">$</span><span> </span><span class="hs-identifier hs-var">coerce</span><span> </span><a href="#local-6989586621679052684"><span class="hs-identifier hs-var">x</span></a><span class="hs-special">)</span><span>
+</span><a name="line-81"></a><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">one</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><a name="line-82"></a><span>
+</span><a name="line-83"></a><span class="hs-comment">{- |
+
+Insert a value into a 'TMap'.
+
+prop&gt; size (insert v tm) &gt;= size tm
+prop&gt; member @a (insert (x :: a) tm) == True
+
+-}</span><span>
+</span><a name="line-91"></a><span class="hs-identifier">insert</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-keyword">forall</span><span> </span><a name="local-6989586621679052682"><a href="#local-6989586621679052682"><span class="hs-identifier">a</span></a></a><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier hs-type">Typeable</span><span> </span><a href="#local-6989586621679052682"><span class="hs-identifier hs-type">a</span></a><span> </span><span class="hs-glyph">=&gt;</span><span> </span><a href="#local-6989586621679052682"><span class="hs-identifier hs-type">a</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="Data.TMap.html#TMap"><span class="hs-identifier hs-type">TMap</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="Data.TMap.html#TMap"><span class="hs-identifier hs-type">TMap</span></a><span>
+</span><a name="line-92"></a><a name="insert"><a href="Data.TMap.html#insert"><span class="hs-identifier">insert</span></a></a><span> </span><a name="local-6989586621679052685"><a href="#local-6989586621679052685"><span class="hs-identifier">x</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">coerce</span><span> </span><span class="hs-special">(</span><a href="Data.TypeRepMap.Internal.html#insert"><span class="hs-identifier hs-var">F.insert</span></a><span> </span><span class="hs-glyph">@</span><a href="#local-6989586621679052682"><span class="hs-identifier hs-type">a</span></a><span> </span><span class="hs-glyph">@</span><span class="hs-identifier hs-type">Identity</span><span> </span><span class="hs-operator hs-var">$</span><span> </span><span class="hs-identifier hs-var">coerce</span><span> </span><a href="#local-6989586621679052685"><span class="hs-identifier hs-var">x</span></a><span class="hs-special">)</span><span>
+</span><a name="line-93"></a><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">insert</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><a name="line-94"></a><span>
+</span><a name="line-95"></a><span class="hs-comment">{- | Delete a value from a 'TMap'.
+
+prop&gt; size (delete @a tm) &lt;= size tm
+prop&gt; member @a (delete @a tm) == False
+
+&gt;&gt;&gt; tm = delete @Bool $ insert True $ one 'a'
+&gt;&gt;&gt; size tm
+1
+&gt;&gt;&gt; member @Bool tm
+False
+&gt;&gt;&gt; member @Char tm
+True
+-}</span><span>
+</span><a name="line-108"></a><span class="hs-identifier">delete</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-keyword">forall</span><span> </span><a name="local-6989586621679052681"><a href="#local-6989586621679052681"><span class="hs-identifier">a</span></a></a><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier hs-type">Typeable</span><span> </span><a href="#local-6989586621679052681"><span class="hs-identifier hs-type">a</span></a><span> </span><span class="hs-glyph">=&gt;</span><span> </span><a href="Data.TMap.html#TMap"><span class="hs-identifier hs-type">TMap</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="Data.TMap.html#TMap"><span class="hs-identifier hs-type">TMap</span></a><span>
+</span><a name="line-109"></a><a name="delete"><a href="Data.TMap.html#delete"><span class="hs-identifier">delete</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Data.TypeRepMap.Internal.html#delete"><span class="hs-identifier hs-var">F.delete</span></a><span> </span><span class="hs-glyph">@</span><a href="#local-6989586621679052681"><span class="hs-identifier hs-type">a</span></a><span> </span><span class="hs-glyph">@</span><span class="hs-identifier hs-type">Identity</span><span>
+</span><a name="line-110"></a><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">delete</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><a name="line-111"></a><span>
+</span><a name="line-112"></a><span class="hs-comment">-- | The union of two 'TMap's using a combining function.</span><span>
+</span><a name="line-113"></a><span class="hs-identifier">unionWith</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="hs-keyword">forall</span><span> </span><a name="local-6989586621679052680"><a href="#local-6989586621679052680"><span class="hs-identifier">x</span></a></a><span class="hs-operator">.</span><span> </span><span class="hs-identifier hs-type">Typeable</span><span> </span><a href="#local-6989586621679052680"><span class="hs-identifier hs-type">x</span></a><span> </span><span class="hs-glyph">=&gt;</span><span> </span><a href="#local-6989586621679052680"><span class="hs-identifier hs-type">x</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-6989586621679052680"><span class="hs-identifier hs-type">x</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-6989586621679052680"><span class="hs-identifier hs-type">x</span></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="Data.TMap.html#TMap"><span class="hs-identifier hs-type">TMap</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="Data.TMap.html#TMap"><span class="hs-identifier hs-type">TMap</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="Data.TMap.html#TMap"><span class="hs-identifier hs-type">TMap</span></a><span>
+</span><a name="line-114"></a><a name="unionWith"><a href="Data.TMap.html#unionWith"><span class="hs-identifier">unionWith</span></a></a><span> </span><a name="local-6989586621679052686"><a href="#local-6989586621679052686"><span class="hs-identifier">f</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Data.TypeRepMap.Internal.html#unionWith"><span class="hs-identifier hs-var">F.unionWith</span></a><span> </span><a href="#local-6989586621679052687"><span class="hs-identifier hs-var">fId</span></a><span>
+</span><a name="line-115"></a><span>  </span><span class="hs-keyword">where</span><span>
+</span><a name="line-116"></a><span>    </span><span class="hs-identifier">fId</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-keyword">forall</span><span> </span><a name="local-6989586621679052688"><a href="#local-6989586621679052688"><span class="hs-identifier">y</span></a></a><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier hs-type">Typeable</span><span> </span><a href="#local-6989586621679052688"><span class="hs-identifier hs-type">y</span></a><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-identifier hs-type">Identity</span><span> </span><a href="#local-6989586621679052688"><span class="hs-identifier hs-type">y</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-type">Identity</span><span> </span><a href="#local-6989586621679052688"><span class="hs-identifier hs-type">y</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-type">Identity</span><span> </span><a href="#local-6989586621679052688"><span class="hs-identifier hs-type">y</span></a><span>
+</span><a name="line-117"></a><span>    </span><a name="local-6989586621679052687"><a href="#local-6989586621679052687"><span class="hs-identifier">fId</span></a></a><span> </span><a name="local-6989586621679052689"><a href="#local-6989586621679052689"><span class="hs-identifier">y1</span></a></a><span> </span><a name="local-6989586621679052690"><a href="#local-6989586621679052690"><span class="hs-identifier">y2</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">Identity</span><span> </span><span class="hs-operator hs-var">$</span><span> </span><a href="#local-6989586621679052686"><span class="hs-identifier hs-var">f</span></a><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">coerce</span><span> </span><a href="#local-6989586621679052689"><span class="hs-identifier hs-var">y1</span></a><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">coerce</span><span> </span><a href="#local-6989586621679052690"><span class="hs-identifier hs-var">y2</span></a><span class="hs-special">)</span><span>
+</span><a name="line-118"></a><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">unionWith</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><a name="line-119"></a><span>
+</span><a name="line-120"></a><span class="hs-comment">-- | The (left-biased) union of two 'TMap's. It prefers the first map when</span><span>
+</span><a name="line-121"></a><span class="hs-comment">-- duplicate keys are encountered, i.e. @'union' == 'unionWith' const@.</span><span>
+</span><a name="line-122"></a><span class="hs-identifier">union</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Data.TMap.html#TMap"><span class="hs-identifier hs-type">TMap</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="Data.TMap.html#TMap"><span class="hs-identifier hs-type">TMap</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="Data.TMap.html#TMap"><span class="hs-identifier hs-type">TMap</span></a><span>
+</span><a name="line-123"></a><a name="union"><a href="Data.TMap.html#union"><span class="hs-identifier">union</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Data.TypeRepMap.Internal.html#union"><span class="hs-identifier hs-var">F.union</span></a><span>
+</span><a name="line-124"></a><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">union</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><a name="line-125"></a><span>
+</span><a name="line-126"></a><span class="hs-comment">{- | Lookup a value of the given type in a 'TMap'.
+
+&gt;&gt;&gt; x = lookup $ insert (11 :: Int) empty
+&gt;&gt;&gt; x :: Maybe Int
+Just 11
+&gt;&gt;&gt; x :: Maybe ()
+Nothing
+-}</span><span>
+</span><a name="line-134"></a><span class="hs-identifier">lookup</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-keyword">forall</span><span> </span><a name="local-6989586621679052679"><a href="#local-6989586621679052679"><span class="hs-identifier">a</span></a></a><span class="hs-operator">.</span><span> </span><span class="hs-identifier hs-type">Typeable</span><span> </span><a href="#local-6989586621679052679"><span class="hs-identifier hs-type">a</span></a><span> </span><span class="hs-glyph">=&gt;</span><span> </span><a href="Data.TMap.html#TMap"><span class="hs-identifier hs-type">TMap</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-type">Maybe</span><span> </span><a href="#local-6989586621679052679"><span class="hs-identifier hs-type">a</span></a><span>
+</span><a name="line-135"></a><a name="lookup"><a href="Data.TMap.html#lookup"><span class="hs-identifier">lookup</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">coerce</span><span> </span><span class="hs-special">(</span><a href="Data.TypeRepMap.Internal.html#lookup"><span class="hs-identifier hs-var">F.lookup</span></a><span> </span><span class="hs-glyph">@</span><a href="#local-6989586621679052679"><span class="hs-identifier hs-type">a</span></a><span> </span><span class="hs-glyph">@</span><span class="hs-identifier hs-type">Identity</span><span class="hs-special">)</span><span>
+</span><a name="line-136"></a><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">lookup</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><a name="line-137"></a><span>
+</span><a name="line-138"></a><span class="hs-comment">{- | Check if a value of the given type is present in a 'TMap'.
+
+&gt;&gt;&gt; member @Char $ one 'a'
+True
+&gt;&gt;&gt; member @Bool $ one 'a'
+False
+-}</span><span>
+</span><a name="line-145"></a><span class="hs-identifier">member</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-keyword">forall</span><span> </span><a name="local-6989586621679052678"><a href="#local-6989586621679052678"><span class="hs-identifier">a</span></a></a><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier hs-type">Typeable</span><span> </span><a href="#local-6989586621679052678"><span class="hs-identifier hs-type">a</span></a><span> </span><span class="hs-glyph">=&gt;</span><span> </span><a href="Data.TMap.html#TMap"><span class="hs-identifier hs-type">TMap</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-type">Bool</span><span>
+</span><a name="line-146"></a><a name="member"><a href="Data.TMap.html#member"><span class="hs-identifier">member</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Data.TypeRepMap.Internal.html#member"><span class="hs-identifier hs-var">F.member</span></a><span> </span><span class="hs-glyph">@</span><a href="#local-6989586621679052678"><span class="hs-identifier hs-type">a</span></a><span> </span><span class="hs-glyph">@</span><span class="hs-identifier hs-type">Identity</span><span>
+</span><a name="line-147"></a><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">member</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><a name="line-148"></a><span>
+</span><a name="line-149"></a><span class="hs-comment">-- | Get the amount of elements in a 'TMap'.</span><span>
+</span><a name="line-150"></a><span class="hs-identifier">size</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Data.TMap.html#TMap"><span class="hs-identifier hs-type">TMap</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-type">Int</span><span>
+</span><a name="line-151"></a><a name="size"><a href="Data.TMap.html#size"><span class="hs-identifier">size</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Data.TypeRepMap.Internal.html#size"><span class="hs-identifier hs-var">F.size</span></a><span>
+</span><a name="line-152"></a><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">size</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><a name="line-153"></a><span>
+</span><a name="line-154"></a><span class="hs-comment">-- | Returns the list of 'SomeTypeRep's from keys.</span><span>
+</span><a name="line-155"></a><span class="hs-identifier">keys</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Data.TMap.html#TMap"><span class="hs-identifier hs-type">TMap</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-identifier hs-type">SomeTypeRep</span><span class="hs-special">]</span><span>
+</span><a name="line-156"></a><a name="keys"><a href="Data.TMap.html#keys"><span class="hs-identifier">keys</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Data.TypeRepMap.Internal.html#keys"><span class="hs-identifier hs-var">F.keys</span></a><span>
+</span><a name="line-157"></a><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">keys</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><a name="line-158"></a><span>
+</span><a name="line-159"></a><span class="hs-comment">-- | Map a function over the values.</span><span>
+</span><a name="line-160"></a><span class="hs-identifier">map</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="hs-keyword">forall</span><span> </span><a name="local-6989586621679052677"><a href="#local-6989586621679052677"><span class="hs-identifier">a</span></a></a><span class="hs-operator">.</span><span> </span><span class="hs-identifier hs-type">Typeable</span><span> </span><a href="#local-6989586621679052677"><span class="hs-identifier hs-type">a</span></a><span> </span><span class="hs-glyph">=&gt;</span><span> </span><a href="#local-6989586621679052677"><span class="hs-identifier hs-type">a</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-6989586621679052677"><span class="hs-identifier hs-type">a</span></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="Data.TMap.html#TMap"><span class="hs-identifier hs-type">TMap</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="Data.TMap.html#TMap"><span class="hs-identifier hs-type">TMap</span></a><span>
+</span><a name="line-161"></a><a name="map"><a href="Data.TMap.html#map"><span class="hs-identifier">map</span></a></a><span> </span><a name="local-6989586621679052691"><a href="#local-6989586621679052691"><span class="hs-identifier">f</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Data.TypeRepMap.Internal.html#hoistWithKey"><span class="hs-identifier hs-var">F.hoistWithKey</span></a><span> </span><span class="hs-special">(</span><a href="Data.TMap.html#liftToIdentity"><span class="hs-identifier hs-var">liftToIdentity</span></a><span> </span><a href="#local-6989586621679052691"><span class="hs-identifier hs-var">f</span></a><span class="hs-special">)</span><span>
+</span><a name="line-162"></a><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">map</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><a name="line-163"></a><span>
+</span><a name="line-164"></a><span class="hs-comment">-- | Update a value with the result of the provided function.</span><span>
+</span><a name="line-165"></a><span class="hs-identifier">adjust</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Typeable</span><span> </span><a href="#local-6989586621679052676"><span class="hs-identifier hs-type">a</span></a><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">(</span><a href="#local-6989586621679052676"><span class="hs-identifier hs-type">a</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-6989586621679052676"><span class="hs-identifier hs-type">a</span></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="Data.TMap.html#TMap"><span class="hs-identifier hs-type">TMap</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="Data.TMap.html#TMap"><span class="hs-identifier hs-type">TMap</span></a><span>
+</span><a name="line-166"></a><a name="adjust"><a href="Data.TMap.html#adjust"><span class="hs-identifier">adjust</span></a></a><span> </span><a name="local-6989586621679052692"><a href="#local-6989586621679052692"><span class="hs-identifier">f</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Data.TypeRepMap.Internal.html#adjust"><span class="hs-identifier hs-var">F.adjust</span></a><span> </span><span class="hs-special">(</span><a href="Data.TMap.html#liftToIdentity"><span class="hs-identifier hs-var">liftToIdentity</span></a><span> </span><a href="#local-6989586621679052692"><span class="hs-identifier hs-var">f</span></a><span class="hs-special">)</span><span>
+</span><a name="line-167"></a><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">adjust</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><a name="line-168"></a><span>
+</span><a name="line-169"></a><span class="hs-identifier">liftToIdentity</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-keyword">forall</span><span> </span><a name="local-6989586621679052675"><a href="#local-6989586621679052675"><span class="hs-identifier">a</span></a></a><span class="hs-operator">.</span><span> </span><span class="hs-identifier hs-type">Typeable</span><span> </span><a href="#local-6989586621679052675"><span class="hs-identifier hs-type">a</span></a><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">(</span><a href="#local-6989586621679052675"><span class="hs-identifier hs-type">a</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-6989586621679052675"><span class="hs-identifier hs-type">a</span></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-type">Identity</span><span> </span><a href="#local-6989586621679052675"><span class="hs-identifier hs-type">a</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-type">Identity</span><span> </span><a href="#local-6989586621679052675"><span class="hs-identifier hs-type">a</span></a><span>
+</span><a name="line-170"></a><a name="liftToIdentity"><a href="Data.TMap.html#liftToIdentity"><span class="hs-identifier">liftToIdentity</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">coerce</span><span>
+</span><a name="line-171"></a></pre></body></html>

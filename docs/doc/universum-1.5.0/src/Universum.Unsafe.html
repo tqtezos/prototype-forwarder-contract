@@ -1,0 +1,39 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE Unsafe #-}</span><span>
+</span><a name="line-2"></a><span>
+</span><a name="line-3"></a><span class="hs-comment">{- | Unsafe functions to work with lists and 'Maybe'.
+Sometimes unavoidable but better don't use them. This module
+is intended to be imported qualified and it's not even included
+in default prelude exports.
+
+@
+import qualified Universum.Unsafe as Unsafe
+
+foo :: [a] -&gt; a
+foo = Unsafe.head
+@
+
+-}</span><span>
+</span><a name="line-16"></a><span>
+</span><a name="line-17"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Universum.Unsafe</span><span>
+</span><a name="line-18"></a><span>       </span><span class="hs-special">(</span><span> </span><span class="hs-identifier hs-var">head</span><span>
+</span><a name="line-19"></a><span>       </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">tail</span><span>
+</span><a name="line-20"></a><span>       </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">init</span><span>
+</span><a name="line-21"></a><span>       </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">last</span><span>
+</span><a name="line-22"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Universum.Unsafe.html#at"><span class="hs-identifier hs-var">at</span></a><span>
+</span><a name="line-23"></a><span>       </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="hs-operator hs-var">!!</span><span class="hs-special">)</span><span>
+</span><a name="line-24"></a><span>       </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">fromJust</span><span>
+</span><a name="line-25"></a><span>       </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-26"></a><span>
+</span><a name="line-27"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.List</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">head</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">init</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">last</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">tail</span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="hs-operator hs-var">!!</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-28"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Maybe</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">fromJust</span><span class="hs-special">)</span><span>
+</span><a name="line-29"></a><span>
+</span><a name="line-30"></a><span class="hs-keyword">import</span><span> </span><a href="Universum.Base.html"><span class="hs-identifier">Universum.Base</span></a><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Int</span><span class="hs-special">)</span><span>
+</span><a name="line-31"></a><span>
+</span><a name="line-32"></a><span class="hs-comment">-- Non empty list definition for @liquidhaskell@.</span><span>
+</span><a name="line-33"></a><span class="hs-comment">{-@ type NonEmptyList a = {xs : [a] | len xs &gt; 0} @-}</span><span>
+</span><a name="line-34"></a><span>
+</span><a name="line-35"></a><span class="hs-comment">-- | Similar to '!!' but with flipped arguments.</span><span>
+</span><a name="line-36"></a><span class="hs-comment">{-@ at :: n : Nat -&gt; {xs : NonEmptyList a | len xs &gt; n} -&gt; a @-}</span><span>
+</span><a name="line-37"></a><span class="hs-identifier">at</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Int</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><a href="#local-6989586621679116884"><span class="hs-identifier hs-type">a</span></a><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-6989586621679116884"><span class="hs-identifier hs-type">a</span></a><span>
+</span><a name="line-38"></a><a name="at"><a href="Universum.Unsafe.html#at"><span class="hs-identifier">at</span></a></a><span> </span><a name="local-6989586621679116885"><a href="#local-6989586621679116885"><span class="hs-identifier">n</span></a></a><span> </span><a name="local-6989586621679116886"><a href="#local-6989586621679116886"><span class="hs-identifier">xs</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679116886"><span class="hs-identifier hs-var">xs</span></a><span> </span><span class="hs-operator hs-var">!!</span><span> </span><a href="#local-6989586621679116885"><span class="hs-identifier hs-var">n</span></a><span>
+</span><a name="line-39"></a></pre></body></html>

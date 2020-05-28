@@ -1,0 +1,41 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-- |</span><span>
+</span><a name="line-2"></a><span class="hs-comment">-- Module      : Network.Socks5.Conf</span><span>
+</span><a name="line-3"></a><span class="hs-comment">-- License     : BSD-style</span><span>
+</span><a name="line-4"></a><span class="hs-comment">-- Maintainer  : Vincent Hanquez &lt;vincent@snarc.org&gt;</span><span>
+</span><a name="line-5"></a><span class="hs-comment">-- Stability   : experimental</span><span>
+</span><a name="line-6"></a><span class="hs-comment">-- Portability : unknown</span><span>
+</span><a name="line-7"></a><span class="hs-comment">--</span><span>
+</span><a name="line-8"></a><span class="hs-comment">-- typical SOCKS configuration</span><span>
+</span><a name="line-9"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Network.Socks5.Conf</span><span>
+</span><a name="line-10"></a><span>    </span><span class="hs-special">(</span><span> </span><a href="Network.Socks5.Conf.html#SocksConf"><span class="hs-identifier hs-type">SocksConf</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-11"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Network.Socks5.Conf.html#socksHost"><span class="hs-identifier hs-var">socksHost</span></a><span>
+</span><a name="line-12"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Network.Socks5.Conf.html#defaultSocksConf"><span class="hs-identifier hs-var">defaultSocksConf</span></a><span>
+</span><a name="line-13"></a><span>    </span><span class="hs-special">,</span><span> </span><a href="Network.Socks5.Conf.html#defaultSocksConfFromSockAddr"><span class="hs-identifier hs-var">defaultSocksConfFromSockAddr</span></a><span>
+</span><a name="line-14"></a><span>    </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-15"></a><span>
+</span><a name="line-16"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Network.Socket</span><span>
+</span><a name="line-17"></a><span class="hs-keyword">import</span><span> </span><a href="Network.Socks5.Types.html"><span class="hs-identifier">Network.Socks5.Types</span></a><span> </span><span class="hs-special">(</span><a href="Network.Socks5.Types.html#SocksVersion"><span class="hs-identifier hs-type">SocksVersion</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-18"></a><span>
+</span><a name="line-19"></a><span class="hs-comment">-- | SOCKS identification and configuration structure.</span><span>
+</span><a name="line-20"></a><span class="hs-comment">--</span><span>
+</span><a name="line-21"></a><span class="hs-comment">-- this structure will be extended in future to support authentification.</span><span>
+</span><a name="line-22"></a><span class="hs-comment">-- use defaultSocksConf to create new record.</span><span>
+</span><a name="line-23"></a><span class="hs-keyword">data</span><span> </span><a name="SocksConf"><a href="Network.Socks5.Conf.html#SocksConf"><span class="hs-identifier">SocksConf</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="SocksConf"><a href="Network.Socks5.Conf.html#SocksConf"><span class="hs-identifier">SocksConf</span></a></a><span>
+</span><a name="line-24"></a><span>    </span><span class="hs-special">{</span><span> </span><a name="socksServer"><a href="Network.Socks5.Conf.html#socksServer"><span class="hs-identifier">socksServer</span></a></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">SockAddr</span><span>     </span><span class="hs-comment">-- ^ Address of server</span><span>
+</span><a name="line-25"></a><span>    </span><span class="hs-special">,</span><span> </span><a name="socksVersion"><a href="Network.Socks5.Conf.html#socksVersion"><span class="hs-identifier">socksVersion</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><a href="Network.Socks5.Types.html#SocksVersion"><span class="hs-identifier hs-type">SocksVersion</span></a><span> </span><span class="hs-comment">-- ^ SOCKS version to use</span><span>
+</span><a name="line-26"></a><span>    </span><span class="hs-special">}</span><span>
+</span><a name="line-27"></a><span>
+</span><a name="line-28"></a><span class="hs-comment">-- | SOCKS Host</span><span>
+</span><a name="line-29"></a><span class="hs-identifier">socksHost</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Network.Socks5.Conf.html#SocksConf"><span class="hs-identifier hs-type">SocksConf</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-type">SockAddr</span><span>
+</span><a name="line-30"></a><a name="socksHost"><a href="Network.Socks5.Conf.html#socksHost"><span class="hs-identifier">socksHost</span></a></a><span> </span><a name="local-6989586621679058684"><a href="#local-6989586621679058684"><span class="hs-identifier">conf</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">socksServer</span><span> </span><a href="#local-6989586621679058684"><span class="hs-identifier hs-var">conf</span></a><span>
+</span><a name="line-31"></a><span>
+</span><a name="line-32"></a><span class="hs-comment">-- | defaultSocksConf create a new record, making sure</span><span>
+</span><a name="line-33"></a><span class="hs-comment">-- API remains compatible when the record is extended.</span><span>
+</span><a name="line-34"></a><span class="hs-identifier">defaultSocksConf</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">SockAddr</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="Network.Socks5.Conf.html#SocksConf"><span class="hs-identifier hs-type">SocksConf</span></a><span>
+</span><a name="line-35"></a><a name="defaultSocksConf"><a href="Network.Socks5.Conf.html#defaultSocksConf"><span class="hs-identifier">defaultSocksConf</span></a></a><span> </span><a name="local-6989586621679058685"><a href="#local-6989586621679058685"><span class="hs-identifier">host</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Network.Socks5.Conf.html#SocksConf"><span class="hs-identifier hs-var">SocksConf</span></a><span> </span><a href="#local-6989586621679058685"><span class="hs-identifier hs-var">host</span></a><span> </span><a href="Network.Socks5.Types.html#SocksVer5"><span class="hs-identifier hs-var">SocksVer5</span></a><span>
+</span><a name="line-36"></a><span>
+</span><a name="line-37"></a><span class="hs-comment">-- | same as defaultSocksConf.</span><span>
+</span><a name="line-38"></a><span class="hs-comment">--</span><span>
+</span><a name="line-39"></a><span class="hs-comment">-- soft deprecation: use 'defaultSocksConf&quot;</span><span>
+</span><a name="line-40"></a><a name="defaultSocksConfFromSockAddr"><a href="Network.Socks5.Conf.html#defaultSocksConfFromSockAddr"><span class="hs-identifier">defaultSocksConfFromSockAddr</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Network.Socks5.Conf.html#defaultSocksConf"><span class="hs-identifier hs-var">defaultSocksConf</span></a><span>
+</span><a name="line-41"></a></pre></body></html>

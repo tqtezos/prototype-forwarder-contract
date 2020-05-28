@@ -1,0 +1,94 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">{- | This module contains implementation of 'UStore'.
+
+@UStore@ is essentially 'Lorentz.Store.Store' modified for the sake of
+upgradeability.
+
+In API it differs from @Store@ in the following ways:
+1. It keeps both virtual @big_map@s and plain fields;
+2. Neat conversion between Michelson and Haskell values
+is implemented;
+3. Regarding composabililty, one can operate with one @UStore@
+and then lift it to a bigger one which includes the former.
+This allows for simpler management of stores and clearer error messages.
+In spite of this, operations with 'UStore's over deeply nested templates will
+still work as before.
+
+We represent 'UStore' as @big_map bytes bytes@.
+
+* Plain fields are stored as
+@key = pack fieldName; value = pack originalValue@.
+
+* Virtual @big_map@s are kept as
+@key = pack (bigMapName, originalKey); value = pack originalValue@.
+
+-}</span><span>
+</span><a name="line-25"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Lorentz.UStore</span><span>
+</span><a name="line-26"></a><span>  </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- * UStore and related type definitions</span><span>
+</span><a name="line-27"></a><span>    </span><a href="Lorentz.UStore.Types.html#UStore"><span class="hs-identifier hs-type">UStore</span></a><span>
+</span><a name="line-28"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">type</span><span> </span><span class="hs-special">(</span><a href="Lorentz.UStore.Types.html#%7C~%3E"><span class="hs-operator hs-type">|~&gt;</span></a><span class="hs-special">)</span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-29"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Types.html#UStoreFieldExt"><span class="hs-identifier hs-type">UStoreFieldExt</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-30"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Types.html#UStoreField"><span class="hs-identifier hs-type">UStoreField</span></a><span>
+</span><a name="line-31"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Types.html#UStoreMarkerType"><span class="hs-identifier hs-type">UStoreMarkerType</span></a><span>
+</span><a name="line-32"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Types.html#KnownUStoreMarker"><span class="hs-identifier hs-type">KnownUStoreMarker</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-33"></a><span>
+</span><a name="line-34"></a><span>    </span><span class="hs-comment">-- ** Type-lookup-by-name</span><span>
+</span><a name="line-35"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Types.html#GetUStoreKey"><span class="hs-identifier hs-type">GetUStoreKey</span></a><span>
+</span><a name="line-36"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Types.html#GetUStoreValue"><span class="hs-identifier hs-type">GetUStoreValue</span></a><span>
+</span><a name="line-37"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Types.html#GetUStoreField"><span class="hs-identifier hs-type">GetUStoreField</span></a><span>
+</span><a name="line-38"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Types.html#GetUStoreFieldMarker"><span class="hs-identifier hs-type">GetUStoreFieldMarker</span></a><span>
+</span><a name="line-39"></a><span>
+</span><a name="line-40"></a><span>    </span><span class="hs-comment">-- ** Instructions</span><span>
+</span><a name="line-41"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Instr.html#ustoreMem"><span class="hs-identifier hs-var">ustoreMem</span></a><span>
+</span><a name="line-42"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Instr.html#ustoreGet"><span class="hs-identifier hs-var">ustoreGet</span></a><span>
+</span><a name="line-43"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Instr.html#ustoreUpdate"><span class="hs-identifier hs-var">ustoreUpdate</span></a><span>
+</span><a name="line-44"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Instr.html#ustoreInsert"><span class="hs-identifier hs-var">ustoreInsert</span></a><span>
+</span><a name="line-45"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Instr.html#ustoreInsertNew"><span class="hs-identifier hs-var">ustoreInsertNew</span></a><span>
+</span><a name="line-46"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Instr.html#ustoreDelete"><span class="hs-identifier hs-var">ustoreDelete</span></a><span>
+</span><a name="line-47"></a><span>
+</span><a name="line-48"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Instr.html#ustoreToField"><span class="hs-identifier hs-var">ustoreToField</span></a><span>
+</span><a name="line-49"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Instr.html#ustoreGetField"><span class="hs-identifier hs-var">ustoreGetField</span></a><span>
+</span><a name="line-50"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Instr.html#ustoreSetField"><span class="hs-identifier hs-var">ustoreSetField</span></a><span>
+</span><a name="line-51"></a><span>
+</span><a name="line-52"></a><span>    </span><span class="hs-comment">-- ** Instruction constraints</span><span>
+</span><a name="line-53"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Instr.html#HasUStore"><span class="hs-identifier hs-type">HasUStore</span></a><span>
+</span><a name="line-54"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Instr.html#HasUField"><span class="hs-identifier hs-type">HasUField</span></a><span>
+</span><a name="line-55"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Instr.html#HasUStoreForAllIn"><span class="hs-identifier hs-type">HasUStoreForAllIn</span></a><span>
+</span><a name="line-56"></a><span>
+</span><a name="line-57"></a><span>    </span><span class="hs-comment">-- * UStore composability</span><span>
+</span><a name="line-58"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Lift.html#liftUStore"><span class="hs-identifier hs-var">liftUStore</span></a><span>
+</span><a name="line-59"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Lift.html#unliftUStore"><span class="hs-identifier hs-var">unliftUStore</span></a><span>
+</span><a name="line-60"></a><span>
+</span><a name="line-61"></a><span>    </span><span class="hs-comment">-- * UStore management from Haskell</span><span>
+</span><a name="line-62"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Haskell.html#UStoreConversible"><span class="hs-identifier hs-type">UStoreConversible</span></a><span>
+</span><a name="line-63"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Haskell.html#mkUStore"><span class="hs-identifier hs-var">mkUStore</span></a><span>
+</span><a name="line-64"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Haskell.html#ustoreDecompose"><span class="hs-identifier hs-var">ustoreDecompose</span></a><span>
+</span><a name="line-65"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Haskell.html#ustoreDecomposeFull"><span class="hs-identifier hs-var">ustoreDecomposeFull</span></a><span>
+</span><a name="line-66"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Haskell.html#fillUStore"><span class="hs-identifier hs-var">fillUStore</span></a><span>
+</span><a name="line-67"></a><span>
+</span><a name="line-68"></a><span>    </span><span class="hs-comment">-- * Migrations</span><span>
+</span><a name="line-69"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Migration.Base.html#MigrationScript"><span class="hs-identifier hs-type">MigrationScript</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-70"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Migration.Base.html#MigrationScript_"><span class="hs-identifier hs-type">MigrationScript_</span></a><span>
+</span><a name="line-71"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Migration.Base.html#UStoreMigration"><span class="hs-identifier hs-type">UStoreMigration</span></a><span>
+</span><a name="line-72"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Migration.Base.html#migrationToScript"><span class="hs-identifier hs-var">migrationToScript</span></a><span>
+</span><a name="line-73"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Migration.Base.html#migrationToScriptI"><span class="hs-identifier hs-var">migrationToScriptI</span></a><span>
+</span><a name="line-74"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Migration.Base.html#migrationToLambda"><span class="hs-identifier hs-var">migrationToLambda</span></a><span>
+</span><a name="line-75"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Migration.Base.html#mkUStoreMigration"><span class="hs-identifier hs-var">mkUStoreMigration</span></a><span>
+</span><a name="line-76"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Migration.Blocks.html#mustoreToOld"><span class="hs-identifier hs-var">mustoreToOld</span></a><span>
+</span><a name="line-77"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Migration.Blocks.html#migrateGetField"><span class="hs-identifier hs-var">migrateGetField</span></a><span>
+</span><a name="line-78"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Migration.Blocks.html#migrateAddField"><span class="hs-identifier hs-var">migrateAddField</span></a><span>
+</span><a name="line-79"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Migration.Blocks.html#migrateRemoveField"><span class="hs-identifier hs-var">migrateRemoveField</span></a><span>
+</span><a name="line-80"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Migration.Blocks.html#migrateExtractField"><span class="hs-identifier hs-var">migrateExtractField</span></a><span>
+</span><a name="line-81"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Migration.Blocks.html#migrateOverwriteField"><span class="hs-identifier hs-var">migrateOverwriteField</span></a><span>
+</span><a name="line-82"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Migration.Blocks.html#migrateModifyField"><span class="hs-identifier hs-var">migrateModifyField</span></a><span>
+</span><a name="line-83"></a><span>
+</span><a name="line-84"></a><span>    </span><span class="hs-comment">-- * Extras</span><span>
+</span><a name="line-85"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.UStore.Types.html#PickMarkedFields"><span class="hs-identifier hs-type">PickMarkedFields</span></a><span>
+</span><a name="line-86"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-87"></a><span>
+</span><a name="line-88"></a><span class="hs-keyword">import</span><span> </span><a href="Lorentz.UStore.Types.html"><span class="hs-identifier">Lorentz.UStore.Types</span></a><span>
+</span><a name="line-89"></a><span class="hs-keyword">import</span><span> </span><a href="Lorentz.UStore.Instr.html"><span class="hs-identifier">Lorentz.UStore.Instr</span></a><span>
+</span><a name="line-90"></a><span class="hs-keyword">import</span><span> </span><a href="Lorentz.UStore.Instances.html"><span class="hs-identifier">Lorentz.UStore.Instances</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><a name="line-91"></a><span class="hs-keyword">import</span><span> </span><a href="Lorentz.UStore.Haskell.html"><span class="hs-identifier">Lorentz.UStore.Haskell</span></a><span>
+</span><a name="line-92"></a><span class="hs-keyword">import</span><span> </span><a href="Lorentz.UStore.Lift.html"><span class="hs-identifier">Lorentz.UStore.Lift</span></a><span>
+</span><a name="line-93"></a><span class="hs-keyword">import</span><span> </span><a href="Lorentz.UStore.Migration.html"><span class="hs-identifier">Lorentz.UStore.Migration</span></a><span>
+</span><a name="line-94"></a></pre></body></html>

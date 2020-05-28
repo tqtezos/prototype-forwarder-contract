@@ -1,0 +1,19 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Michelson.Typed.Haskell.Instr.Helpers</span><span>
+</span><a name="line-2"></a><span>  </span><span class="hs-special">(</span><span> </span><a href="Michelson.Typed.Haskell.Instr.Helpers.html#Branch"><span class="hs-identifier hs-type">Branch</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-3"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Michelson.Typed.Haskell.Instr.Helpers.html#Path"><span class="hs-identifier hs-type">Path</span></a><span>
+</span><a name="line-4"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-5"></a><span>
+</span><a name="line-6"></a><span class="hs-comment">-- | Which branch to choose in generic tree representation: left,</span><span>
+</span><a name="line-7"></a><span class="hs-comment">-- straight or right. 'S' is used when there is one constructor with</span><span>
+</span><a name="line-8"></a><span class="hs-comment">-- one field (something newtype-like).</span><span>
+</span><a name="line-9"></a><span class="hs-comment">--</span><span>
+</span><a name="line-10"></a><span class="hs-comment">-- The reason why we need 'S' can be explained by this example:</span><span>
+</span><a name="line-11"></a><span class="hs-comment">-- data A = A1 B | A2 Integer</span><span>
+</span><a name="line-12"></a><span class="hs-comment">-- data B = B Bool</span><span>
+</span><a name="line-13"></a><span class="hs-comment">-- Now we may search for A1 constructor or B constructor. Without 'S' in</span><span>
+</span><a name="line-14"></a><span class="hs-comment">-- both cases path will be the same ([L]).</span><span>
+</span><a name="line-15"></a><span class="hs-keyword">data</span><span> </span><a name="Branch"><a href="Michelson.Typed.Haskell.Instr.Helpers.html#Branch"><span class="hs-identifier">Branch</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="L"><a href="Michelson.Typed.Haskell.Instr.Helpers.html#L"><span class="hs-identifier">L</span></a></a><span> </span><span class="hs-glyph">|</span><span> </span><a name="S"><a href="Michelson.Typed.Haskell.Instr.Helpers.html#S"><span class="hs-identifier">S</span></a></a><span> </span><span class="hs-glyph">|</span><span> </span><a name="R"><a href="Michelson.Typed.Haskell.Instr.Helpers.html#R"><span class="hs-identifier">R</span></a></a><span>
+</span><a name="line-16"></a><span>
+</span><a name="line-17"></a><span class="hs-comment">-- | Path to a leaf (some field or constructor) in generic tree representation.</span><span>
+</span><a name="line-18"></a><span class="hs-keyword">type</span><span> </span><a name="Path"><a href="Michelson.Typed.Haskell.Instr.Helpers.html#Path"><span class="hs-identifier">Path</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><a href="Michelson.Typed.Haskell.Instr.Helpers.html#Branch"><span class="hs-identifier hs-type">Branch</span></a><span class="hs-special">]</span><span>
+</span><a name="line-19"></a></pre></body></html>

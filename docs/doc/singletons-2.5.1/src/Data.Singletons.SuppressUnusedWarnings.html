@@ -1,0 +1,19 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-- Data/Singletons/SuppressUnusedWarnings.hs</span><span>
+</span><a name="line-2"></a><span class="hs-comment">--</span><span>
+</span><a name="line-3"></a><span class="hs-comment">-- (c) Richard Eisenberg 2014</span><span>
+</span><a name="line-4"></a><span class="hs-comment">-- rae@cs.brynmawr.edu</span><span>
+</span><a name="line-5"></a><span class="hs-comment">--</span><span>
+</span><a name="line-6"></a><span class="hs-comment">-- This declares user-oriented exports that are actually meant to be hidden</span><span>
+</span><a name="line-7"></a><span class="hs-comment">-- from the user. Why would anyone ever want this? Because what is below</span><span>
+</span><a name="line-8"></a><span class="hs-comment">-- is dirty, and no one wants to see it.</span><span>
+</span><a name="line-9"></a><span>
+</span><a name="line-10"></a><span class="hs-pragma">{-# LANGUAGE AllowAmbiguousTypes, PolyKinds #-}</span><span>
+</span><a name="line-11"></a><span>
+</span><a name="line-12"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Data.Singletons.SuppressUnusedWarnings</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-13"></a><span>
+</span><a name="line-14"></a><span class="hs-comment">-- | This class (which users should never see) is to be instantiated in order</span><span>
+</span><a name="line-15"></a><span class="hs-comment">-- to use an otherwise-unused data constructor, such as the &quot;kind-inference&quot;</span><span>
+</span><a name="line-16"></a><span class="hs-comment">-- data constructor for defunctionalization symbols.</span><span>
+</span><a name="line-17"></a><span class="hs-keyword">class</span><span> </span><a name="SuppressUnusedWarnings"><a href="Data.Singletons.SuppressUnusedWarnings.html#SuppressUnusedWarnings"><span class="hs-identifier">SuppressUnusedWarnings</span></a></a><span> </span><span class="hs-special">(</span><a name="local-6989586621679046399"><a href="#local-6989586621679046399"><span class="hs-identifier">t</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><a href="#local-6989586621679046398"><span class="hs-identifier hs-type">k</span></a><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-18"></a><span>  </span><a name="suppressUnusedWarnings"><a href="Data.Singletons.SuppressUnusedWarnings.html#suppressUnusedWarnings"><span class="hs-identifier">suppressUnusedWarnings</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><a name="line-19"></a></pre></body></html>

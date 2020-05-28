@@ -1,0 +1,84 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Lorentz.Contracts.Upgradeable.Common.Doc</span><span>
+</span><a name="line-2"></a><span>  </span><span class="hs-special">(</span><span> </span><a href="Lorentz.Contracts.Upgradeable.Common.Doc.html#DUpgradeability"><span class="hs-identifier hs-type">DUpgradeability</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-3"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Contracts.Upgradeable.Common.Doc.html#contractDoc"><span class="hs-identifier hs-var">contractDoc</span></a><span>
+</span><a name="line-4"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Contracts.Upgradeable.Common.Doc.html#runDoc"><span class="hs-identifier hs-var">runDoc</span></a><span>
+</span><a name="line-5"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Contracts.Upgradeable.Common.Doc.html#runPermDoc"><span class="hs-identifier hs-var">runPermDoc</span></a><span>
+</span><a name="line-6"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Contracts.Upgradeable.Common.Doc.html#upgradeDoc"><span class="hs-identifier hs-var">upgradeDoc</span></a><span>
+</span><a name="line-7"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Contracts.Upgradeable.Common.Doc.html#getVersionDoc"><span class="hs-identifier hs-var">getVersionDoc</span></a><span>
+</span><a name="line-8"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Contracts.Upgradeable.Common.Doc.html#setAdministratorDoc"><span class="hs-identifier hs-var">setAdministratorDoc</span></a><span>
+</span><a name="line-9"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Contracts.Upgradeable.Common.Doc.html#epwBeginUpgradeDoc"><span class="hs-identifier hs-var">epwBeginUpgradeDoc</span></a><span>
+</span><a name="line-10"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Contracts.Upgradeable.Common.Doc.html#epwApplyMigrationDoc"><span class="hs-identifier hs-var">epwApplyMigrationDoc</span></a><span>
+</span><a name="line-11"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Contracts.Upgradeable.Common.Doc.html#epwSetCodeDoc"><span class="hs-identifier hs-var">epwSetCodeDoc</span></a><span>
+</span><a name="line-12"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Contracts.Upgradeable.Common.Doc.html#epwSetPermCodeDoc"><span class="hs-identifier hs-var">epwSetPermCodeDoc</span></a><span>
+</span><a name="line-13"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Contracts.Upgradeable.Common.Doc.html#epwFinishUpgradeDoc"><span class="hs-identifier hs-var">epwFinishUpgradeDoc</span></a><span>
+</span><a name="line-14"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-15"></a><span>
+</span><a name="line-16"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Lorentz</span><span>
+</span><a name="line-17"></a><span>
+</span><a name="line-18"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Fmt</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Buildable</span><span class="hs-special">(</span><span class="hs-identifier hs-var">build</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-19"></a><span>
+</span><a name="line-20"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Util.Markdown</span><span>
+</span><a name="line-21"></a><span>
+</span><a name="line-22"></a><span class="hs-keyword">data</span><span> </span><a name="DUpgradeability"><a href="Lorentz.Contracts.Upgradeable.Common.Doc.html#DUpgradeability"><span class="hs-identifier">DUpgradeability</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="DUpgradeability"><a href="Lorentz.Contracts.Upgradeable.Common.Doc.html#DUpgradeability"><span class="hs-identifier">DUpgradeability</span></a></a><span> </span><span class="hs-identifier hs-type">Markdown</span><span>
+</span><a name="line-23"></a><span>
+</span><a name="line-24"></a><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier hs-type">DocItem</span><span> </span><a href="Lorentz.Contracts.Upgradeable.Common.Doc.html#DUpgradeability"><span class="hs-identifier hs-type">DUpgradeability</span></a><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-25"></a><span>  </span><span class="hs-keyword">type</span><span> </span><span class="hs-identifier">DocItemPosition</span><span> </span><a href="Lorentz.Contracts.Upgradeable.Common.Doc.html#DUpgradeability"><span class="hs-identifier hs-type">DUpgradeability</span></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-number">112</span><span>
+</span><a name="line-26"></a><span>  </span><a name="local-8214565720323814559"><span class="hs-identifier">docItemSectionName</span></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">Just</span><span> </span><span class="hs-string">&quot;Contract upgradeability&quot;</span><span>
+</span><a name="line-27"></a><span>  </span><a name="local-8214565720323814563"><span class="hs-identifier">docItemToMarkdown</span></a><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-special">(</span><a href="Lorentz.Contracts.Upgradeable.Common.Doc.html#DUpgradeability"><span class="hs-identifier hs-var">DUpgradeability</span></a><span> </span><a name="local-6989586621679320433"><a href="#local-6989586621679320433"><span class="hs-identifier">txt</span></a></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">build</span><span> </span><a href="#local-6989586621679320433"><span class="hs-identifier hs-var">txt</span></a><span>
+</span><a name="line-28"></a><span>
+</span><a name="line-29"></a><span class="hs-identifier">contractDoc</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Markdown</span><span>
+</span><a name="line-30"></a><a name="contractDoc"><a href="Lorentz.Contracts.Upgradeable.Common.Doc.html#contractDoc"><span class="hs-identifier">contractDoc</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="">[md|
+  This contract uses upgradeability approach described [here](https://gitlab.com/morley-framework/morley/-/blob/a30dddb633ee880761c3cbf1d4a69ee040ffad25/docs/upgradeableContracts.md#section-2-administrator-forced-upgrades).
+  This mechanism provides adminstrator-forced address-preserving upgradeability
+  approach. For more information check out the doc referenced earlier.
+  |]</span><span>
+</span><a name="line-35"></a><span>
+</span><a name="line-36"></a><span class="hs-identifier">runDoc</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Markdown</span><span>
+</span><a name="line-37"></a><a name="runDoc"><a href="Lorentz.Contracts.Upgradeable.Common.Doc.html#runDoc"><span class="hs-identifier">runDoc</span></a></a><span> </span><span class="hs-glyph">=</span><span>
+</span><a name="line-38"></a><span>  </span><span class="hs-string">&quot;This entrypoint extracts contract code kept in storage under the \
+  \corresponding name and executes it on an argument supplied via `UParam`.&quot;</span><span>
+</span><a name="line-40"></a><span>
+</span><a name="line-41"></a><span class="hs-identifier">runPermDoc</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Markdown</span><span>
+</span><a name="line-42"></a><a name="runPermDoc"><a href="Lorentz.Contracts.Upgradeable.Common.Doc.html#runPermDoc"><span class="hs-identifier">runPermDoc</span></a></a><span> </span><span class="hs-glyph">=</span><span>
+</span><a name="line-43"></a><span>  </span><span class="hs-string">&quot;Similar to `Run` entrypoint, but calls permanent entrypoints - ones \
+  \that will be present in all versions of the contract.&quot;</span><span>
+</span><a name="line-45"></a><span>
+</span><a name="line-46"></a><span class="hs-identifier">upgradeDoc</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Markdown</span><span>
+</span><a name="line-47"></a><a name="upgradeDoc"><a href="Lorentz.Contracts.Upgradeable.Common.Doc.html#upgradeDoc"><span class="hs-identifier">upgradeDoc</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="">[md|
+  This entry point is used to update the contract to a new version.
+  Consider using this entrypoint when your upgrade to the new version isn't very large,
+  otherwise, transaction with this entrypoint call won't fit instruction size limit.
+  If this is your case, consider using entrypoint-wise upgrade. This entrypoint
+  basically exchange `code` field in the storage and upgrade `dataMap` using
+  provided migration lambda.
+  |]</span><span>
+</span><a name="line-55"></a><span>
+</span><a name="line-56"></a><span class="hs-identifier">getVersionDoc</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Markdown</span><span>
+</span><a name="line-57"></a><a name="getVersionDoc"><a href="Lorentz.Contracts.Upgradeable.Common.Doc.html#getVersionDoc"><span class="hs-identifier">getVersionDoc</span></a></a><span> </span><span class="hs-glyph">=</span><span>
+</span><a name="line-58"></a><span>  </span><span class="hs-string">&quot;This entry point is used to get contract version.&quot;</span><span>
+</span><a name="line-59"></a><span>
+</span><a name="line-60"></a><span class="hs-identifier">setAdministratorDoc</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Markdown</span><span>
+</span><a name="line-61"></a><a name="setAdministratorDoc"><a href="Lorentz.Contracts.Upgradeable.Common.Doc.html#setAdministratorDoc"><span class="hs-identifier">setAdministratorDoc</span></a></a><span> </span><span class="hs-glyph">=</span><span>
+</span><a name="line-62"></a><span>  </span><span class="hs-string">&quot;This entry point is used to set the administrator address.&quot;</span><span>
+</span><a name="line-63"></a><span>
+</span><a name="line-64"></a><span class="hs-identifier">epwBeginUpgradeDoc</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Markdown</span><span>
+</span><a name="line-65"></a><a name="epwBeginUpgradeDoc"><a href="Lorentz.Contracts.Upgradeable.Common.Doc.html#epwBeginUpgradeDoc"><span class="hs-identifier">epwBeginUpgradeDoc</span></a></a><span> </span><span class="hs-glyph">=</span><span>
+</span><a name="line-66"></a><span>  </span><span class="hs-string">&quot;This entry point is used to start an entrypoint wise upgrade of the contract.&quot;</span><span>
+</span><a name="line-67"></a><span>
+</span><a name="line-68"></a><span class="hs-identifier">epwApplyMigrationDoc</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Markdown</span><span>
+</span><a name="line-69"></a><a name="epwApplyMigrationDoc"><a href="Lorentz.Contracts.Upgradeable.Common.Doc.html#epwApplyMigrationDoc"><span class="hs-identifier">epwApplyMigrationDoc</span></a></a><span> </span><span class="hs-glyph">=</span><span>
+</span><a name="line-70"></a><span>  </span><span class="hs-string">&quot;This entry point is used to apply a storage migration script as part of an upgrade.&quot;</span><span>
+</span><a name="line-71"></a><span>
+</span><a name="line-72"></a><span class="hs-identifier">epwSetCodeDoc</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Markdown</span><span>
+</span><a name="line-73"></a><a name="epwSetCodeDoc"><a href="Lorentz.Contracts.Upgradeable.Common.Doc.html#epwSetCodeDoc"><span class="hs-identifier">epwSetCodeDoc</span></a></a><span> </span><span class="hs-glyph">=</span><span>
+</span><a name="line-74"></a><span>  </span><span class="hs-string">&quot;This entry point is used to set the dispatching code that calls the packed entrypoints.&quot;</span><span>
+</span><a name="line-75"></a><span>
+</span><a name="line-76"></a><span class="hs-identifier">epwSetPermCodeDoc</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Markdown</span><span>
+</span><a name="line-77"></a><a name="epwSetPermCodeDoc"><a href="Lorentz.Contracts.Upgradeable.Common.Doc.html#epwSetPermCodeDoc"><span class="hs-identifier">epwSetPermCodeDoc</span></a></a><span> </span><span class="hs-glyph">=</span><span>
+</span><a name="line-78"></a><span>  </span><span class="hs-string">&quot;Similar to `EpwSetCode`, but refers to permanent entrypoints - ones \
+  \that will be present in all versions of the contract.&quot;</span><span>
+</span><a name="line-80"></a><span>
+</span><a name="line-81"></a><span class="hs-identifier">epwFinishUpgradeDoc</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Markdown</span><span>
+</span><a name="line-82"></a><a name="epwFinishUpgradeDoc"><a href="Lorentz.Contracts.Upgradeable.Common.Doc.html#epwFinishUpgradeDoc"><span class="hs-identifier">epwFinishUpgradeDoc</span></a></a><span> </span><span class="hs-glyph">=</span><span>
+</span><a name="line-83"></a><span>  </span><span class="hs-string">&quot;This entry point is used to mark that an upgrade has been finsihed.&quot;</span><span>
+</span><a name="line-84"></a></pre></body></html>

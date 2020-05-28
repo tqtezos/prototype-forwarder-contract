@@ -1,0 +1,42 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE CPP #-}</span><span>
+</span><a name="line-2"></a><span class="hs-pragma">{-# LANGUAGE ScopedTypeVariables #-}</span><span>
+</span><a name="line-3"></a><span class="hs-pragma">{-# LANGUAGE TemplateHaskell #-}</span><span>
+</span><a name="line-4"></a><span>
+</span><a name="line-5"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Tezos.Common.NetworkStat</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-6"></a><span>
+</span><a name="line-7"></a><span class="hs-comment">{--
+This is kinda weird. This could theoretically change later and need versioning, but
+from what I've been told this is not changed on chain and is just part of the node
+software. So if it does change later it will need versioning, but it's not really
+a Protocol level difference and needs a better home then. Lets hope that any changes
+there are non-breaking and are just additive.
+--}</span><span>
+</span><a name="line-14"></a><span>
+</span><a name="line-15"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Control.Lens.TH</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">makeLenses</span><span class="hs-special">)</span><span>
+</span><a name="line-16"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Int</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Int32</span><span class="hs-special">)</span><span>
+</span><a name="line-17"></a><span class="hs-cpp">#if !(MIN_VERSION_base(4,9,0))
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Semigroup</span><span>
+</span><a name="line-19"></a><span class="hs-cpp">#endif
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Text</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Text</span><span class="hs-special">)</span><span>
+</span><a name="line-21"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Typeable</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Typeable</span><span class="hs-special">)</span><span>
+</span><a name="line-22"></a><span>
+</span><a name="line-23"></a><span class="hs-keyword">import</span><span> </span><a href="Tezos.Common.Json.html"><span class="hs-identifier">Tezos.Common.Json</span></a><span>
+</span><a name="line-24"></a><span>
+</span><a name="line-25"></a><span class="hs-keyword">data</span><span> </span><a name="NetworkStat"><a href="Tezos.Common.NetworkStat.html#NetworkStat"><span class="hs-identifier">NetworkStat</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="NetworkStat"><a href="Tezos.Common.NetworkStat.html#NetworkStat"><span class="hs-identifier">NetworkStat</span></a></a><span>
+</span><a name="line-26"></a><span>  </span><span class="hs-special">{</span><span> </span><a name="_networkStat_totalSent"><a href="Tezos.Common.NetworkStat.html#_networkStat_totalSent"><span class="hs-identifier">_networkStat_totalSent</span></a></a><span>      </span><span class="hs-glyph">::</span><span> </span><a href="Tezos.Common.Json.html#TezosInt64"><span class="hs-identifier hs-type">TezosInt64</span></a><span> </span><span class="hs-comment">-- bytes</span><span>
+</span><a name="line-27"></a><span>  </span><span class="hs-special">,</span><span> </span><a name="_networkStat_totalRecv"><a href="Tezos.Common.NetworkStat.html#_networkStat_totalRecv"><span class="hs-identifier">_networkStat_totalRecv</span></a></a><span>      </span><span class="hs-glyph">::</span><span> </span><a href="Tezos.Common.Json.html#TezosInt64"><span class="hs-identifier hs-type">TezosInt64</span></a><span> </span><span class="hs-comment">-- bytes</span><span>
+</span><a name="line-28"></a><span>  </span><span class="hs-special">,</span><span> </span><a name="_networkStat_currentInflow"><a href="Tezos.Common.NetworkStat.html#_networkStat_currentInflow"><span class="hs-identifier">_networkStat_currentInflow</span></a></a><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Int32</span><span> </span><span class="hs-comment">-- bytes/s</span><span>
+</span><a name="line-29"></a><span>  </span><span class="hs-special">,</span><span> </span><a name="_networkStat_currentOutflow"><a href="Tezos.Common.NetworkStat.html#_networkStat_currentOutflow"><span class="hs-identifier">_networkStat_currentOutflow</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Int32</span><span> </span><span class="hs-comment">-- bytes/s</span><span>
+</span><a name="line-30"></a><span>  </span><span class="hs-special">}</span><span> </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Eq</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Ord</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Show</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Typeable</span><span class="hs-special">)</span><span>
+</span><a name="line-31"></a><span>
+</span><a name="line-32"></a><span class="hs-keyword">newtype</span><span> </span><a name="BlockPrefix"><a href="Tezos.Common.NetworkStat.html#BlockPrefix"><span class="hs-identifier">BlockPrefix</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="BlockPrefix"><a href="Tezos.Common.NetworkStat.html#BlockPrefix"><span class="hs-identifier">BlockPrefix</span></a></a><span> </span><span class="hs-identifier hs-type">Text</span><span>
+</span><a name="line-33"></a><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Eq</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Show</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Typeable</span><span class="hs-special">)</span><span>
+</span><a name="line-34"></a><span>
+</span><a name="line-35"></a><a href="#local-6989586621679148744"><span class="hs-identifier hs-var">concat</span></a><span> </span><a href="#local-6989586621679148744"><span class="hs-operator hs-var">&lt;$&gt;</span></a><span> </span><a href="#local-6989586621679148744"><span class="hs-identifier hs-var">traverse</span></a><span> </span><a href="#local-6989586621679148744"><span class="hs-identifier hs-var">deriveTezosJson</span></a><span>
+</span><a name="line-36"></a><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">''</span><a href="#local-6989586621679148744"><span class="hs-identifier hs-var">NetworkStat</span></a><span>
+</span><a name="line-37"></a><span>  </span><span class="hs-special">]</span><span>
+</span><a name="line-38"></a><span>
+</span><a name="line-39"></a><span class="hs-identifier hs-var">concat</span><span> </span><span class="hs-operator hs-var">&lt;$&gt;</span><span> </span><span class="hs-identifier hs-var">traverse</span><span> </span><span class="hs-identifier hs-var">makeLenses</span><span>
+</span><a name="line-40"></a><span> </span><span class="hs-special">[</span><span> </span><span class="hs-special">'</span><span class="hs-identifier hs-var">NetworkStat</span><span>
+</span><a name="line-41"></a><span> </span><span class="hs-special">]</span><span>
+</span><a name="line-42"></a></pre></body></html>

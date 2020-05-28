@@ -1,0 +1,107 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Lorentz.Test</span><span>
+</span><a name="line-2"></a><span>  </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- * Importing a contract</span><span>
+</span><a name="line-3"></a><span>    </span><span class="hs-identifier hs-var">specWithContract</span><span>
+</span><a name="line-4"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">specWithTypedContract</span><span>
+</span><a name="line-5"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">specWithUntypedContract</span><span>
+</span><a name="line-6"></a><span>
+</span><a name="line-7"></a><span>  </span><span class="hs-comment">-- * Unit testing</span><span>
+</span><a name="line-8"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">ContractReturn</span><span>
+</span><a name="line-9"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">ContractPropValidator</span><span>
+</span><a name="line-10"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">contractProp</span><span>
+</span><a name="line-11"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">contractPropVal</span><span>
+</span><a name="line-12"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Test.Unit.html#expectContractEntrypoints"><span class="hs-identifier hs-var">expectContractEntrypoints</span></a><span>
+</span><a name="line-13"></a><span>
+</span><a name="line-14"></a><span>  </span><span class="hs-comment">-- * Integrational testing</span><span>
+</span><a name="line-15"></a><span>  </span><span class="hs-comment">-- ** Testing engine</span><span>
+</span><a name="line-16"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">IntegrationalValidator</span><span>
+</span><a name="line-17"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">SuccessValidator</span><span>
+</span><a name="line-18"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">IntegrationalScenario</span><span>
+</span><a name="line-19"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">IntegrationalScenarioM</span><span>
+</span><a name="line-20"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">ValidationError</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-21"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">integrationalTestExpectation</span><span>
+</span><a name="line-22"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">integrationalTestProperty</span><span>
+</span><a name="line-23"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Test.Integrational.html#lOriginate"><span class="hs-identifier hs-var">lOriginate</span></a><span>
+</span><a name="line-24"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Test.Integrational.html#lOriginateEmpty"><span class="hs-identifier hs-var">lOriginateEmpty</span></a><span>
+</span><a name="line-25"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Test.Integrational.html#lTransfer"><span class="hs-identifier hs-var">lTransfer</span></a><span>
+</span><a name="line-26"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Test.Integrational.html#lCall"><span class="hs-identifier hs-var">lCall</span></a><span>
+</span><a name="line-27"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Test.Integrational.html#lCallEP"><span class="hs-identifier hs-var">lCallEP</span></a><span>
+</span><a name="line-28"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.EntryPoints.Core.html#EntryPointRef"><span class="hs-identifier hs-type">EntryPointRef</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-29"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Test.Integrational.html#lCallDef"><span class="hs-identifier hs-var">lCallDef</span></a><span>
+</span><a name="line-30"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">validate</span><span>
+</span><a name="line-31"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">integrationalFail</span><span>
+</span><a name="line-32"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">setMaxSteps</span><span>
+</span><a name="line-33"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">setNow</span><span>
+</span><a name="line-34"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">rewindTime</span><span>
+</span><a name="line-35"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">withSender</span><span>
+</span><a name="line-36"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">setChainId</span><span>
+</span><a name="line-37"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">branchout</span><span>
+</span><a name="line-38"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="hs-operator hs-var">?-</span><span class="hs-special">)</span><span>
+</span><a name="line-39"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">offshoot</span><span>
+</span><a name="line-40"></a><span>
+</span><a name="line-41"></a><span>  </span><span class="hs-comment">-- ** Validators</span><span>
+</span><a name="line-42"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">composeValidators</span><span>
+</span><a name="line-43"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">composeValidatorsList</span><span>
+</span><a name="line-44"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">expectAnySuccess</span><span>
+</span><a name="line-45"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">expectNoUpdates</span><span>
+</span><a name="line-46"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">expectNoStorageUpdates</span><span>
+</span><a name="line-47"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Test.Integrational.html#lExpectStorageUpdate"><span class="hs-identifier hs-var">lExpectStorageUpdate</span></a><span>
+</span><a name="line-48"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Test.Integrational.html#lExpectBalance"><span class="hs-identifier hs-var">lExpectBalance</span></a><span>
+</span><a name="line-49"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Test.Integrational.html#lExpectStorage"><span class="hs-identifier hs-var">lExpectStorage</span></a><span>
+</span><a name="line-50"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Test.Integrational.html#lExpectStorageConst"><span class="hs-identifier hs-var">lExpectStorageConst</span></a><span>
+</span><a name="line-51"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Test.Integrational.html#lExpectMichelsonFailed"><span class="hs-identifier hs-var">lExpectMichelsonFailed</span></a><span>
+</span><a name="line-52"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Test.Integrational.html#lExpectFailWith"><span class="hs-identifier hs-var">lExpectFailWith</span></a><span>
+</span><a name="line-53"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Test.Integrational.html#lExpectError"><span class="hs-identifier hs-var">lExpectError</span></a><span>
+</span><a name="line-54"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Test.Integrational.html#lExpectErrorNumeric"><span class="hs-identifier hs-var">lExpectErrorNumeric</span></a><span>
+</span><a name="line-55"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Test.Integrational.html#lExpectCustomError"><span class="hs-identifier hs-var">lExpectCustomError</span></a><span>
+</span><a name="line-56"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Test.Integrational.html#lExpectCustomErrorNumeric"><span class="hs-identifier hs-var">lExpectCustomErrorNumeric</span></a><span>
+</span><a name="line-57"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Test.Integrational.html#lExpectCustomError_"><span class="hs-identifier hs-var">lExpectCustomError_</span></a><span>
+</span><a name="line-58"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Test.Integrational.html#lExpectCustomErrorNumeric_"><span class="hs-identifier hs-var">lExpectCustomErrorNumeric_</span></a><span>
+</span><a name="line-59"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Test.Integrational.html#lExpectConsumerStorage"><span class="hs-identifier hs-var">lExpectConsumerStorage</span></a><span>
+</span><a name="line-60"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Test.Integrational.html#lExpectViewConsumerStorage"><span class="hs-identifier hs-var">lExpectViewConsumerStorage</span></a><span>
+</span><a name="line-61"></a><span>
+</span><a name="line-62"></a><span>  </span><span class="hs-comment">-- ** Various</span><span>
+</span><a name="line-63"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">TxData</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-64"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">genesisAddresses</span><span>
+</span><a name="line-65"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">genesisAddress</span><span>
+</span><a name="line-66"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">genesisAddress1</span><span>
+</span><a name="line-67"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">genesisAddress2</span><span>
+</span><a name="line-68"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">genesisAddress3</span><span>
+</span><a name="line-69"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">genesisAddress4</span><span>
+</span><a name="line-70"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">genesisAddress5</span><span>
+</span><a name="line-71"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">genesisAddress6</span><span>
+</span><a name="line-72"></a><span>
+</span><a name="line-73"></a><span>  </span><span class="hs-comment">-- * Autodoc testing</span><span>
+</span><a name="line-74"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">runDocTests</span><span>
+</span><a name="line-75"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Test.Doc.html#testLorentzDoc"><span class="hs-identifier hs-var">testLorentzDoc</span></a><span>
+</span><a name="line-76"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">excludeDocTests</span><span>
+</span><a name="line-77"></a><span>
+</span><a name="line-78"></a><span>  </span><span class="hs-comment">-- * General utilities</span><span>
+</span><a name="line-79"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">failedProp</span><span>
+</span><a name="line-80"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">succeededProp</span><span>
+</span><a name="line-81"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">qcIsLeft</span><span>
+</span><a name="line-82"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">qcIsRight</span><span>
+</span><a name="line-83"></a><span>
+</span><a name="line-84"></a><span>  </span><span class="hs-comment">-- * Dummy values</span><span>
+</span><a name="line-85"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">dummyContractEnv</span><span>
+</span><a name="line-86"></a><span>
+</span><a name="line-87"></a><span>  </span><span class="hs-comment">-- * Arbitrary data</span><span>
+</span><a name="line-88"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">minTimestamp</span><span>
+</span><a name="line-89"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">maxTimestamp</span><span>
+</span><a name="line-90"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">midTimestamp</span><span>
+</span><a name="line-91"></a><span>
+</span><a name="line-92"></a><span>  </span><span class="hs-comment">-- * Special contracts for testing</span><span>
+</span><a name="line-93"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Test.Consumer.html#contractConsumer"><span class="hs-identifier hs-var">contractConsumer</span></a><span>
+</span><a name="line-94"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-95"></a><span>
+</span><a name="line-96"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Michelson.Doc.Test</span><span>
+</span><a name="line-97"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Michelson.Test.Dummy</span><span>
+</span><a name="line-98"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Michelson.Test.Gen</span><span>
+</span><a name="line-99"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Michelson.Test.Import</span><span>
+</span><a name="line-100"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Michelson.Test.Unit</span><span>
+</span><a name="line-101"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Michelson.Test.Util</span><span>
+</span><a name="line-102"></a><span>
+</span><a name="line-103"></a><span class="hs-keyword">import</span><span> </span><a href="Lorentz.Test.Consumer.html"><span class="hs-identifier">Lorentz.Test.Consumer</span></a><span>
+</span><a name="line-104"></a><span class="hs-keyword">import</span><span> </span><a href="Lorentz.Test.Doc.html"><span class="hs-identifier">Lorentz.Test.Doc</span></a><span>
+</span><a name="line-105"></a><span class="hs-keyword">import</span><span> </span><a href="Lorentz.Test.Integrational.html"><span class="hs-identifier">Lorentz.Test.Integrational</span></a><span>
+</span><a name="line-106"></a><span class="hs-keyword">import</span><span> </span><a href="Lorentz.Test.Unit.html"><span class="hs-identifier">Lorentz.Test.Unit</span></a><span>
+</span><a name="line-107"></a></pre></body></html>

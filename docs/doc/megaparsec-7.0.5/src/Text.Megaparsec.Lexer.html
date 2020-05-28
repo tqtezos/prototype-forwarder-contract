@@ -1,0 +1,112 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-- |</span><span>
+</span><a name="line-2"></a><span class="hs-comment">-- Module      :  Text.Megaparsec.Common</span><span>
+</span><a name="line-3"></a><span class="hs-comment">-- Copyright   :  &#169; 2018&#8211;2019 Megaparsec contributors</span><span>
+</span><a name="line-4"></a><span class="hs-comment">-- License     :  FreeBSD</span><span>
+</span><a name="line-5"></a><span class="hs-comment">--</span><span>
+</span><a name="line-6"></a><span class="hs-comment">-- Maintainer  :  Mark Karpov &lt;markkarpov92@gmail.com&gt;</span><span>
+</span><a name="line-7"></a><span class="hs-comment">-- Stability   :  experimental</span><span>
+</span><a name="line-8"></a><span class="hs-comment">-- Portability :  portable</span><span>
+</span><a name="line-9"></a><span class="hs-comment">--</span><span>
+</span><a name="line-10"></a><span class="hs-comment">-- Common token combinators. This module is not public, the functions from</span><span>
+</span><a name="line-11"></a><span class="hs-comment">-- it are re-exported in &quot;Text.Megaparsec.Byte&quot; and &quot;Text.Megaparsec.Char&quot;.</span><span>
+</span><a name="line-12"></a><span class="hs-comment">--</span><span>
+</span><a name="line-13"></a><span class="hs-comment">-- @since 7.0.0</span><span>
+</span><a name="line-14"></a><span>
+</span><a name="line-15"></a><span class="hs-pragma">{-# LANGUAGE FlexibleContexts #-}</span><span>
+</span><a name="line-16"></a><span>
+</span><a name="line-17"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Text.Megaparsec.Lexer</span><span>
+</span><a name="line-18"></a><span>  </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- * White space</span><span>
+</span><a name="line-19"></a><span>    </span><a href="Text.Megaparsec.Lexer.html#space"><span class="hs-identifier hs-var">space</span></a><span>
+</span><a name="line-20"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Text.Megaparsec.Lexer.html#lexeme"><span class="hs-identifier hs-var">lexeme</span></a><span>
+</span><a name="line-21"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Text.Megaparsec.Lexer.html#symbol"><span class="hs-identifier hs-var">symbol</span></a><span>
+</span><a name="line-22"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Text.Megaparsec.Lexer.html#symbol%27"><span class="hs-identifier hs-var">symbol'</span></a><span> </span><span class="hs-special">)</span><span>
+</span><a name="line-23"></a><span class="hs-keyword">where</span><span>
+</span><a name="line-24"></a><span>
+</span><a name="line-25"></a><span class="hs-keyword">import</span><span> </span><a href="Text.Megaparsec.html"><span class="hs-identifier">Text.Megaparsec</span></a><span>
+</span><a name="line-26"></a><span class="hs-keyword">import</span><span> </span><a href="Text.Megaparsec.Common.html"><span class="hs-identifier">Text.Megaparsec.Common</span></a><span>
+</span><a name="line-27"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data.CaseInsensitive</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">CI</span><span>
+</span><a name="line-28"></a><span>
+</span><a name="line-29"></a><span class="hs-comment">----------------------------------------------------------------------------</span><span>
+</span><a name="line-30"></a><span class="hs-comment">-- White space</span><span>
+</span><a name="line-31"></a><span>
+</span><a name="line-32"></a><span class="hs-comment">-- | @'space' sc lineComment blockComment@ produces parser that can parse</span><span>
+</span><a name="line-33"></a><span class="hs-comment">-- white space in general. It's expected that you create such a parser once</span><span>
+</span><a name="line-34"></a><span class="hs-comment">-- and pass it to other functions in this module as needed (when you see</span><span>
+</span><a name="line-35"></a><span class="hs-comment">-- @spaceConsumer@ in documentation, usually it means that something like</span><span>
+</span><a name="line-36"></a><span class="hs-comment">-- 'space' is expected there).</span><span>
+</span><a name="line-37"></a><span class="hs-comment">--</span><span>
+</span><a name="line-38"></a><span class="hs-comment">-- @sc@ is used to parse blocks of space characters. You can use 'C.space1'</span><span>
+</span><a name="line-39"></a><span class="hs-comment">-- from &quot;Text.Megaparsec.Char&quot; for this purpose as well as your own parser</span><span>
+</span><a name="line-40"></a><span class="hs-comment">-- (if you don't want to automatically consume newlines, for example). Make</span><span>
+</span><a name="line-41"></a><span class="hs-comment">-- sure the parser does not succeed on empty input though. In earlier</span><span>
+</span><a name="line-42"></a><span class="hs-comment">-- version 'C.spaceChar' was recommended, but now parsers based on</span><span>
+</span><a name="line-43"></a><span class="hs-comment">-- 'takeWhile1P' are preferred because of their speed.</span><span>
+</span><a name="line-44"></a><span class="hs-comment">--</span><span>
+</span><a name="line-45"></a><span class="hs-comment">-- @lineComment@ is used to parse line comments. You can use</span><span>
+</span><a name="line-46"></a><span class="hs-comment">-- @skipLineComment@ if you don't need anything special.</span><span>
+</span><a name="line-47"></a><span class="hs-comment">--</span><span>
+</span><a name="line-48"></a><span class="hs-comment">-- @blockComment@ is used to parse block (multi-line) comments. You can use</span><span>
+</span><a name="line-49"></a><span class="hs-comment">-- @skipBlockComment@ or @skipBlockCommentNested@ if you don't need anything</span><span>
+</span><a name="line-50"></a><span class="hs-comment">-- special.</span><span>
+</span><a name="line-51"></a><span class="hs-comment">--</span><span>
+</span><a name="line-52"></a><span class="hs-comment">-- If you don't want to allow a kind of comment, simply pass 'empty' which</span><span>
+</span><a name="line-53"></a><span class="hs-comment">-- will fail instantly when parsing of that sort of comment is attempted and</span><span>
+</span><a name="line-54"></a><span class="hs-comment">-- 'space' will just move on or finish depending on whether there is more</span><span>
+</span><a name="line-55"></a><span class="hs-comment">-- white space for it to consume.</span><span>
+</span><a name="line-56"></a><span>
+</span><a name="line-57"></a><span class="hs-identifier">space</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Text.Megaparsec.Class.html#MonadParsec"><span class="hs-identifier hs-type">MonadParsec</span></a><span> </span><a href="#local-6989586621679101259"><span class="hs-identifier hs-type">e</span></a><span> </span><a href="#local-6989586621679101260"><span class="hs-identifier hs-type">s</span></a><span> </span><a href="#local-6989586621679101261"><span class="hs-identifier hs-type">m</span></a><span>
+</span><a name="line-58"></a><span>  </span><span class="hs-glyph">=&gt;</span><span> </span><a href="#local-6989586621679101261"><span class="hs-identifier hs-type">m</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span> </span><span class="hs-comment">-- ^ A parser for space characters which does not accept empty</span><span>
+</span><a name="line-59"></a><span>          </span><span class="hs-comment">-- input (e.g. 'C.space1')</span><span>
+</span><a name="line-60"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-6989586621679101261"><span class="hs-identifier hs-type">m</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span> </span><span class="hs-comment">-- ^ A parser for a line comment (e.g. 'skipLineComment')</span><span>
+</span><a name="line-61"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-6989586621679101261"><span class="hs-identifier hs-type">m</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span> </span><span class="hs-comment">-- ^ A parser for a block comment (e.g. 'skipBlockComment')</span><span>
+</span><a name="line-62"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-6989586621679101261"><span class="hs-identifier hs-type">m</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><a name="line-63"></a><a name="space"><a href="Text.Megaparsec.Lexer.html#space"><span class="hs-identifier">space</span></a></a><span> </span><a name="local-6989586621679101262"><a href="#local-6989586621679101262"><span class="hs-identifier">sp</span></a></a><span> </span><a name="local-6989586621679101263"><a href="#local-6989586621679101263"><span class="hs-identifier">line</span></a></a><span> </span><a name="local-6989586621679101264"><a href="#local-6989586621679101264"><span class="hs-identifier">block</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">skipMany</span><span> </span><span class="hs-operator hs-var">$</span><span> </span><span class="hs-identifier hs-var">choice</span><span>
+</span><a name="line-64"></a><span>  </span><span class="hs-special">[</span><a href="Text.Megaparsec.Class.html#hidden"><span class="hs-identifier hs-var">hidden</span></a><span> </span><a href="#local-6989586621679101262"><span class="hs-identifier hs-var">sp</span></a><span class="hs-special">,</span><span> </span><a href="Text.Megaparsec.Class.html#hidden"><span class="hs-identifier hs-var">hidden</span></a><span> </span><a href="#local-6989586621679101263"><span class="hs-identifier hs-var">line</span></a><span class="hs-special">,</span><span> </span><a href="Text.Megaparsec.Class.html#hidden"><span class="hs-identifier hs-var">hidden</span></a><span> </span><a href="#local-6989586621679101264"><span class="hs-identifier hs-var">block</span></a><span class="hs-special">]</span><span>
+</span><a name="line-65"></a><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="hs-pragma">space</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><a name="line-66"></a><span>
+</span><a name="line-67"></a><span class="hs-comment">-- | This is a wrapper for lexemes. Typical usage is to supply the first</span><span>
+</span><a name="line-68"></a><span class="hs-comment">-- argument (parser that consumes white space, probably defined via 'space')</span><span>
+</span><a name="line-69"></a><span class="hs-comment">-- and use the resulting function to wrap parsers for every lexeme.</span><span>
+</span><a name="line-70"></a><span class="hs-comment">--</span><span>
+</span><a name="line-71"></a><span class="hs-comment">-- &gt; lexeme  = L.lexeme spaceConsumer</span><span>
+</span><a name="line-72"></a><span class="hs-comment">-- &gt; integer = lexeme L.decimal</span><span>
+</span><a name="line-73"></a><span>
+</span><a name="line-74"></a><span class="hs-identifier">lexeme</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Text.Megaparsec.Class.html#MonadParsec"><span class="hs-identifier hs-type">MonadParsec</span></a><span> </span><a href="#local-6989586621679101255"><span class="hs-identifier hs-type">e</span></a><span> </span><a href="#local-6989586621679101256"><span class="hs-identifier hs-type">s</span></a><span> </span><a href="#local-6989586621679101257"><span class="hs-identifier hs-type">m</span></a><span>
+</span><a name="line-75"></a><span>  </span><span class="hs-glyph">=&gt;</span><span> </span><a href="#local-6989586621679101257"><span class="hs-identifier hs-type">m</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>              </span><span class="hs-comment">-- ^ How to consume white space after lexeme</span><span>
+</span><a name="line-76"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-6989586621679101257"><span class="hs-identifier hs-type">m</span></a><span> </span><a href="#local-6989586621679101258"><span class="hs-identifier hs-type">a</span></a><span>               </span><span class="hs-comment">-- ^ How to parse actual lexeme</span><span>
+</span><a name="line-77"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-6989586621679101257"><span class="hs-identifier hs-type">m</span></a><span> </span><a href="#local-6989586621679101258"><span class="hs-identifier hs-type">a</span></a><span>
+</span><a name="line-78"></a><a name="lexeme"><a href="Text.Megaparsec.Lexer.html#lexeme"><span class="hs-identifier">lexeme</span></a></a><span> </span><a name="local-6989586621679101265"><a href="#local-6989586621679101265"><span class="hs-identifier">spc</span></a></a><span> </span><a name="local-6989586621679101266"><a href="#local-6989586621679101266"><span class="hs-identifier">p</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679101266"><span class="hs-identifier hs-var">p</span></a><span> </span><span class="hs-operator hs-var">&lt;*</span><span> </span><a href="#local-6989586621679101265"><span class="hs-identifier hs-var">spc</span></a><span>
+</span><a name="line-79"></a><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="hs-pragma">lexeme</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><a name="line-80"></a><span>
+</span><a name="line-81"></a><span class="hs-comment">-- | This is a helper to parse symbols, i.e. verbatim strings. You pass the</span><span>
+</span><a name="line-82"></a><span class="hs-comment">-- first argument (parser that consumes white space, probably defined via</span><span>
+</span><a name="line-83"></a><span class="hs-comment">-- 'space') and then you can use the resulting function to parse strings:</span><span>
+</span><a name="line-84"></a><span class="hs-comment">--</span><span>
+</span><a name="line-85"></a><span class="hs-comment">-- &gt; symbol    = L.symbol spaceConsumer</span><span>
+</span><a name="line-86"></a><span class="hs-comment">-- &gt;</span><span>
+</span><a name="line-87"></a><span class="hs-comment">-- &gt; parens    = between (symbol &quot;(&quot;) (symbol &quot;)&quot;)</span><span>
+</span><a name="line-88"></a><span class="hs-comment">-- &gt; braces    = between (symbol &quot;{&quot;) (symbol &quot;}&quot;)</span><span>
+</span><a name="line-89"></a><span class="hs-comment">-- &gt; angles    = between (symbol &quot;&lt;&quot;) (symbol &quot;&gt;&quot;)</span><span>
+</span><a name="line-90"></a><span class="hs-comment">-- &gt; brackets  = between (symbol &quot;[&quot;) (symbol &quot;]&quot;)</span><span>
+</span><a name="line-91"></a><span class="hs-comment">-- &gt; semicolon = symbol &quot;;&quot;</span><span>
+</span><a name="line-92"></a><span class="hs-comment">-- &gt; comma     = symbol &quot;,&quot;</span><span>
+</span><a name="line-93"></a><span class="hs-comment">-- &gt; colon     = symbol &quot;:&quot;</span><span>
+</span><a name="line-94"></a><span class="hs-comment">-- &gt; dot       = symbol &quot;.&quot;</span><span>
+</span><a name="line-95"></a><span>
+</span><a name="line-96"></a><span class="hs-identifier">symbol</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Text.Megaparsec.Class.html#MonadParsec"><span class="hs-identifier hs-type">MonadParsec</span></a><span> </span><a href="#local-6989586621679101252"><span class="hs-identifier hs-type">e</span></a><span> </span><a href="#local-6989586621679101253"><span class="hs-identifier hs-type">s</span></a><span> </span><a href="#local-6989586621679101254"><span class="hs-identifier hs-type">m</span></a><span>
+</span><a name="line-97"></a><span>  </span><span class="hs-glyph">=&gt;</span><span> </span><a href="#local-6989586621679101254"><span class="hs-identifier hs-type">m</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>              </span><span class="hs-comment">-- ^ How to consume white space after lexeme</span><span>
+</span><a name="line-98"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="Text.Megaparsec.Stream.html#Tokens"><span class="hs-identifier hs-type">Tokens</span></a><span> </span><a href="#local-6989586621679101253"><span class="hs-identifier hs-type">s</span></a><span>          </span><span class="hs-comment">-- ^ Symbol to parse</span><span>
+</span><a name="line-99"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-6989586621679101254"><span class="hs-identifier hs-type">m</span></a><span> </span><span class="hs-special">(</span><a href="Text.Megaparsec.Stream.html#Tokens"><span class="hs-identifier hs-type">Tokens</span></a><span> </span><a href="#local-6989586621679101253"><span class="hs-identifier hs-type">s</span></a><span class="hs-special">)</span><span>
+</span><a name="line-100"></a><a name="symbol"><a href="Text.Megaparsec.Lexer.html#symbol"><span class="hs-identifier">symbol</span></a></a><span> </span><a name="local-6989586621679101267"><a href="#local-6989586621679101267"><span class="hs-identifier">spc</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Text.Megaparsec.Lexer.html#lexeme"><span class="hs-identifier hs-var">lexeme</span></a><span> </span><a href="#local-6989586621679101267"><span class="hs-identifier hs-var">spc</span></a><span> </span><span class="hs-operator hs-var">.</span><span> </span><a href="Text.Megaparsec.Common.html#string"><span class="hs-identifier hs-var">string</span></a><span>
+</span><a name="line-101"></a><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="hs-pragma">symbol</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><a name="line-102"></a><span>
+</span><a name="line-103"></a><span class="hs-comment">-- | Case-insensitive version of 'symbol'. This may be helpful if you're</span><span>
+</span><a name="line-104"></a><span class="hs-comment">-- working with case-insensitive languages.</span><span>
+</span><a name="line-105"></a><span>
+</span><a name="line-106"></a><span class="hs-identifier">symbol'</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><a href="Text.Megaparsec.Class.html#MonadParsec"><span class="hs-identifier hs-type">MonadParsec</span></a><span> </span><a href="#local-6989586621679101249"><span class="hs-identifier hs-type">e</span></a><span> </span><a href="#local-6989586621679101250"><span class="hs-identifier hs-type">s</span></a><span> </span><a href="#local-6989586621679101251"><span class="hs-identifier hs-type">m</span></a><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">CI.FoldCase</span><span> </span><span class="hs-special">(</span><a href="Text.Megaparsec.Stream.html#Tokens"><span class="hs-identifier hs-type">Tokens</span></a><span> </span><a href="#local-6989586621679101250"><span class="hs-identifier hs-type">s</span></a><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-107"></a><span>  </span><span class="hs-glyph">=&gt;</span><span> </span><a href="#local-6989586621679101251"><span class="hs-identifier hs-type">m</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>              </span><span class="hs-comment">-- ^ How to consume white space after lexeme</span><span>
+</span><a name="line-108"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="Text.Megaparsec.Stream.html#Tokens"><span class="hs-identifier hs-type">Tokens</span></a><span> </span><a href="#local-6989586621679101250"><span class="hs-identifier hs-type">s</span></a><span>          </span><span class="hs-comment">-- ^ Symbol to parse (case-insensitive)</span><span>
+</span><a name="line-109"></a><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-6989586621679101251"><span class="hs-identifier hs-type">m</span></a><span> </span><span class="hs-special">(</span><a href="Text.Megaparsec.Stream.html#Tokens"><span class="hs-identifier hs-type">Tokens</span></a><span> </span><a href="#local-6989586621679101250"><span class="hs-identifier hs-type">s</span></a><span class="hs-special">)</span><span>
+</span><a name="line-110"></a><a name="symbol%27"><a href="Text.Megaparsec.Lexer.html#symbol%27"><span class="hs-identifier">symbol'</span></a></a><span> </span><a name="local-6989586621679101268"><a href="#local-6989586621679101268"><span class="hs-identifier">spc</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Text.Megaparsec.Lexer.html#lexeme"><span class="hs-identifier hs-var">lexeme</span></a><span> </span><a href="#local-6989586621679101268"><span class="hs-identifier hs-var">spc</span></a><span> </span><span class="hs-operator hs-var">.</span><span> </span><a href="Text.Megaparsec.Common.html#string%27"><span class="hs-identifier hs-var">string'</span></a><span>
+</span><a name="line-111"></a><span class="hs-pragma">{-# INLINEABLE</span><span> </span><span class="hs-pragma">symbol'</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><a name="line-112"></a></pre></body></html>

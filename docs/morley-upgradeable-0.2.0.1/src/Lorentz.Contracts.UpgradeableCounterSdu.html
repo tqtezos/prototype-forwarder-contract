@@ -1,0 +1,58 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DerivingVia #-}</span><span>
+</span><a name="line-2"></a><span>
+</span><a name="line-3"></a><span class="hs-comment">-- | UpgradeableCounterSdu demonstrates the implementation of a simple contract</span><span>
+</span><a name="line-4"></a><span class="hs-comment">--   that has upgradeable storage, interface, and implementation and uses</span><span>
+</span><a name="line-5"></a><span class="hs-comment">--   storage-driven upgrades. Aside from the latter, this contract is similar</span><span>
+</span><a name="line-6"></a><span class="hs-comment">--   to &quot;UpgradeableCounter&quot;.</span><span>
+</span><a name="line-7"></a><span class="hs-comment">--</span><span>
+</span><a name="line-8"></a><span class="hs-comment">--   In the first version it stores a Natural and allows to add some value</span><span>
+</span><a name="line-9"></a><span class="hs-comment">--   to it.</span><span>
+</span><a name="line-10"></a><span class="hs-comment">--</span><span>
+</span><a name="line-11"></a><span class="hs-comment">--   The second version changes the type of the stored value to Integer,</span><span>
+</span><a name="line-12"></a><span class="hs-comment">--   and instead of providing Add Natural and Inc () endpoints, it</span><span>
+</span><a name="line-13"></a><span class="hs-comment">--   just allows to increment or decrement the current value.</span><span>
+</span><a name="line-14"></a><span class="hs-comment">--</span><span>
+</span><a name="line-15"></a><span class="hs-comment">--   While the contract does not have any advanced functionality, it provides</span><span>
+</span><a name="line-16"></a><span class="hs-comment">--   a birds-eye view on all the aspects of the upgradeable contracts concept</span><span>
+</span><a name="line-17"></a><span class="hs-comment">--   and serves as an example on how to apply this concept.</span><span>
+</span><a name="line-18"></a><span>
+</span><a name="line-19"></a><span>
+</span><a name="line-20"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Lorentz.Contracts.UpgradeableCounterSdu</span><span>
+</span><a name="line-21"></a><span>  </span><span class="hs-special">(</span><span> </span><a href="Lorentz.Contracts.UpgradeableCounterSdu.html#CounterSduV"><span class="hs-identifier hs-type">CounterSduV</span></a><span>
+</span><a name="line-22"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Contracts.Upgradeable.Common.Contract.html#Parameter"><span class="hs-identifier hs-type">Parameter</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-23"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Contracts.Upgradeable.Common.Contract.html#Storage"><span class="hs-identifier hs-type">Storage</span></a><span>
+</span><a name="line-24"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Contracts.UpgradeableCounterSdu.html#Permanent"><span class="hs-identifier hs-type">Permanent</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-25"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Contracts.UpgradeableCounterSdu.html#upgradeableCounterContractSdu"><span class="hs-identifier hs-var">upgradeableCounterContractSdu</span></a><span>
+</span><a name="line-26"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Contracts.Upgradeable.Common.Contract.html#mkEmptyStorage"><span class="hs-identifier hs-var">mkEmptyStorage</span></a><span>
+</span><a name="line-27"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-28"></a><span>
+</span><a name="line-29"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Lorentz</span><span>
+</span><a name="line-30"></a><span>
+</span><a name="line-31"></a><span class="hs-keyword">import</span><span> </span><a href="Lorentz.Contracts.Upgradeable.Common.html"><span class="hs-identifier">Lorentz.Contracts.Upgradeable.Common</span></a><span>
+</span><a name="line-32"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Lorentz.TypeAnns</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">HasTypeAnn</span><span class="hs-special">)</span><span>
+</span><a name="line-33"></a><span>
+</span><a name="line-34"></a><span class="hs-comment">-- | Version identifier for this contract.</span><span>
+</span><a name="line-35"></a><span class="hs-comment">--</span><span>
+</span><a name="line-36"></a><span class="hs-comment">-- It a bit differs from how we do in other contracts - this type is supposed</span><span>
+</span><a name="line-37"></a><span class="hs-comment">-- to be used in all versions of the contract, but it has type parameter which</span><span>
+</span><a name="line-38"></a><span class="hs-comment">-- is supposed to designate contract version.</span><span>
+</span><a name="line-39"></a><span class="hs-keyword">data</span><span> </span><a name="CounterSduV"><a href="Lorentz.Contracts.UpgradeableCounterSdu.html#CounterSduV"><span class="hs-identifier">CounterSduV</span></a></a><span> </span><span class="hs-special">(</span><a name="local-6989586621679550176"><a href="#local-6989586621679550176"><span class="hs-identifier">v</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Nat</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Lorentz.Contracts.Upgradeable.Common.Base.html#VersionKind"><span class="hs-identifier hs-type">VersionKind</span></a><span>
+</span><a name="line-40"></a><span>
+</span><a name="line-41"></a><span class="hs-keyword">data</span><span> </span><a name="Permanent"><a href="Lorentz.Contracts.UpgradeableCounterSdu.html#Permanent"><span class="hs-identifier">Permanent</span></a></a><span>
+</span><a name="line-42"></a><span>  </span><span class="hs-glyph">=</span><span> </span><a name="GetCounter"><a href="Lorentz.Contracts.UpgradeableCounterSdu.html#GetCounter"><span class="hs-identifier">GetCounter</span></a></a><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Void_</span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span> </span><span class="hs-identifier hs-type">Integer</span><span class="hs-special">)</span><span>
+</span><a name="line-43"></a><span>  </span><span class="hs-glyph">|</span><span> </span><a name="GetNothing"><a href="Lorentz.Contracts.UpgradeableCounterSdu.html#GetNothing"><span class="hs-identifier">GetNothing</span></a></a><span> </span><span class="hs-identifier hs-type">Empty</span><span>
+</span><a name="line-44"></a><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-keyword">stock</span><span> </span><span class="hs-identifier hs-type">Generic</span><span>
+</span><a name="line-45"></a><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-keyword">anyclass</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">IsoValue</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">HasTypeAnn</span><span class="hs-special">)</span><span>
+</span><a name="line-46"></a><span>
+</span><a name="line-47"></a><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier hs-type">ParameterHasEntryPoints</span><span> </span><a href="Lorentz.Contracts.UpgradeableCounterSdu.html#Permanent"><span class="hs-identifier hs-type">Permanent</span></a><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-48"></a><span>  </span><span class="hs-keyword">type</span><span> </span><span class="hs-identifier">ParameterEntryPointsDerivation</span><span> </span><a href="Lorentz.Contracts.UpgradeableCounterSdu.html#Permanent"><span class="hs-identifier hs-type">Permanent</span></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-type">EpdPlain</span><span>
+</span><a name="line-49"></a><span>
+</span><a name="line-50"></a><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier hs-type">TypeHasDoc</span><span> </span><a href="Lorentz.Contracts.UpgradeableCounterSdu.html#Permanent"><span class="hs-identifier hs-type">Permanent</span></a><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-51"></a><span>  </span><a name="local-8214565720323814615"><span class="hs-identifier">typeDocMdDescription</span></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-string">&quot;Parameter for permanent entrypoints.&quot;</span><span>
+</span><a name="line-52"></a><span>
+</span><a name="line-53"></a><span class="hs-keyword">deriving</span><span> </span><span class="hs-keyword">via</span><span> </span><span class="hs-special">(</span><a href="Lorentz.Contracts.Upgradeable.Common.Base.html#EmptyContractVersion"><span class="hs-identifier hs-type">EmptyContractVersion</span></a><span> </span><a href="Lorentz.Contracts.UpgradeableCounterSdu.html#Permanent"><span class="hs-identifier hs-type">Permanent</span></a><span class="hs-special">)</span><span>
+</span><a name="line-54"></a><span>  </span><span class="hs-keyword">instance</span><span> </span><a href="Lorentz.Contracts.Upgradeable.Common.Base.html#KnownContractVersion"><span class="hs-identifier hs-type">KnownContractVersion</span></a><span> </span><span class="hs-special">(</span><a href="Lorentz.Contracts.UpgradeableCounterSdu.html#CounterSduV"><span class="hs-identifier hs-type">CounterSduV</span></a><span> </span><span class="hs-number">0</span><span class="hs-special">)</span><span>
+</span><a name="line-55"></a><span>
+</span><a name="line-56"></a><span class="hs-identifier">upgradeableCounterContractSdu</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="Lorentz.Contracts.Upgradeable.Common.Contract.html#UpgradeableContract"><span class="hs-identifier hs-type">UpgradeableContract</span></a><span> </span><span class="hs-special">(</span><a href="Lorentz.Contracts.UpgradeableCounterSdu.html#CounterSduV"><span class="hs-identifier hs-type">CounterSduV</span></a><span> </span><span class="hs-number">0</span><span class="hs-special">)</span><span>
+</span><a name="line-57"></a><a name="upgradeableCounterContractSdu"><a href="Lorentz.Contracts.UpgradeableCounterSdu.html#upgradeableCounterContractSdu"><span class="hs-identifier">upgradeableCounterContractSdu</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Lorentz.Contracts.Upgradeable.Common.Contract.html#upgradeableContract"><span class="hs-identifier hs-var">upgradeableContract</span></a><span>
+</span><a name="line-58"></a></pre></body></html>

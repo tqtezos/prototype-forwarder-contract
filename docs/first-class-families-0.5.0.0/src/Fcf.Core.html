@@ -1,0 +1,31 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE
+    DataKinds,
+    PolyKinds,
+    TypeFamilies,
+    TypeInType,
+    TypeOperators #-}</span><span>
+</span><a name="line-7"></a><span>
+</span><a name="line-8"></a><span class="hs-comment">-- | The 'Eval' family.</span><span>
+</span><a name="line-9"></a><span>
+</span><a name="line-10"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Fcf.Core</span><span>
+</span><a name="line-11"></a><span>  </span><span class="hs-special">(</span><span> </span><a href="Fcf.Core.html#Exp"><span class="hs-identifier hs-type">Exp</span></a><span>
+</span><a name="line-12"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Fcf.Core.html#Eval"><span class="hs-identifier hs-type">Eval</span></a><span>
+</span><a name="line-13"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">type</span><span> </span><span class="hs-special">(</span><a href="Fcf.Core.html#%40%40"><span class="hs-operator hs-type">@@</span></a><span class="hs-special">)</span><span>
+</span><a name="line-14"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-15"></a><span>
+</span><a name="line-16"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Kind</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Type</span><span class="hs-special">)</span><span>
+</span><a name="line-17"></a><span>
+</span><a name="line-18"></a><span class="hs-comment">-- * First-class type families</span><span>
+</span><a name="line-19"></a><span>
+</span><a name="line-20"></a><span class="hs-comment">-- | Kind of type-level expressions indexed by their result type.</span><span>
+</span><a name="line-21"></a><span class="hs-keyword">type</span><span> </span><a name="Exp"><a href="Fcf.Core.html#Exp"><span class="hs-identifier">Exp</span></a></a><span> </span><a name="local-6989586621679017484"><a href="#local-6989586621679017484"><span class="hs-identifier">a</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621679017484"><span class="hs-identifier hs-type">a</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-type">Type</span><span>
+</span><a name="line-22"></a><span>
+</span><a name="line-23"></a><span class="hs-comment">-- | Expression evaluator.</span><span>
+</span><a name="line-24"></a><span class="hs-keyword">type</span><span> </span><span class="hs-keyword">family</span><span> </span><a name="Eval"><a href="Fcf.Core.html#Eval"><span class="hs-identifier">Eval</span></a></a><span> </span><span class="hs-special">(</span><a name="local-6989586621679017483"><a href="#local-6989586621679017483"><span class="hs-identifier">e</span></a></a><span> </span><span class="hs-glyph">::</span><span> </span><a href="Fcf.Core.html#Exp"><span class="hs-identifier hs-type">Exp</span></a><span> </span><a href="#local-6989586621679017482"><span class="hs-identifier hs-type">a</span></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="#local-6989586621679017482"><span class="hs-identifier hs-type">a</span></a><span>
+</span><a name="line-25"></a><span>
+</span><a name="line-26"></a><span class="hs-comment">-- ** Miscellaneous</span><span>
+</span><a name="line-27"></a><span>
+</span><a name="line-28"></a><span class="hs-comment">-- | Apply and evaluate a unary type function.</span><span>
+</span><a name="line-29"></a><span class="hs-keyword">type</span><span> </span><a name="local-6989586621679017480"><a href="#local-6989586621679017480"><span class="hs-identifier">f</span></a></a><span> </span><a name="%40%40"><a href="Fcf.Core.html#%40%40"><span class="hs-operator">@@</span></a></a><span> </span><a name="local-6989586621679017481"><a href="#local-6989586621679017481"><span class="hs-identifier">x</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Fcf.Core.html#Eval"><span class="hs-identifier hs-type">Eval</span></a><span> </span><span class="hs-special">(</span><a href="#local-6989586621679017480"><span class="hs-identifier hs-type">f</span></a><span> </span><a href="#local-6989586621679017481"><span class="hs-identifier hs-type">x</span></a><span class="hs-special">)</span><span>
+</span><a name="line-30"></a><span>
+</span><a name="line-31"></a></pre></body></html>

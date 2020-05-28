@@ -1,0 +1,13 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-- | Some derivative constraints.</span><span>
+</span><a name="line-2"></a><span class="hs-comment">--</span><span>
+</span><a name="line-3"></a><span class="hs-comment">-- They are moved to separate module because they need to lie quite high in</span><span>
+</span><a name="line-4"></a><span class="hs-comment">-- modules dependencies graph (unlike &quot;Lorentz.Constraints.Scopes&quot;).</span><span>
+</span><a name="line-5"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Lorentz.Constraints.Derivative</span><span>
+</span><a name="line-6"></a><span>  </span><span class="hs-special">(</span><span> </span><a href="Lorentz.Constraints.Derivative.html#NiceParameterFull"><span class="hs-identifier hs-type">NiceParameterFull</span></a><span>
+</span><a name="line-7"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-8"></a><span>
+</span><a name="line-9"></a><span class="hs-keyword">import</span><span> </span><a href="Lorentz.EntryPoints.Core.html"><span class="hs-identifier">Lorentz.EntryPoints.Core</span></a><span>
+</span><a name="line-10"></a><span>
+</span><a name="line-11"></a><span class="hs-comment">-- | Constraint applied to a whole parameter type.</span><span>
+</span><a name="line-12"></a><span class="hs-keyword">type</span><span> </span><a name="NiceParameterFull"><a href="Lorentz.Constraints.Derivative.html#NiceParameterFull"><span class="hs-identifier">NiceParameterFull</span></a></a><span> </span><a name="local-6989586621679305616"><a href="#local-6989586621679305616"><span class="hs-identifier">cp</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Typeable</span><span> </span><a href="#local-6989586621679305616"><span class="hs-identifier hs-type">cp</span></a><span class="hs-special">,</span><span> </span><a href="Lorentz.EntryPoints.Core.html#ParameterDeclaresEntryPoints"><span class="hs-identifier hs-type">ParameterDeclaresEntryPoints</span></a><span> </span><a href="#local-6989586621679305616"><span class="hs-identifier hs-type">cp</span></a><span class="hs-special">)</span><span>
+</span><a name="line-13"></a></pre></body></html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Lorentz.Contracts.Upgradeable.Test</span><span>
+</span><a name="line-2"></a><span>  </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- * Test predicates</span><span>
+</span><a name="line-3"></a><span>    </span><a href="Lorentz.Contracts.Upgradeable.Test.html#testUpgradeableContractDoc"><span class="hs-identifier hs-var">testUpgradeableContractDoc</span></a><span>
+</span><a name="line-4"></a><span>
+</span><a name="line-5"></a><span>    </span><span class="hs-comment">-- * Individual test predicates</span><span>
+</span><a name="line-6"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.Contracts.Upgradeable.Test.html#testSingleVersion"><span class="hs-identifier hs-var">testSingleVersion</span></a><span>
+</span><a name="line-7"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-8"></a><span>
+</span><a name="line-9"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Prelude</span><span>
+</span><a name="line-10"></a><span>
+</span><a name="line-11"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Test.HUnit</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">assertFailure</span><span class="hs-special">)</span><span>
+</span><a name="line-12"></a><span>
+</span><a name="line-13"></a><span class="hs-keyword">import</span><span> </span><a href="Lorentz.Contracts.Upgradeable.Common.html"><span class="hs-identifier">Lorentz.Contracts.Upgradeable.Common</span></a><span>
+</span><a name="line-14"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Lorentz.Test.Doc</span><span>
+</span><a name="line-15"></a><span>
+</span><a name="line-16"></a><span class="hs-comment">-- | Check that contract documentation mentions version only once.</span><span>
+</span><a name="line-17"></a><span class="hs-identifier">testSingleVersion</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">DocTest</span><span>
+</span><a name="line-18"></a><a name="testSingleVersion"><a href="Lorentz.Contracts.Upgradeable.Test.html#testSingleVersion"><span class="hs-identifier">testSingleVersion</span></a></a><span> </span><span class="hs-glyph">=</span><span>
+</span><a name="line-19"></a><span>  </span><span class="hs-identifier hs-var">mkDocTest</span><span> </span><span class="hs-string">&quot;Version documented&quot;</span><span> </span><span class="hs-operator hs-var">$</span><span>
+</span><a name="line-20"></a><span>  </span><span class="hs-glyph">\</span><a name="local-6989586621679530737"><a href="#local-6989586621679530737"><span class="hs-identifier">contractDoc</span></a></a><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><a name="line-21"></a><span>    </span><span class="hs-keyword">case</span><span> </span><span class="hs-identifier hs-var">forEachContractDocItem</span><span> </span><span class="hs-glyph">@</span><a href="Lorentz.Contracts.Upgradeable.Common.Contract.html#DVersion"><span class="hs-identifier hs-type">DVersion</span></a><span> </span><a href="#local-6989586621679530737"><span class="hs-identifier hs-var">contractDoc</span></a><span> </span><span class="hs-identifier hs-var">id</span><span> </span><span class="hs-keyword">of</span><span>
+</span><a name="line-22"></a><span>      </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-var">assertFailure</span><span> </span><span class="hs-string">&quot;Contract contains no 'DVersion'&quot;</span><span>
+</span><a name="line-23"></a><span>      </span><span class="hs-special">[</span><span class="hs-identifier">_</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-var">pass</span><span>
+</span><a name="line-24"></a><span>      </span><span class="hs-identifier">_</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-var">assertFailure</span><span> </span><span class="hs-string">&quot;Contract contains several 'DVersion's&quot;</span><span>
+</span><a name="line-25"></a><span>
+</span><a name="line-26"></a><span class="hs-comment">-- | Test all properties of upgradeable contract.</span><span>
+</span><a name="line-27"></a><span class="hs-identifier">testUpgradeableContractDoc</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="hs-identifier hs-type">DocTest</span><span class="hs-special">]</span><span>
+</span><a name="line-28"></a><a name="testUpgradeableContractDoc"><a href="Lorentz.Contracts.Upgradeable.Test.html#testUpgradeableContractDoc"><span class="hs-identifier">testUpgradeableContractDoc</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">mconcat</span><span>
+</span><a name="line-29"></a><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-identifier hs-var">testLorentzDoc</span><span>
+</span><a name="line-30"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span> </span><a href="Lorentz.Contracts.Upgradeable.Test.html#testSingleVersion"><span class="hs-identifier hs-var">testSingleVersion</span></a><span>
+</span><a name="line-31"></a><span>    </span><span class="hs-special">]</span><span>
+</span><a name="line-32"></a><span>  </span><span class="hs-special">]</span><span>
+</span><a name="line-33"></a></pre></body></html>

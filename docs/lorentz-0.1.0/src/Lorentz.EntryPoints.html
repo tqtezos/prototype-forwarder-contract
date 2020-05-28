@@ -1,0 +1,49 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE UndecidableSuperClasses #-}</span><span>
+</span><a name="line-2"></a><span class="hs-pragma">{-# OPTIONS_GHC -Wno-redundant-constraints #-}</span><span>
+</span><a name="line-3"></a><span>
+</span><a name="line-4"></a><span class="hs-comment">-- | Entrypoints utilities for Lorentz</span><span>
+</span><a name="line-5"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Lorentz.EntryPoints</span><span>
+</span><a name="line-6"></a><span>  </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- * Typeclasses</span><span>
+</span><a name="line-7"></a><span>    </span><a href="Lorentz.EntryPoints.Core.html#EntryPointsDerivation"><span class="hs-identifier hs-type">EntryPointsDerivation</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-8"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.EntryPoints.Core.html#ParameterHasEntryPoints"><span class="hs-identifier hs-type">ParameterHasEntryPoints</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-9"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.EntryPoints.Core.html#ParameterDeclaresEntryPoints"><span class="hs-identifier hs-type">ParameterDeclaresEntryPoints</span></a><span>
+</span><a name="line-10"></a><span>
+</span><a name="line-11"></a><span>    </span><span class="hs-comment">-- * Entrypoints API</span><span>
+</span><a name="line-12"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.EntryPoints.Core.html#AllParameterEntryPoints"><span class="hs-identifier hs-type">AllParameterEntryPoints</span></a><span>
+</span><a name="line-13"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.EntryPoints.Core.html#LookupParameterEntryPoint"><span class="hs-identifier hs-type">LookupParameterEntryPoint</span></a><span>
+</span><a name="line-14"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.EntryPoints.Core.html#parameterEntryPointsToNotes"><span class="hs-identifier hs-var">parameterEntryPointsToNotes</span></a><span>
+</span><a name="line-15"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.EntryPoints.Core.html#GetEntryPointArg"><span class="hs-identifier hs-type">GetEntryPointArg</span></a><span>
+</span><a name="line-16"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.EntryPoints.Core.html#parameterEntryPointCall"><span class="hs-identifier hs-var">parameterEntryPointCall</span></a><span>
+</span><a name="line-17"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.EntryPoints.Core.html#GetDefaultEntryPointArg"><span class="hs-identifier hs-type">GetDefaultEntryPointArg</span></a><span>
+</span><a name="line-18"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.EntryPoints.Core.html#parameterEntryPointCallDefault"><span class="hs-identifier hs-var">parameterEntryPointCallDefault</span></a><span>
+</span><a name="line-19"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.EntryPoints.Core.html#ForbidExplicitDefaultEntryPoint"><span class="hs-identifier hs-type">ForbidExplicitDefaultEntryPoint</span></a><span>
+</span><a name="line-20"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.EntryPoints.Core.html#NoExplicitDefaultEntryPoint"><span class="hs-identifier hs-type">NoExplicitDefaultEntryPoint</span></a><span>
+</span><a name="line-21"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.EntryPoints.Core.html#sepcCallRootChecked"><span class="hs-identifier hs-var">sepcCallRootChecked</span></a><span>
+</span><a name="line-22"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.EntryPoints.Core.html#EntryPointRef"><span class="hs-identifier hs-type">EntryPointRef</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-23"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.EntryPoints.Core.html#eprName"><span class="hs-identifier hs-var">eprName</span></a><span>
+</span><a name="line-24"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.EntryPoints.Core.html#GetEntryPointArgCustom"><span class="hs-identifier hs-type">GetEntryPointArgCustom</span></a><span>
+</span><a name="line-25"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.EntryPoints.Core.html#HasEntryPointArg"><span class="hs-identifier hs-type">HasEntryPointArg</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-26"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.EntryPoints.Core.html#HasDefEntryPointArg"><span class="hs-identifier hs-type">HasDefEntryPointArg</span></a><span>
+</span><a name="line-27"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.EntryPoints.Core.html#HasEntryPointOfType"><span class="hs-identifier hs-type">HasEntryPointOfType</span></a><span>
+</span><a name="line-28"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.EntryPoints.Core.html#ParameterContainsEntryPoints"><span class="hs-identifier hs-type">ParameterContainsEntryPoints</span></a><span>
+</span><a name="line-29"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.EntryPoints.Core.html#TrustEpName"><span class="hs-identifier hs-type">TrustEpName</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-30"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.EntryPoints.Core.html#parameterEntryPointCallCustom"><span class="hs-identifier hs-var">parameterEntryPointCallCustom</span></a><span>
+</span><a name="line-31"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.EntryPoints.Core.html#RequireAllUniqueEntryPoints"><span class="hs-identifier hs-type">RequireAllUniqueEntryPoints</span></a><span>
+</span><a name="line-32"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><a href="Lorentz.EntryPoints.Core.html#%3A%3E"><span class="hs-operator hs-type">:&gt;</span></a><span class="hs-special">)</span><span>
+</span><a name="line-33"></a><span>
+</span><a name="line-34"></a><span>    </span><span class="hs-comment">-- * Implementations</span><span>
+</span><a name="line-35"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.EntryPoints.Core.html#EpdNone"><span class="hs-identifier hs-type">EpdNone</span></a><span>
+</span><a name="line-36"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.EntryPoints.Impl.html#EpdPlain"><span class="hs-identifier hs-type">EpdPlain</span></a><span>
+</span><a name="line-37"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.EntryPoints.Impl.html#EpdRecursive"><span class="hs-identifier hs-type">EpdRecursive</span></a><span>
+</span><a name="line-38"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.EntryPoints.Impl.html#EpdDelegate"><span class="hs-identifier hs-type">EpdDelegate</span></a><span>
+</span><a name="line-39"></a><span>
+</span><a name="line-40"></a><span>    </span><span class="hs-comment">-- * Behaviour modifiers</span><span>
+</span><a name="line-41"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.EntryPoints.Manual.html#ParameterWrapper"><span class="hs-identifier hs-type">ParameterWrapper</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-42"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Lorentz.EntryPoints.Helpers.html#ShouldHaveEntryPoints"><span class="hs-identifier hs-type">ShouldHaveEntryPoints</span></a><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-43"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-44"></a><span>
+</span><a name="line-45"></a><span class="hs-keyword">import</span><span> </span><a href="Lorentz.EntryPoints.Core.html"><span class="hs-identifier">Lorentz.EntryPoints.Core</span></a><span>
+</span><a name="line-46"></a><span class="hs-keyword">import</span><span> </span><a href="Lorentz.EntryPoints.Helpers.html"><span class="hs-identifier">Lorentz.EntryPoints.Helpers</span></a><span>
+</span><a name="line-47"></a><span class="hs-keyword">import</span><span> </span><a href="Lorentz.EntryPoints.Impl.html"><span class="hs-identifier">Lorentz.EntryPoints.Impl</span></a><span>
+</span><a name="line-48"></a><span class="hs-keyword">import</span><span> </span><a href="Lorentz.EntryPoints.Manual.html"><span class="hs-identifier">Lorentz.EntryPoints.Manual</span></a><span>
+</span><a name="line-49"></a></pre></body></html>

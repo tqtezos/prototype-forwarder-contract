@@ -1,0 +1,29 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# OPTIONS_GHC -Wno-orphans #-}</span><span>
+</span><a name="line-2"></a><span>
+</span><a name="line-3"></a><span class="hs-comment">-- | Some common errors.</span><span>
+</span><a name="line-4"></a><span class="hs-comment">--</span><span>
+</span><a name="line-5"></a><span class="hs-comment">-- Such registry makes sense, as soon as errors are declared globally.</span><span>
+</span><a name="line-6"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Lorentz.Errors.Common</span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-7"></a><span>
+</span><a name="line-8"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Fmt</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Buildable</span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-9"></a><span>
+</span><a name="line-10"></a><span class="hs-keyword">import</span><span> </span><a href="Lorentz.Errors.html"><span class="hs-identifier">Lorentz.Errors</span></a><span>
+</span><a name="line-11"></a><span>
+</span><a name="line-12"></a><span class="hs-comment">----------------------------------------------------------------------------</span><span>
+</span><a name="line-13"></a><span class="hs-comment">-- Authorization</span><span>
+</span><a name="line-14"></a><span class="hs-comment">----------------------------------------------------------------------------</span><span>
+</span><a name="line-15"></a><span>
+</span><a name="line-16"></a><span class="hs-comment">-- | Contract initiator should be contract admin in order to perform this</span><span>
+</span><a name="line-17"></a><span class="hs-comment">-- operation.</span><span>
+</span><a name="line-18"></a><span class="hs-keyword">type</span><span> </span><span class="hs-keyword">instance</span><span> </span><a href="Lorentz.Errors.html#ErrorArg"><span class="hs-identifier hs-type">ErrorArg</span></a><span> </span><span class="hs-string">&quot;senderIsNotAdmin&quot;</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><a name="line-19"></a><span>
+</span><a name="line-20"></a><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier hs-type">Buildable</span><span> </span><span class="hs-special">(</span><a href="Lorentz.Errors.html#CustomError"><span class="hs-identifier hs-type">CustomError</span></a><span> </span><span class="hs-string">&quot;senderIsNotAdmin&quot;</span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-21"></a><span>  </span><a name="local-8214565720323800933"><span class="hs-identifier">build</span></a><span> </span><span class="hs-special">(</span><a href="Lorentz.Errors.html#CustomError"><span class="hs-identifier hs-var">CustomError</span></a><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><a name="line-22"></a><span>    </span><span class="hs-string">&quot;This operation can be executed only by admin, but is invoked by \
+    \someone else&quot;</span><span>
+</span><a name="line-24"></a><span>
+</span><a name="line-25"></a><span class="hs-keyword">instance</span><span> </span><a href="Lorentz.Errors.html#CustomErrorHasDoc"><span class="hs-identifier hs-type">CustomErrorHasDoc</span></a><span> </span><span class="hs-string">&quot;senderIsNotAdmin&quot;</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-26"></a><span>  </span><a name="local-8214565720324195345"><a href="Lorentz.Errors.html#customErrClass"><span class="hs-identifier">customErrClass</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Lorentz.Errors.html#ErrClassActionException"><span class="hs-identifier hs-var">ErrClassActionException</span></a><span>
+</span><a name="line-27"></a><span>  </span><a name="local-8214565720324195343"><a href="Lorentz.Errors.html#customErrDocMdCause"><span class="hs-identifier">customErrDocMdCause</span></a></a><span> </span><span class="hs-glyph">=</span><span>
+</span><a name="line-28"></a><span>    </span><span class="hs-string">&quot;Entrypoint executed not by its administrator.&quot;</span><span>
+</span><a name="line-29"></a></pre></body></html>

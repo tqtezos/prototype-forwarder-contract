@@ -1,0 +1,90 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">{- | Type-safe migrations of UStore.
+
+This implements imperative approach to migration when we make user
+write a code of migration and track whether all new fields were indeed added
+and all unnecessary fields were removed.
+
+You can find migration examples in tests.
+
+== How to write your simple migration
+
+1. Start with migration template:
+
+    @
+    migration :: 'UStoreMigration' V1.Storage V2.Storage
+    migration = 'mkUStoreMigration' $ do
+      -- migration code to be put here
+      'migrationFinish'
+    @
+
+    You will be prompted with a list of fields which should be added or removed.
+
+2. Add/remove necessary fields using 'migrateAddField', 'migrateExtractField'
+and other instructions.
+They allow you to operate with 'MUStore' &#8212; it is similar to 'UStore'
+but used within 'mkUStoreMigration' to track migration progress.
+
+3. Use 'migrationToScript' or 'migrationToTestScript' to turn 'UStoreMigration'
+into something useful.
+
+Note that here you will get a solid 'MigrationScript', thus migration has
+to fit into single Tezos transaction. If that's an issue, see the next section.
+
+== How to write batched migration
+
+1. Insert migration template.
+
+    It looks like:
+
+    @
+    migration :: 'UStoreMigration' V1.Storage V2.Storage
+    migration = 'mkUStoreBatchedMigration' $
+      -- place for migration blocks
+      'migrationFinish'
+    @
+
+2. Fill migration code with blocks like
+
+    @
+    'mkUStoreBatchedMigration' $
+      'muBlock' '$:' do
+        -- code for block 1
+      '&lt;--&gt;'
+      'muBlock' '$:' do
+        -- code for block 2
+      '&lt;--&gt;'
+      'migrationFinish'
+    @
+
+    Migration blocks have to be the smallest actions which can safely be mixed
+    and splitted accross migration stages.
+
+3. Compile migration with 'compileBatchedMigration'.
+
+    Here you have to supply batching implementation. Alternatives include
+
+    * 'mbNoBatching';
+    * 'mbBatchesAsIs';
+    * Functions from 'Lorentz.UStore.Migration.Batching' module.
+
+4. Get the required information about migration.
+
+    * 'migrationToScripts' picks the migration scripts, each has to be put
+      in a separate Tezos transaction.
+
+    * 'buildMigrationPlan' - dump description of each migration stage.
+
+== Manual migrations
+
+If for some reasons you need to define migration manually, you can use
+functions from @Manual migrations@ section of &quot;Lorentz.UStore.Migration.Base&quot;.
+
+-}</span><span>
+</span><a name="line-83"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Lorentz.UStore.Migration</span><span>
+</span><a name="line-84"></a><span>  </span><span class="hs-special">(</span><span> </span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Exports</span><span>
+</span><a name="line-85"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-86"></a><span>
+</span><a name="line-87"></a><span class="hs-keyword">import</span><span> </span><a href="Lorentz.UStore.Migration.Base.html"><span class="hs-identifier">Lorentz.UStore.Migration.Base</span></a><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">Exports</span><span>
+</span><a name="line-88"></a><span class="hs-keyword">import</span><span> </span><a href="Lorentz.UStore.Migration.Batching.html"><span class="hs-identifier">Lorentz.UStore.Migration.Batching</span></a><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">Exports</span><span>
+</span><a name="line-89"></a><span class="hs-keyword">import</span><span> </span><a href="Lorentz.UStore.Migration.Blocks.html"><span class="hs-identifier">Lorentz.UStore.Migration.Blocks</span></a><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">Exports</span><span>
+</span><a name="line-90"></a></pre></body></html>

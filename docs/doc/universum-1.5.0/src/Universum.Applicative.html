@@ -1,0 +1,44 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE Safe #-}</span><span>
+</span><a name="line-2"></a><span>
+</span><a name="line-3"></a><span class="hs-comment">-- | Convenient utils to work with 'Applicative'. There were more functions in this module</span><span>
+</span><a name="line-4"></a><span class="hs-comment">-- (see &lt;https://www.stackage.org/haddock/lts-8.9/protolude-0.1.10/Applicative.html protolude version&gt;)</span><span>
+</span><a name="line-5"></a><span class="hs-comment">-- but only convenient ans most used are left.</span><span>
+</span><a name="line-6"></a><span>
+</span><a name="line-7"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Universum.Applicative</span><span>
+</span><a name="line-8"></a><span>       </span><span class="hs-special">(</span><span> </span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Control.Applicative</span><span>
+</span><a name="line-9"></a><span>       </span><span class="hs-special">,</span><span> </span><a href="Universum.Applicative.html#pass"><span class="hs-identifier hs-var">pass</span></a><span>
+</span><a name="line-10"></a><span>       </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-11"></a><span>
+</span><a name="line-12"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Control.Applicative</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Alternative</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Applicative</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Const</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">ZipList</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">liftA2</span><span class="hs-special">,</span><span>
+</span><a name="line-13"></a><span>                            </span><span class="hs-identifier hs-var">liftA3</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">optional</span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="hs-operator hs-var">&lt;**&gt;</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-14"></a><span>
+</span><a name="line-15"></a><span class="hs-comment">-- $setup</span><span>
+</span><a name="line-16"></a><span class="hs-comment">-- &gt;&gt;&gt; import Universum.Monad (Maybe)</span><span>
+</span><a name="line-17"></a><span>
+</span><a name="line-18"></a><span class="hs-comment">-- | Shorter alias for @pure ()@.</span><span>
+</span><a name="line-19"></a><span class="hs-comment">--</span><span>
+</span><a name="line-20"></a><span class="hs-comment">-- &gt;&gt;&gt; pass :: Maybe ()</span><span>
+</span><a name="line-21"></a><span class="hs-comment">-- Just ()</span><span>
+</span><a name="line-22"></a><span class="hs-identifier">pass</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Applicative</span><span> </span><a href="#local-6989586621679025633"><span class="hs-identifier hs-type">f</span></a><span> </span><span class="hs-glyph">=&gt;</span><span> </span><a href="#local-6989586621679025633"><span class="hs-identifier hs-type">f</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><a name="line-23"></a><a name="pass"><a href="Universum.Applicative.html#pass"><span class="hs-identifier">pass</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">pure</span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><a name="line-24"></a><span>
+</span><a name="line-25"></a><span class="hs-comment">{-
+orAlt :: (Alternative f, Monoid a) =&gt; f a -&gt; f a
+orAlt f = f &lt;|&gt; pure mempty
+
+orEmpty :: Alternative f =&gt; Bool -&gt; a -&gt; f a
+orEmpty b a = if b then pure a else empty
+
+eitherA :: Alternative f =&gt; f a -&gt; f b -&gt; f (Either a b)
+eitherA a b = (Left &lt;$&gt; a) &lt;|&gt; (Right &lt;$&gt; b)
+
+purer :: (Applicative f, Applicative g) =&gt; a -&gt; f (g a)
+purer = pure . pure
+
+liftAA2 :: (Applicative f, Applicative g) =&gt; (a -&gt; b -&gt; c) -&gt; f (g a) -&gt; f (g b) -&gt; f (g c)
+liftAA2 = liftA2 . liftA2
+
+(&lt;&lt;*&gt;&gt;) :: (Applicative f, Applicative g)  =&gt; f (g (a -&gt; b)) -&gt; f (g a) -&gt; f (g b)
+(&lt;&lt;*&gt;&gt;) = liftA2 (&lt;*&gt;)
+-}</span><span>
+</span><a name="line-44"></a></pre></body></html>

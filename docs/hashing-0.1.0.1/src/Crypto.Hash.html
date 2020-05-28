@@ -1,0 +1,46 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-- | pure hash interface, supported hash algorithms:</span><span>
+</span><a name="line-2"></a><span class="hs-comment">--</span><span>
+</span><a name="line-3"></a><span class="hs-comment">-- * SHA1</span><span>
+</span><a name="line-4"></a><span class="hs-comment">--</span><span>
+</span><a name="line-5"></a><span class="hs-comment">-- * SHA224/SHA256</span><span>
+</span><a name="line-6"></a><span class="hs-comment">--</span><span>
+</span><a name="line-7"></a><span class="hs-comment">-- * SHA384/SHA512</span><span>
+</span><a name="line-8"></a><span class="hs-comment">--</span><span>
+</span><a name="line-9"></a><span class="hs-comment">-- * MD5</span><span>
+</span><a name="line-10"></a><span class="hs-comment">--</span><span>
+</span><a name="line-11"></a><span class="hs-comment">-- * Whirlpool</span><span>
+</span><a name="line-12"></a><span class="hs-comment">--</span><span>
+</span><a name="line-13"></a><span class="hs-comment">-- NOTE: performance is just about 1 \/ 5 - 1 \/ 15 of C/ASM implementations.</span><span>
+</span><a name="line-14"></a><span class="hs-comment">--</span><span>
+</span><a name="line-15"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Crypto.Hash</span><span> </span><span class="hs-special">(</span><span>
+</span><a name="line-16"></a><span>    </span><a href="Crypto.Hash.ADT.html#HashAlgorithm"><span class="hs-identifier hs-type">HashAlgorithm</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-17"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Crypto.Hash.SHA1.html#SHA1"><span class="hs-identifier hs-type">SHA1</span></a><span>
+</span><a name="line-18"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Crypto.Hash.SHA256.html#SHA224"><span class="hs-identifier hs-type">SHA224</span></a><span>
+</span><a name="line-19"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Crypto.Hash.SHA256.html#SHA256"><span class="hs-identifier hs-type">SHA256</span></a><span>
+</span><a name="line-20"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Crypto.Hash.SHA512.html#SHA384"><span class="hs-identifier hs-type">SHA384</span></a><span>
+</span><a name="line-21"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Crypto.Hash.SHA512.html#SHA512"><span class="hs-identifier hs-type">SHA512</span></a><span>
+</span><a name="line-22"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Crypto.Hash.MD5.html#MD5"><span class="hs-identifier hs-type">MD5</span></a><span>
+</span><a name="line-23"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Crypto.Hash.Whirlpool.html#Whirlpool"><span class="hs-identifier hs-type">Whirlpool</span></a><span>
+</span><a name="line-24"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Crypto.Hash.html#hash"><span class="hs-identifier hs-var">hash</span></a><span>
+</span><a name="line-25"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Crypto.Hash.html#hashLazy"><span class="hs-identifier hs-var">hashLazy</span></a><span>
+</span><a name="line-26"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-27"></a><span>
+</span><a name="line-28"></a><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Data.ByteString.Lazy</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">LBS</span><span>
+</span><a name="line-29"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.ByteString</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">ByteString</span><span class="hs-special">)</span><span>
+</span><a name="line-30"></a><span>
+</span><a name="line-31"></a><span class="hs-keyword">import</span><span> </span><a href="Crypto.Hash.ADT.html"><span class="hs-identifier">Crypto.Hash.ADT</span></a><span>
+</span><a name="line-32"></a><span>
+</span><a name="line-33"></a><span class="hs-keyword">import</span><span> </span><a href="Crypto.Hash.SHA1.html"><span class="hs-identifier">Crypto.Hash.SHA1</span></a><span>
+</span><a name="line-34"></a><span class="hs-keyword">import</span><span> </span><a href="Crypto.Hash.SHA256.html"><span class="hs-identifier">Crypto.Hash.SHA256</span></a><span>
+</span><a name="line-35"></a><span class="hs-keyword">import</span><span> </span><a href="Crypto.Hash.SHA512.html"><span class="hs-identifier">Crypto.Hash.SHA512</span></a><span>
+</span><a name="line-36"></a><span class="hs-keyword">import</span><span> </span><a href="Crypto.Hash.MD5.html"><span class="hs-identifier">Crypto.Hash.MD5</span></a><span>
+</span><a name="line-37"></a><span class="hs-keyword">import</span><span> </span><a href="Crypto.Hash.Whirlpool.html"><span class="hs-identifier">Crypto.Hash.Whirlpool</span></a><span>
+</span><a name="line-38"></a><span>
+</span><a name="line-39"></a><span class="hs-comment">-- | Hash strict byte string</span><span>
+</span><a name="line-40"></a><span class="hs-identifier">hash</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><a href="Crypto.Hash.ADT.html#HashAlgorithm"><span class="hs-identifier hs-type">HashAlgorithm</span></a><span> </span><a href="#local-6989586621679057477"><span class="hs-identifier hs-type">a</span></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-identifier hs-type">ByteString</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-6989586621679057477"><span class="hs-identifier hs-type">a</span></a><span>
+</span><a name="line-41"></a><a name="hash"><a href="Crypto.Hash.html#hash"><span class="hs-identifier">hash</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Crypto.Hash.ADT.html#hashFinal"><span class="hs-identifier hs-var">hashFinal</span></a><span> </span><span class="hs-operator hs-var">.</span><span> </span><a href="Crypto.Hash.ADT.html#hashUpdate"><span class="hs-identifier hs-var">hashUpdate</span></a><span> </span><a href="Crypto.Hash.ADT.html#hashInit"><span class="hs-identifier hs-var">hashInit</span></a><span>
+</span><a name="line-42"></a><span>
+</span><a name="line-43"></a><span class="hs-comment">-- | Hash lazy byte string</span><span>
+</span><a name="line-44"></a><span class="hs-identifier">hashLazy</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><a href="Crypto.Hash.ADT.html#HashAlgorithm"><span class="hs-identifier hs-type">HashAlgorithm</span></a><span> </span><a href="#local-6989586621679057476"><span class="hs-identifier hs-type">a</span></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-identifier hs-type">LBS.ByteString</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-6989586621679057476"><span class="hs-identifier hs-type">a</span></a><span>
+</span><a name="line-45"></a><a name="hashLazy"><a href="Crypto.Hash.html#hashLazy"><span class="hs-identifier">hashLazy</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="Crypto.Hash.ADT.html#hashFinal"><span class="hs-identifier hs-var">hashFinal</span></a><span> </span><span class="hs-operator hs-var">.</span><span> </span><span class="hs-identifier hs-var">LBS.foldlChunks</span><span> </span><a href="Crypto.Hash.ADT.html#hashUpdate"><span class="hs-identifier hs-var">hashUpdate</span></a><span> </span><a href="Crypto.Hash.ADT.html#hashInit"><span class="hs-identifier hs-var">hashInit</span></a><span>
+</span><a name="line-46"></a></pre></body></html>

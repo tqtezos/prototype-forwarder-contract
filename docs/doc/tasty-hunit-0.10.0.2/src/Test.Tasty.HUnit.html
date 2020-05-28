@@ -1,0 +1,109 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-- | Unit testing support for tasty, inspired by the HUnit package.</span><span>
+</span><a name="line-2"></a><span class="hs-comment">--</span><span>
+</span><a name="line-3"></a><span class="hs-comment">-- Here's an example (a single tasty test case consisting of three</span><span>
+</span><a name="line-4"></a><span class="hs-comment">-- assertions):</span><span>
+</span><a name="line-5"></a><span class="hs-comment">--</span><span>
+</span><a name="line-6"></a><span class="hs-comment">-- &gt;import Test.Tasty</span><span>
+</span><a name="line-7"></a><span class="hs-comment">-- &gt;import Test.Tasty.HUnit</span><span>
+</span><a name="line-8"></a><span class="hs-comment">-- &gt;</span><span>
+</span><a name="line-9"></a><span class="hs-comment">-- &gt;main = defaultMain $</span><span>
+</span><a name="line-10"></a><span class="hs-comment">-- &gt;  testCase &quot;Example test case&quot; $ do</span><span>
+</span><a name="line-11"></a><span class="hs-comment">-- &gt;    -- assertion no. 1 (passes)</span><span>
+</span><a name="line-12"></a><span class="hs-comment">-- &gt;    2 + 2 @?= 4</span><span>
+</span><a name="line-13"></a><span class="hs-comment">-- &gt;    -- assertion no. 2 (fails)</span><span>
+</span><a name="line-14"></a><span class="hs-comment">-- &gt;    assertBool &quot;the list is not empty&quot; $ null [1]</span><span>
+</span><a name="line-15"></a><span class="hs-comment">-- &gt;    -- assertion no. 3 (would have failed, but won't be executed because</span><span>
+</span><a name="line-16"></a><span class="hs-comment">-- &gt;    -- the previous assertion has already failed)</span><span>
+</span><a name="line-17"></a><span class="hs-comment">-- &gt;    &quot;foo&quot; @?= &quot;bar&quot;</span><span>
+</span><a name="line-18"></a><span class="hs-pragma">{-# LANGUAGE TypeFamilies, DeriveDataTypeable #-}</span><span>
+</span><a name="line-19"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Test.Tasty.HUnit</span><span>
+</span><a name="line-20"></a><span>  </span><span class="hs-special">(</span><span>
+</span><a name="line-21"></a><span>    </span><span class="hs-comment">-- * Constructing test cases</span><span>
+</span><a name="line-22"></a><span>    </span><a href="Test.Tasty.HUnit.html#testCase"><span class="hs-identifier hs-var">testCase</span></a><span>
+</span><a name="line-23"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.HUnit.html#testCaseInfo"><span class="hs-identifier hs-var">testCaseInfo</span></a><span>
+</span><a name="line-24"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.HUnit.Steps.html#testCaseSteps"><span class="hs-identifier hs-var">testCaseSteps</span></a><span>
+</span><a name="line-25"></a><span>    </span><span class="hs-comment">-- * Constructing assertions</span><span>
+</span><a name="line-26"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.HUnit.Orig.html#assertFailure"><span class="hs-identifier hs-var">assertFailure</span></a><span>
+</span><a name="line-27"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.HUnit.Orig.html#assertBool"><span class="hs-identifier hs-var">assertBool</span></a><span>
+</span><a name="line-28"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.HUnit.Orig.html#assertEqual"><span class="hs-identifier hs-var">assertEqual</span></a><span>
+</span><a name="line-29"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><a href="Test.Tasty.HUnit.Orig.html#%40%3D%3F"><span class="hs-operator hs-var">@=?</span></a><span class="hs-special">)</span><span>
+</span><a name="line-30"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><a href="Test.Tasty.HUnit.Orig.html#%40%3F%3D"><span class="hs-operator hs-var">@?=</span></a><span class="hs-special">)</span><span>
+</span><a name="line-31"></a><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><a href="Test.Tasty.HUnit.Orig.html#%40%3F"><span class="hs-operator hs-var">@?</span></a><span class="hs-special">)</span><span>
+</span><a name="line-32"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.HUnit.Orig.html#AssertionPredicable"><span class="hs-identifier hs-type">AssertionPredicable</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-33"></a><span>    </span><span class="hs-comment">-- * Data types</span><span>
+</span><a name="line-34"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.HUnit.Orig.html#Assertion"><span class="hs-identifier hs-type">Assertion</span></a><span>
+</span><a name="line-35"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.HUnit.Orig.html#HUnitFailure"><span class="hs-identifier hs-type">HUnitFailure</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-36"></a><span>    </span><span class="hs-comment">-- * Accurate location for domain-specific assertion functions</span><span>
+</span><a name="line-37"></a><span>    </span><span class="hs-comment">-- | It is common to define domain-specific assertion functions based</span><span>
+</span><a name="line-38"></a><span>    </span><span class="hs-comment">-- on the standard ones, e.g.</span><span>
+</span><a name="line-39"></a><span>    </span><span class="hs-comment">--</span><span>
+</span><a name="line-40"></a><span>    </span><span class="hs-comment">-- &gt; assertNonEmpty = assertBool &quot;List is empty&quot; . not . null</span><span>
+</span><a name="line-41"></a><span>    </span><span class="hs-comment">--</span><span>
+</span><a name="line-42"></a><span>    </span><span class="hs-comment">-- The problem is that if a test fails, tasty-hunit will point to the</span><span>
+</span><a name="line-43"></a><span>    </span><span class="hs-comment">-- definition site of @assertNonEmpty@ as the source of failure, not</span><span>
+</span><a name="line-44"></a><span>    </span><span class="hs-comment">-- its use site.</span><span>
+</span><a name="line-45"></a><span>    </span><span class="hs-comment">--</span><span>
+</span><a name="line-46"></a><span>    </span><span class="hs-comment">-- To correct this, add a 'HasCallStack' constraint (re-exported from</span><span>
+</span><a name="line-47"></a><span>    </span><span class="hs-comment">-- this module) to your function:</span><span>
+</span><a name="line-48"></a><span>    </span><span class="hs-comment">--</span><span>
+</span><a name="line-49"></a><span>    </span><span class="hs-comment">-- &gt; assertNonEmpty :: HasCallStack =&gt; [a] -&gt; Assertion</span><span>
+</span><a name="line-50"></a><span>    </span><span class="hs-comment">-- &gt; assertNonEmpty = assertBool &quot;List is empty&quot; . not . null</span><span>
+</span><a name="line-51"></a><span>    </span><span class="hs-comment">--</span><span>
+</span><a name="line-52"></a><span>    </span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">HasCallStack</span><span>
+</span><a name="line-53"></a><span>    </span><span class="hs-comment">-- * Deprecated functions and types</span><span>
+</span><a name="line-54"></a><span>    </span><span class="hs-comment">-- | These definitions come from HUnit, but I don't see why one would</span><span>
+</span><a name="line-55"></a><span>    </span><span class="hs-comment">-- need them. If you have a valid use case for them, please contact me</span><span>
+</span><a name="line-56"></a><span>    </span><span class="hs-comment">-- or file an issue for tasty. Otherwise, they will eventually be</span><span>
+</span><a name="line-57"></a><span>    </span><span class="hs-comment">-- removed.</span><span>
+</span><a name="line-58"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.HUnit.Orig.html#assertString"><span class="hs-identifier hs-var">assertString</span></a><span>
+</span><a name="line-59"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.HUnit.Orig.html#Assertable"><span class="hs-identifier hs-type">Assertable</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><a name="line-60"></a><span>  </span><span class="hs-special">,</span><span> </span><a href="Test.Tasty.HUnit.Orig.html#AssertionPredicate"><span class="hs-identifier hs-type">AssertionPredicate</span></a><span>
+</span><a name="line-61"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-62"></a><span>
+</span><a name="line-63"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Test.Tasty.Providers</span><span>
+</span><a name="line-64"></a><span>
+</span><a name="line-65"></a><span class="hs-keyword">import</span><span> </span><a href="Test.Tasty.HUnit.Orig.html"><span class="hs-identifier">Test.Tasty.HUnit.Orig</span></a><span>
+</span><a name="line-66"></a><span class="hs-keyword">import</span><span> </span><a href="Test.Tasty.HUnit.Steps.html"><span class="hs-identifier">Test.Tasty.HUnit.Steps</span></a><span>
+</span><a name="line-67"></a><span>
+</span><a name="line-68"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Typeable</span><span>
+</span><a name="line-69"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.CallStack</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">HasCallStack</span><span class="hs-special">)</span><span>
+</span><a name="line-70"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Control.Exception</span><span>
+</span><a name="line-71"></a><span>
+</span><a name="line-72"></a><span class="hs-comment">-- | Turn an 'Assertion' into a tasty test case</span><span>
+</span><a name="line-73"></a><span class="hs-identifier">testCase</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">TestName</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="Test.Tasty.HUnit.Orig.html#Assertion"><span class="hs-identifier hs-type">Assertion</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-type">TestTree</span><span>
+</span><a name="line-74"></a><a name="testCase"><a href="Test.Tasty.HUnit.html#testCase"><span class="hs-identifier">testCase</span></a></a><span> </span><a name="local-6989586621679045004"><a href="#local-6989586621679045004"><span class="hs-identifier">name</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">singleTest</span><span> </span><a href="#local-6989586621679045004"><span class="hs-identifier hs-var">name</span></a><span> </span><span class="hs-operator hs-var">.</span><span> </span><a href="Test.Tasty.HUnit.html#TestCase"><span class="hs-identifier hs-var">TestCase</span></a><span> </span><span class="hs-operator hs-var">.</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">fmap</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">const</span><span> </span><span class="hs-string">&quot;&quot;</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-75"></a><span>
+</span><a name="line-76"></a><span class="hs-comment">-- | Like 'testCase', except in case the test succeeds, the returned string</span><span>
+</span><a name="line-77"></a><span class="hs-comment">-- will be shown as the description. If the empty string is returned, it</span><span>
+</span><a name="line-78"></a><span class="hs-comment">-- will be ignored.</span><span>
+</span><a name="line-79"></a><span class="hs-identifier">testCaseInfo</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">TestName</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-type">IO</span><span> </span><span class="hs-identifier hs-type">String</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-type">TestTree</span><span>
+</span><a name="line-80"></a><a name="testCaseInfo"><a href="Test.Tasty.HUnit.html#testCaseInfo"><span class="hs-identifier">testCaseInfo</span></a></a><span> </span><a name="local-6989586621679045005"><a href="#local-6989586621679045005"><span class="hs-identifier">name</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">singleTest</span><span> </span><a href="#local-6989586621679045005"><span class="hs-identifier hs-var">name</span></a><span> </span><span class="hs-operator hs-var">.</span><span> </span><a href="Test.Tasty.HUnit.html#TestCase"><span class="hs-identifier hs-var">TestCase</span></a><span>
+</span><a name="line-81"></a><span>
+</span><a name="line-82"></a><span class="hs-comment">-- IO String is a computation that throws an exception upon failure or</span><span>
+</span><a name="line-83"></a><span class="hs-comment">-- returns an informational string otherwise. This allows us to unify the</span><span>
+</span><a name="line-84"></a><span class="hs-comment">-- implementation of 'testCase' and 'testCaseInfo'.</span><span>
+</span><a name="line-85"></a><span class="hs-comment">--</span><span>
+</span><a name="line-86"></a><span class="hs-comment">-- In case of testCase, we simply make the result string empty, which makes</span><span>
+</span><a name="line-87"></a><span class="hs-comment">-- tasty ignore it.</span><span>
+</span><a name="line-88"></a><span class="hs-keyword">newtype</span><span> </span><a name="TestCase"><a href="Test.Tasty.HUnit.html#TestCase"><span class="hs-identifier">TestCase</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a name="TestCase"><a href="Test.Tasty.HUnit.html#TestCase"><span class="hs-identifier">TestCase</span></a></a><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">IO</span><span> </span><span class="hs-identifier hs-type">String</span><span class="hs-special">)</span><span>
+</span><a name="line-89"></a><span>    </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-identifier hs-type">Typeable</span><span>
+</span><a name="line-90"></a><span>
+</span><a name="line-91"></a><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier hs-type">IsTest</span><span> </span><a href="Test.Tasty.HUnit.html#TestCase"><span class="hs-identifier hs-type">TestCase</span></a><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-92"></a><span>  </span><a name="local-8214565720323795769"><span class="hs-identifier">run</span></a><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-special">(</span><a href="Test.Tasty.HUnit.html#TestCase"><span class="hs-identifier hs-var">TestCase</span></a><span> </span><a name="local-6989586621679044679"><a href="#local-6989586621679044679"><span class="hs-identifier">assertion</span></a></a><span class="hs-special">)</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><a name="line-93"></a><span>  </span><span class="hs-comment">-- The standard HUnit's performTestCase catches (almost) all exceptions.</span><span>
+</span><a name="line-94"></a><span>  </span><span class="hs-comment">--</span><span>
+</span><a name="line-95"></a><span>  </span><span class="hs-comment">-- This is bad for a few reasons:</span><span>
+</span><a name="line-96"></a><span>  </span><span class="hs-comment">-- - it interferes with timeout handling</span><span>
+</span><a name="line-97"></a><span>  </span><span class="hs-comment">-- - it makes exception reporting inconsistent across providers</span><span>
+</span><a name="line-98"></a><span>  </span><span class="hs-comment">-- - it doesn't provide enough information for ingredients such as</span><span>
+</span><a name="line-99"></a><span>  </span><span class="hs-comment">-- tasty-rerun</span><span>
+</span><a name="line-100"></a><span>  </span><span class="hs-comment">--</span><span>
+</span><a name="line-101"></a><span>  </span><span class="hs-comment">-- So we do it ourselves.</span><span>
+</span><a name="line-102"></a><span>    </span><a name="local-6989586621679045000"><a href="#local-6989586621679045000"><span class="hs-identifier">hunitResult</span></a></a><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-identifier hs-var">try</span><span> </span><a href="#local-6989586621679044679"><span class="hs-identifier hs-var">assertion</span></a><span>
+</span><a name="line-103"></a><span>    </span><span class="hs-identifier hs-var">return</span><span> </span><span class="hs-operator hs-var">$</span><span>
+</span><a name="line-104"></a><span>      </span><span class="hs-keyword">case</span><span> </span><a href="#local-6989586621679045000"><span class="hs-identifier hs-var">hunitResult</span></a><span> </span><span class="hs-keyword">of</span><span>
+</span><a name="line-105"></a><span>        </span><span class="hs-identifier hs-var">Right</span><span> </span><a name="local-6989586621679045001"><a href="#local-6989586621679045001"><span class="hs-identifier">info</span></a></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-var">testPassed</span><span> </span><a href="#local-6989586621679045001"><span class="hs-identifier hs-var">info</span></a><span>
+</span><a name="line-106"></a><span>        </span><span class="hs-identifier hs-var">Left</span><span> </span><span class="hs-special">(</span><a href="Test.Tasty.HUnit.Orig.html#HUnitFailure"><span class="hs-identifier hs-var">HUnitFailure</span></a><span> </span><a name="local-6989586621679045002"><a href="#local-6989586621679045002"><span class="hs-identifier">mbloc</span></a></a><span> </span><a name="local-6989586621679045003"><a href="#local-6989586621679045003"><span class="hs-identifier">message</span></a></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-var">testFailed</span><span> </span><span class="hs-operator hs-var">$</span><span> </span><a href="Test.Tasty.HUnit.Orig.html#prependLocation"><span class="hs-identifier hs-var">prependLocation</span></a><span> </span><a href="#local-6989586621679045002"><span class="hs-identifier hs-var">mbloc</span></a><span> </span><a href="#local-6989586621679045003"><span class="hs-identifier hs-var">message</span></a><span>
+</span><a name="line-107"></a><span>
+</span><a name="line-108"></a><span>  </span><a name="local-8214565720323795768"><span class="hs-identifier">testOptions</span></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">return</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><a name="line-109"></a></pre></body></html>

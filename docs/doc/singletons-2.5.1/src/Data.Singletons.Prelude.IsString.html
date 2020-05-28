@@ -1,0 +1,60 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DataKinds #-}</span><span>
+</span><a name="line-2"></a><span class="hs-pragma">{-# LANGUAGE GADTs #-}</span><span>
+</span><a name="line-3"></a><span class="hs-pragma">{-# LANGUAGE InstanceSigs #-}</span><span>
+</span><a name="line-4"></a><span class="hs-pragma">{-# LANGUAGE PolyKinds #-}</span><span>
+</span><a name="line-5"></a><span class="hs-pragma">{-# LANGUAGE ScopedTypeVariables #-}</span><span>
+</span><a name="line-6"></a><span class="hs-pragma">{-# LANGUAGE TemplateHaskell #-}</span><span>
+</span><a name="line-7"></a><span class="hs-pragma">{-# LANGUAGE TypeFamilies #-}</span><span>
+</span><a name="line-8"></a><span class="hs-pragma">{-# LANGUAGE UndecidableInstances #-}</span><span>
+</span><a name="line-9"></a><span>
+</span><a name="line-10"></a><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><a name="line-11"></a><span class="hs-comment">-- |</span><span>
+</span><a name="line-12"></a><span class="hs-comment">-- Module      :  Data.Singletons.Prelude.IsString</span><span>
+</span><a name="line-13"></a><span class="hs-comment">-- Copyright   :  (C) 2017 Ryan Scott</span><span>
+</span><a name="line-14"></a><span class="hs-comment">-- License     :  BSD-style (see LICENSE)</span><span>
+</span><a name="line-15"></a><span class="hs-comment">-- Maintainer  :  Ryan Scott</span><span>
+</span><a name="line-16"></a><span class="hs-comment">-- Stability   :  experimental</span><span>
+</span><a name="line-17"></a><span class="hs-comment">-- Portability :  non-portable</span><span>
+</span><a name="line-18"></a><span class="hs-comment">--</span><span>
+</span><a name="line-19"></a><span class="hs-comment">-- Defines and exports a promoted and singled version of the 'IsString'</span><span>
+</span><a name="line-20"></a><span class="hs-comment">-- type class from &quot;Data.String&quot;.</span><span>
+</span><a name="line-21"></a><span class="hs-comment">----------------------------------------------------------------------------</span><span>
+</span><a name="line-22"></a><span>
+</span><a name="line-23"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Data.Singletons.Prelude.IsString</span><span> </span><span class="hs-special">(</span><span>
+</span><a name="line-24"></a><span>  </span><a href="Data.Singletons.Prelude.IsString.html#PIsString"><span class="hs-identifier hs-type">PIsString</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><a href="Data.Singletons.Prelude.IsString.html#SIsString"><span class="hs-identifier hs-type">SIsString</span></a><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><a name="line-25"></a><span>
+</span><a name="line-26"></a><span>  </span><span class="hs-comment">-- ** Defunctionalization symbols</span><span>
+</span><a name="line-27"></a><span>  </span><a href="Data.Singletons.Prelude.IsString.html#FromStringSym0"><span class="hs-identifier hs-type">FromStringSym0</span></a><span class="hs-special">,</span><span> </span><a href="Data.Singletons.Prelude.IsString.html#FromStringSym1"><span class="hs-identifier hs-type">FromStringSym1</span></a><span>
+</span><a name="line-28"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-29"></a><span>
+</span><a name="line-30"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Functor.Const</span><span>
+</span><a name="line-31"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Functor.Identity</span><span>
+</span><a name="line-32"></a><span class="hs-keyword">import</span><span> </span><a href="Data.Singletons.Prelude.Const.html"><span class="hs-identifier">Data.Singletons.Prelude.Const</span></a><span>
+</span><a name="line-33"></a><span class="hs-keyword">import</span><span> </span><a href="Data.Singletons.Prelude.Identity.html"><span class="hs-identifier">Data.Singletons.Prelude.Identity</span></a><span>
+</span><a name="line-34"></a><span class="hs-keyword">import</span><span> </span><a href="Data.Singletons.Single.html"><span class="hs-identifier">Data.Singletons.Single</span></a><span>
+</span><a name="line-35"></a><span class="hs-keyword">import</span><span> </span><a href="Data.Singletons.TypeLits.html"><span class="hs-identifier">Data.Singletons.TypeLits</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>   </span><span class="hs-comment">-- for the IsString instance!</span><span>
+</span><a name="line-36"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">GHC.TypeLits</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Symbol</span><span class="hs-special">)</span><span>
+</span><a name="line-37"></a><span>
+</span><a name="line-38"></a><span class="hs-special">$(</span><span class="hs-identifier hs-var">singletonsOnly</span><span> </span><span class="hs-special">[d|</span><span>
+</span><a name="line-39"></a><span>  </span><span class="hs-comment">-- -| Class for string-like datastructures; used by the overloaded string</span><span>
+</span><a name="line-40"></a><span>  </span><span class="hs-comment">--    extension (-XOverloadedStrings in GHC).</span><span>
+</span><a name="line-41"></a><span>  </span><span class="hs-keyword">class</span><span> </span><span class="hs-identifier hs-var">IsString</span><span> </span><span class="hs-identifier hs-var">a</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-42"></a><span>      </span><span class="hs-identifier hs-var">fromString</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-var">Symbol</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-var">a</span><span>
+</span><a name="line-43"></a><span>
+</span><a name="line-44"></a><span>  </span><span class="hs-comment">-- deriving instance IsString a =&gt; IsString (Const a (b :: k))</span><span>
+</span><a name="line-45"></a><span>  </span><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier hs-var">IsString</span><span> </span><span class="hs-identifier hs-var">a</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-identifier hs-var">IsString</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">Const</span><span> </span><span class="hs-identifier hs-var">a</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">b</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-var">k</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-46"></a><span>    </span><span class="hs-identifier hs-var">fromString</span><span> </span><span class="hs-identifier hs-var">x</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">Const</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">fromString</span><span> </span><span class="hs-identifier hs-var">x</span><span class="hs-special">)</span><span>
+</span><a name="line-47"></a><span>
+</span><a name="line-48"></a><span>  </span><span class="hs-comment">-- deriving instance IsString a =&gt; IsString (Identity a)</span><span>
+</span><a name="line-49"></a><span>  </span><span class="hs-keyword">instance</span><span> </span><span class="hs-identifier hs-var">IsString</span><span> </span><span class="hs-identifier hs-var">a</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-identifier hs-var">IsString</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">Identity</span><span> </span><span class="hs-identifier hs-var">a</span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-50"></a><span>    </span><span class="hs-identifier hs-var">fromString</span><span> </span><span class="hs-identifier hs-var">x</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">Identity</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">fromString</span><span> </span><span class="hs-identifier hs-var">x</span><span class="hs-special">)</span><span>
+</span><a name="line-51"></a><span>  </span><span class="hs-special">|]</span><span class="hs-special">)</span><span>
+</span><a name="line-52"></a><span>
+</span><a name="line-53"></a><span class="hs-comment">-- PIsString instance</span><span>
+</span><a name="line-54"></a><span class="hs-keyword">instance</span><span> </span><a href="Data.Singletons.Prelude.IsString.html#PIsString"><span class="hs-identifier hs-type">PIsString</span></a><span> </span><span class="hs-identifier hs-type">Symbol</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-55"></a><span>  </span><span class="hs-keyword">type</span><span> </span><span class="hs-identifier">FromString</span><span> </span><a href="#local-6989586621681290256"><span class="hs-identifier hs-type">a</span></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621681290256"><span class="hs-identifier hs-type">a</span></a><span>
+</span><a name="line-56"></a><span>
+</span><a name="line-57"></a><span class="hs-comment">-- SIsString instance</span><span>
+</span><a name="line-58"></a><span class="hs-keyword">instance</span><span> </span><a href="Data.Singletons.Prelude.IsString.html#SIsString"><span class="hs-identifier hs-type">SIsString</span></a><span> </span><span class="hs-identifier hs-type">Symbol</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-59"></a><span>  </span><a name="local-8214565720326065143"><a href="Data.Singletons.Prelude.IsString.html#sFromString"><span class="hs-identifier">sFromString</span></a></a><span> </span><a name="local-6989586621681290255"><a href="#local-6989586621681290255"><span class="hs-identifier">x</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="#local-6989586621681290255"><span class="hs-identifier hs-var">x</span></a><span>
+</span><a name="line-60"></a></pre></body></html>

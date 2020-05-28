@@ -1,0 +1,42 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE Safe #-}</span><span>
+</span><a name="line-2"></a><span>
+</span><a name="line-3"></a><span class="hs-comment">-- | This module contains useful functions to work with 'Functor' type class.</span><span>
+</span><a name="line-4"></a><span>
+</span><a name="line-5"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Universum.Functor.Fmap</span><span>
+</span><a name="line-6"></a><span>       </span><span class="hs-special">(</span><span> </span><a href="Universum.Functor.Fmap.html#map"><span class="hs-identifier hs-var">map</span></a><span>
+</span><a name="line-7"></a><span>       </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><a href="Universum.Functor.Fmap.html#%3C%3C%24%3E%3E"><span class="hs-operator hs-var">&lt;&lt;$&gt;&gt;</span></a><span class="hs-special">)</span><span>
+</span><a name="line-8"></a><span>       </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-9"></a><span>
+</span><a name="line-10"></a><span class="hs-keyword">import</span><span> </span><a href="Universum.Function.html"><span class="hs-identifier">Universum.Function</span></a><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="hs-operator hs-var">.</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-11"></a><span class="hs-keyword">import</span><span> </span><a href="Universum.Functor.Reexport.html"><span class="hs-identifier">Universum.Functor.Reexport</span></a><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Functor</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><a name="line-12"></a><span>
+</span><a name="line-13"></a><span class="hs-comment">-- $setup</span><span>
+</span><a name="line-14"></a><span class="hs-comment">-- &gt;&gt;&gt; import Universum.Base (negate)</span><span>
+</span><a name="line-15"></a><span class="hs-comment">-- &gt;&gt;&gt; import Universum.Bool (Bool (..), not)</span><span>
+</span><a name="line-16"></a><span class="hs-comment">-- &gt;&gt;&gt; import Universum.Lifted (getLine)</span><span>
+</span><a name="line-17"></a><span class="hs-comment">-- &gt;&gt;&gt; import Universum.Monad (Maybe (..))</span><span>
+</span><a name="line-18"></a><span class="hs-comment">-- &gt;&gt;&gt; import Universum.String (toString)</span><span>
+</span><a name="line-19"></a><span>
+</span><a name="line-20"></a><span class="hs-comment">{- | 'Prelude.map' generalized to 'Functor'.
+
+&gt;&gt;&gt; map not (Just True)
+Just False
+&gt;&gt;&gt; map not [True,False,True,True]
+[False,True,False,False]
+
+-}</span><span>
+</span><a name="line-28"></a><span class="hs-identifier">map</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Functor</span><span> </span><a href="#local-6989586621679057448"><span class="hs-identifier hs-type">f</span></a><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">(</span><a href="#local-6989586621679057449"><span class="hs-identifier hs-type">a</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-6989586621679057450"><span class="hs-identifier hs-type">b</span></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-6989586621679057448"><span class="hs-identifier hs-type">f</span></a><span> </span><a href="#local-6989586621679057449"><span class="hs-identifier hs-type">a</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-6989586621679057448"><span class="hs-identifier hs-type">f</span></a><span> </span><a href="#local-6989586621679057450"><span class="hs-identifier hs-type">b</span></a><span>
+</span><a name="line-29"></a><a name="map"><a href="Universum.Functor.Fmap.html#map"><span class="hs-identifier">map</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">fmap</span><span>
+</span><a name="line-30"></a><span>
+</span><a name="line-31"></a><span class="hs-comment">-- $setup</span><span>
+</span><a name="line-32"></a><span class="hs-comment">-- &gt;&gt;&gt; import Universum.Base (negate)</span><span>
+</span><a name="line-33"></a><span class="hs-comment">-- &gt;&gt;&gt; import Universum.Monad (Maybe (..))</span><span>
+</span><a name="line-34"></a><span>
+</span><a name="line-35"></a><span class="hs-comment">-- | Alias for @fmap . fmap@. Convenient to work with two nested 'Functor's.</span><span>
+</span><a name="line-36"></a><span class="hs-comment">--</span><span>
+</span><a name="line-37"></a><span class="hs-comment">-- &gt;&gt;&gt; negate &lt;&lt;$&gt;&gt; Just [1,2,3]</span><span>
+</span><a name="line-38"></a><span class="hs-comment">-- Just [-1,-2,-3]</span><span>
+</span><a name="line-39"></a><span class="hs-special">(</span><span class="hs-operator">&lt;&lt;$&gt;&gt;</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Functor</span><span> </span><a href="#local-6989586621679057444"><span class="hs-identifier hs-type">f</span></a><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Functor</span><span> </span><a href="#local-6989586621679057445"><span class="hs-identifier hs-type">g</span></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">(</span><a href="#local-6989586621679057446"><span class="hs-identifier hs-type">a</span></a><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-6989586621679057447"><span class="hs-identifier hs-type">b</span></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-6989586621679057444"><span class="hs-identifier hs-type">f</span></a><span> </span><span class="hs-special">(</span><a href="#local-6989586621679057445"><span class="hs-identifier hs-type">g</span></a><span> </span><a href="#local-6989586621679057446"><span class="hs-identifier hs-type">a</span></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><a href="#local-6989586621679057444"><span class="hs-identifier hs-type">f</span></a><span> </span><span class="hs-special">(</span><a href="#local-6989586621679057445"><span class="hs-identifier hs-type">g</span></a><span> </span><a href="#local-6989586621679057447"><span class="hs-identifier hs-type">b</span></a><span class="hs-special">)</span><span>
+</span><a name="line-40"></a><span class="hs-special">(</span><a name="%3C%3C%24%3E%3E"><a href="Universum.Functor.Fmap.html#%3C%3C%24%3E%3E"><span class="hs-operator">&lt;&lt;$&gt;&gt;</span></a></a><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">fmap</span><span> </span><span class="hs-operator hs-var">.</span><span> </span><span class="hs-identifier hs-var">fmap</span><span>
+</span><a name="line-41"></a><span class="hs-keyword">infixl</span><span> </span><span class="hs-number">4</span><span> </span><a href="Universum.Functor.Fmap.html#%3C%3C%24%3E%3E"><span class="hs-operator hs-var">&lt;&lt;$&gt;&gt;</span></a><span>
+</span><a name="line-42"></a></pre></body></html>

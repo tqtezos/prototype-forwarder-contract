@@ -1,0 +1,62 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE CPP, NoImplicitPrelude #-}</span><span>
+</span><a name="line-2"></a><span>
+</span><a name="line-3"></a><span class="hs-cpp">#if __GLASGOW_HASKELL__ &gt;= 704
+</span><span class="hs-pragma">{-# LANGUAGE Safe #-}</span><span>
+</span><a name="line-5"></a><span class="hs-cpp">#endif
+</span><span>
+</span><a name="line-7"></a><span class="hs-comment">-------------------------------------------------------------------------------</span><span>
+</span><a name="line-8"></a><span class="hs-comment">-- |</span><span>
+</span><a name="line-9"></a><span class="hs-comment">-- Module     : Control.Concurrent.Thread.Delay</span><span>
+</span><a name="line-10"></a><span class="hs-comment">-- Copyright  : 2011 Bas van Dijk &amp; Roel van Dijk</span><span>
+</span><a name="line-11"></a><span class="hs-comment">-- License    : BSD3 (see the file LICENSE)</span><span>
+</span><a name="line-12"></a><span class="hs-comment">-- Maintainer : Bas van Dijk &lt;v.dijk.bas@gmail.com&gt;</span><span>
+</span><a name="line-13"></a><span class="hs-comment">--            , Roel van Dijk &lt;vandijk.roel@gmail.com&gt;</span><span>
+</span><a name="line-14"></a><span class="hs-comment">--</span><span>
+</span><a name="line-15"></a><span class="hs-comment">-- Arbitrarily long thread delays.</span><span>
+</span><a name="line-16"></a><span class="hs-comment">-------------------------------------------------------------------------------</span><span>
+</span><a name="line-17"></a><span>
+</span><a name="line-18"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Control.Concurrent.Thread.Delay</span><span> </span><span class="hs-special">(</span><span> </span><a href="Control.Concurrent.Thread.Delay.html#delay"><span class="hs-identifier hs-var">delay</span></a><span> </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-19"></a><span>
+</span><a name="line-20"></a><span>
+</span><a name="line-21"></a><span class="hs-comment">-------------------------------------------------------------------------------</span><span>
+</span><a name="line-22"></a><span class="hs-comment">-- Imports</span><span>
+</span><a name="line-23"></a><span class="hs-comment">-------------------------------------------------------------------------------</span><span>
+</span><a name="line-24"></a><span>
+</span><a name="line-25"></a><span class="hs-comment">-- from base:</span><span>
+</span><a name="line-26"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Control.Concurrent</span><span> </span><span class="hs-special">(</span><span> </span><span class="hs-identifier hs-var">threadDelay</span><span> </span><span class="hs-special">)</span><span>
+</span><a name="line-27"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Control.Monad</span><span>      </span><span class="hs-special">(</span><span> </span><span class="hs-identifier hs-var">when</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">return</span><span> </span><span class="hs-special">)</span><span>
+</span><a name="line-28"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Eq</span><span>            </span><span class="hs-special">(</span><span> </span><span class="hs-special">(</span><span class="hs-operator hs-var">/=</span><span class="hs-special">)</span><span> </span><span class="hs-special">)</span><span>
+</span><a name="line-29"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Function</span><span>      </span><span class="hs-special">(</span><span> </span><span class="hs-special">(</span><span class="hs-operator hs-var">$</span><span class="hs-special">)</span><span> </span><span class="hs-special">)</span><span>
+</span><a name="line-30"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Int</span><span>           </span><span class="hs-special">(</span><span> </span><span class="hs-identifier hs-type">Int</span><span> </span><span class="hs-special">)</span><span>
+</span><a name="line-31"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Data.Ord</span><span>           </span><span class="hs-special">(</span><span> </span><span class="hs-identifier hs-var">min</span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="hs-operator hs-var">&lt;=</span><span class="hs-special">)</span><span> </span><span class="hs-special">)</span><span>
+</span><a name="line-32"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Prelude</span><span>            </span><span class="hs-special">(</span><span> </span><span class="hs-identifier hs-type">Integer</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">toInteger</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">fromInteger</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">maxBound</span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">-</span><span class="hs-special">)</span><span> </span><span class="hs-special">)</span><span>
+</span><a name="line-33"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">System.IO</span><span>          </span><span class="hs-special">(</span><span> </span><span class="hs-identifier hs-type">IO</span><span> </span><span class="hs-special">)</span><span>
+</span><a name="line-34"></a><span>
+</span><a name="line-35"></a><span class="hs-cpp">#if __GLASGOW_HASKELL__ &lt; 700
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Control.Monad</span><span>      </span><span class="hs-special">(</span><span> </span><span class="hs-special">(</span><span class="hs-operator">&gt;&gt;</span><span class="hs-special">)</span><span> </span><span class="hs-special">)</span><span>
+</span><a name="line-37"></a><span class="hs-cpp">#endif
+</span><span>
+</span><a name="line-39"></a><span>
+</span><a name="line-40"></a><span class="hs-comment">-------------------------------------------------------------------------------</span><span>
+</span><a name="line-41"></a><span class="hs-comment">-- Delay</span><span>
+</span><a name="line-42"></a><span class="hs-comment">-------------------------------------------------------------------------------</span><span>
+</span><a name="line-43"></a><span>
+</span><a name="line-44"></a><span class="hs-comment">{-|
+Like @Control.Concurrent.'threadDelay'@, but not bounded by an 'Int'.
+
+Suspends the current thread for a given number of microseconds (GHC only).
+
+There is no guarantee that the thread will be rescheduled promptly when the
+delay has expired, but the thread will never continue to run earlier than
+specified.
+-}</span><span>
+</span><a name="line-53"></a><span class="hs-identifier">delay</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Integer</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier hs-type">IO</span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><a name="line-54"></a><a name="delay"><a href="Control.Concurrent.Thread.Delay.html#delay"><span class="hs-identifier">delay</span></a></a><span> </span><a name="local-6989586621679020236"><a href="#local-6989586621679020236"><span class="hs-identifier">time</span></a></a><span> </span><span class="hs-glyph">|</span><span> </span><a href="#local-6989586621679020236"><span class="hs-identifier hs-var">time</span></a><span> </span><span class="hs-operator hs-var">&lt;=</span><span> </span><span class="hs-number">0</span><span> </span><span class="hs-glyph">=</span><span>
+</span><a name="line-55"></a><span>  </span><span class="hs-comment">-- When time is a big negative integer, casting it to Int may overflow.</span><span>
+</span><a name="line-56"></a><span>  </span><span class="hs-comment">-- So we handle it as a special case here.</span><span>
+</span><a name="line-57"></a><span>  </span><span class="hs-identifier hs-var">return</span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><a name="line-58"></a><span class="hs-identifier">delay</span><span> </span><a name="local-6989586621679024116"><a href="#local-6989586621679024116"><span class="hs-identifier">time</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><a name="line-59"></a><span>  </span><span class="hs-keyword">let</span><span> </span><a name="local-6989586621679024117"><a href="#local-6989586621679024117"><span class="hs-identifier">maxWait</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">min</span><span> </span><a href="#local-6989586621679024116"><span class="hs-identifier hs-var">time</span></a><span> </span><span class="hs-operator hs-var">$</span><span> </span><span class="hs-identifier hs-var">toInteger</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">maxBound</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier hs-type">Int</span><span class="hs-special">)</span><span>
+</span><a name="line-60"></a><span>  </span><span class="hs-identifier hs-var">threadDelay</span><span> </span><span class="hs-operator hs-var">$</span><span> </span><span class="hs-identifier hs-var">fromInteger</span><span> </span><a href="#local-6989586621679024117"><span class="hs-identifier hs-var">maxWait</span></a><span>
+</span><a name="line-61"></a><span>  </span><span class="hs-identifier hs-var">when</span><span> </span><span class="hs-special">(</span><a href="#local-6989586621679024117"><span class="hs-identifier hs-var">maxWait</span></a><span> </span><span class="hs-operator hs-var">/=</span><span> </span><a href="#local-6989586621679024116"><span class="hs-identifier hs-var">time</span></a><span class="hs-special">)</span><span> </span><span class="hs-operator hs-var">$</span><span> </span><a href="Control.Concurrent.Thread.Delay.html#delay"><span class="hs-identifier hs-var">delay</span></a><span> </span><span class="hs-special">(</span><a href="#local-6989586621679024116"><span class="hs-identifier hs-var">time</span></a><span> </span><span class="hs-glyph">-</span><span> </span><a href="#local-6989586621679024117"><span class="hs-identifier hs-var">maxWait</span></a><span class="hs-special">)</span><span>
+</span><a name="line-62"></a></pre></body></html>

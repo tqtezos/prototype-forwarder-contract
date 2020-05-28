@@ -1,0 +1,110 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE Trustworthy #-}</span><span>
+</span><a name="line-2"></a><span>
+</span><a name="line-3"></a><span class="hs-comment">{- | Main module that reexports all functionality allowed to use
+without importing any other modules. Just add next lines to your
+module to replace default 'Prelude' with better one.
+
+@
+\{\-\# LANGUAGE NoImplicitPrelude \#\-\}
+
+__import__ &quot;Universum&quot;
+@
+
+This documentation section contains description of internal module structure to
+help navigate between modules, search for interesting functionalities and
+understand where you need to put your new changes.
+
+Functions and types are distributed across multiple modules and grouped by
+meaning or __theme__. Name of the module should give you hints regarding what
+this module contains. Some /themes/ contain a great amount of both reexported
+functions and functions of our own. To make it easier to understand these huge
+chunks of functions, all reexported stuff is moved into separate module with
+name @Universum.SomeTheme.Reexport@ and our own functions and types are in
+@Universum.SomeTheme.SomeName@. For example, see modules
+&quot;Universum.Container.Class&quot; and &quot;Universum.Container.Reexport&quot;.
+
+Below is a short description of what you can find under different modules:
+
+* __&quot;Universum.Applicative&quot;__: reexports from &quot;Control.Applicative&quot; and some
+  general-purpose applicative combinators.
+* __&quot;Universum.Base&quot;__: different general types and type classes from @base@
+  package ('Int', 'Num', 'Generic', etc.) not exported by other modules.
+* __&quot;Universum.Bool&quot;__: 'Bool' data type with different predicates and combinators.
+* __&quot;Universum.Container&quot;__: 'Foldable' replacement, types from @containers@
+   and @unordered-containers@ and @vector@ packages.
+* __&quot;Universum.Debug&quot;__: @trace@-like debugging functions with compile-time
+  warnings (so you don't forget to remove them)
+* __&quot;Universum.DeepSeq&quot;__: reexports from &quot;Control.DeepSeq&quot; module and
+  functions to evaluate expressions to weak-head normal form or normal form.
+* __&quot;Universum.Exception&quot;__: reexports &quot;Control.Exception.Safe&quot; from
+  @safe-exceptions@ package, 'bug' as better 'error', 'Exc' pattern synonym for
+  convenient pattern-matching on exceptions.
+* __&quot;Universum.Function&quot;__: almost everything from &quot;Data.Function&quot; module.
+* __&quot;Universum.Functor&quot;__: reexports from &quot;Data.Functor&quot;, &quot;Data.Bifunctor&quot;,
+  other useful 'Functor' combinators.
+* __&quot;Universum.Lifted&quot;__: lifted to 'MonadIO' functions to work with console,
+  files, 'IORef's, 'MVar's, etc.
+* __&quot;Universum.List&quot;__: big chunk of &quot;Data.List&quot;, 'NonEmpty' type and
+  functions for this type ('head', 'tail', 'last', 'init').
+* __&quot;Universum.Monad&quot;__: monad transormers, combinators for 'Maybe' and 'Either'.
+* __&quot;Universum.Monoid&quot;__: reexports from &quot;Data.Monoid&quot; and &quot;Data.Semigroup&quot;.
+* __&quot;Universum.Nub&quot;__: better versions of @nub@ function for list.
+* __&quot;Universum.Print&quot;__: polymorphic 'putStrLn' function and functions to print 'Text'.
+* __&quot;Universum.String&quot;__: reexports from @text@ and @bytestring@ packages with
+    conversion functions between different textual types.
+* __&quot;Universum.TypeOps&quot;__: convenient and fancy type-level operators.
+* __&quot;Universum.Unsafe&quot;__: unsafe functions (produce 'error').
+  Not exported by &quot;Universum&quot; module by default.
+* __&quot;Universum.VarArg&quot;__: variadic composition operator '...'.
+-}</span><span>
+</span><a name="line-60"></a><span>
+</span><a name="line-61"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Universum</span><span>
+</span><a name="line-62"></a><span>       </span><span class="hs-special">(</span><span> </span><span class="hs-comment">-- * Reexports from base and from modules in this repo</span><span>
+</span><a name="line-63"></a><span>         </span><span class="hs-keyword">module</span><span> </span><a href="Universum.Applicative.html"><span class="hs-identifier">Universum.Applicative</span></a><span>
+</span><a name="line-64"></a><span>       </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">module</span><span> </span><a href="Universum.Base.html"><span class="hs-identifier">Universum.Base</span></a><span>
+</span><a name="line-65"></a><span>       </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">module</span><span> </span><a href="Universum.Bool.html"><span class="hs-identifier">Universum.Bool</span></a><span>
+</span><a name="line-66"></a><span>       </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">module</span><span> </span><a href="Universum.Container.html"><span class="hs-identifier">Universum.Container</span></a><span>
+</span><a name="line-67"></a><span>       </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">module</span><span> </span><a href="Universum.Debug.html"><span class="hs-identifier">Universum.Debug</span></a><span>
+</span><a name="line-68"></a><span>       </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">module</span><span> </span><a href="Universum.DeepSeq.html"><span class="hs-identifier">Universum.DeepSeq</span></a><span>
+</span><a name="line-69"></a><span>       </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">module</span><span> </span><a href="Universum.Exception.html"><span class="hs-identifier">Universum.Exception</span></a><span>
+</span><a name="line-70"></a><span>       </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">module</span><span> </span><a href="Universum.Function.html"><span class="hs-identifier">Universum.Function</span></a><span>
+</span><a name="line-71"></a><span>       </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">module</span><span> </span><a href="Universum.Functor.html"><span class="hs-identifier">Universum.Functor</span></a><span>
+</span><a name="line-72"></a><span>       </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">module</span><span> </span><a href="Universum.Lifted.html"><span class="hs-identifier">Universum.Lifted</span></a><span>
+</span><a name="line-73"></a><span>       </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">module</span><span> </span><a href="Universum.List.html"><span class="hs-identifier">Universum.List</span></a><span>
+</span><a name="line-74"></a><span>       </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">module</span><span> </span><a href="Universum.Monad.html"><span class="hs-identifier">Universum.Monad</span></a><span>
+</span><a name="line-75"></a><span>       </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">module</span><span> </span><a href="Universum.Monoid.html"><span class="hs-identifier">Universum.Monoid</span></a><span>
+</span><a name="line-76"></a><span>       </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">module</span><span> </span><a href="Universum.Nub.html"><span class="hs-identifier">Universum.Nub</span></a><span>
+</span><a name="line-77"></a><span>       </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">module</span><span> </span><a href="Universum.Print.html"><span class="hs-identifier">Universum.Print</span></a><span>
+</span><a name="line-78"></a><span>       </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">module</span><span> </span><a href="Universum.String.html"><span class="hs-identifier">Universum.String</span></a><span>
+</span><a name="line-79"></a><span>       </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">module</span><span> </span><a href="Universum.TypeOps.html"><span class="hs-identifier">Universum.TypeOps</span></a><span>
+</span><a name="line-80"></a><span>       </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">module</span><span> </span><a href="Universum.VarArg.html"><span class="hs-identifier">Universum.VarArg</span></a><span>
+</span><a name="line-81"></a><span>
+</span><a name="line-82"></a><span>         </span><span class="hs-comment">-- * Lenses</span><span>
+</span><a name="line-83"></a><span>       </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Lens.Micro</span><span>
+</span><a name="line-84"></a><span>       </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Lens.Micro.Mtl</span><span>
+</span><a name="line-85"></a><span>       </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-86"></a><span>
+</span><a name="line-87"></a><span class="hs-keyword">import</span><span> </span><a href="Universum.Applicative.html"><span class="hs-identifier">Universum.Applicative</span></a><span>
+</span><a name="line-88"></a><span class="hs-keyword">import</span><span> </span><a href="Universum.Base.html"><span class="hs-identifier">Universum.Base</span></a><span>
+</span><a name="line-89"></a><span class="hs-keyword">import</span><span> </span><a href="Universum.Bool.html"><span class="hs-identifier">Universum.Bool</span></a><span>
+</span><a name="line-90"></a><span class="hs-keyword">import</span><span> </span><a href="Universum.Container.html"><span class="hs-identifier">Universum.Container</span></a><span>
+</span><a name="line-91"></a><span class="hs-keyword">import</span><span> </span><a href="Universum.Debug.html"><span class="hs-identifier">Universum.Debug</span></a><span>
+</span><a name="line-92"></a><span class="hs-keyword">import</span><span> </span><a href="Universum.DeepSeq.html"><span class="hs-identifier">Universum.DeepSeq</span></a><span>
+</span><a name="line-93"></a><span class="hs-keyword">import</span><span> </span><a href="Universum.Exception.html"><span class="hs-identifier">Universum.Exception</span></a><span>
+</span><a name="line-94"></a><span class="hs-keyword">import</span><span> </span><a href="Universum.Function.html"><span class="hs-identifier">Universum.Function</span></a><span>
+</span><a name="line-95"></a><span class="hs-keyword">import</span><span> </span><a href="Universum.Functor.html"><span class="hs-identifier">Universum.Functor</span></a><span>
+</span><a name="line-96"></a><span class="hs-keyword">import</span><span> </span><a href="Universum.Lifted.html"><span class="hs-identifier">Universum.Lifted</span></a><span>
+</span><a name="line-97"></a><span class="hs-keyword">import</span><span> </span><a href="Universum.List.html"><span class="hs-identifier">Universum.List</span></a><span>
+</span><a name="line-98"></a><span class="hs-keyword">import</span><span> </span><a href="Universum.Monad.html"><span class="hs-identifier">Universum.Monad</span></a><span>
+</span><a name="line-99"></a><span class="hs-keyword">import</span><span> </span><a href="Universum.Monoid.html"><span class="hs-identifier">Universum.Monoid</span></a><span>
+</span><a name="line-100"></a><span class="hs-keyword">import</span><span> </span><a href="Universum.Nub.html"><span class="hs-identifier">Universum.Nub</span></a><span>
+</span><a name="line-101"></a><span class="hs-keyword">import</span><span> </span><a href="Universum.Print.html"><span class="hs-identifier">Universum.Print</span></a><span>
+</span><a name="line-102"></a><span class="hs-keyword">import</span><span> </span><a href="Universum.String.html"><span class="hs-identifier">Universum.String</span></a><span>
+</span><a name="line-103"></a><span class="hs-keyword">import</span><span> </span><a href="Universum.TypeOps.html"><span class="hs-identifier">Universum.TypeOps</span></a><span>
+</span><a name="line-104"></a><span class="hs-keyword">import</span><span> </span><a href="Universum.VarArg.html"><span class="hs-identifier">Universum.VarArg</span></a><span>
+</span><a name="line-105"></a><span>
+</span><a name="line-106"></a><span class="hs-comment">-- Lenses</span><span>
+</span><a name="line-107"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Lens.Micro</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-type">Lens</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Lens'</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Traversal</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-type">Traversal'</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">over</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">set</span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="hs-operator hs-var">%~</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="hs-operator hs-var">&amp;</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="hs-operator hs-var">.~</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="hs-operator hs-var">&lt;&amp;&gt;</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="hs-operator hs-var">^.</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><a name="line-108"></a><span>                   </span><span class="hs-special">(</span><span class="hs-operator hs-var">^..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="hs-operator hs-var">^?</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">_1</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">_2</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">_3</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">_4</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">_5</span><span class="hs-special">)</span><span>
+</span><a name="line-109"></a><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Lens.Micro.Mtl</span><span> </span><span class="hs-special">(</span><span class="hs-identifier hs-var">preuse</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">preview</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">use</span><span class="hs-special">,</span><span> </span><span class="hs-identifier hs-var">view</span><span class="hs-special">)</span><span>
+</span><a name="line-110"></a></pre></body></html>
