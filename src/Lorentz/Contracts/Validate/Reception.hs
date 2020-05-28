@@ -31,11 +31,7 @@ import Michelson.Typed.Scope
 
 import Lorentz.Contracts.View
 
-#ifdef HAS_DSTOKEN
-import Lorentz.Contracts.DS.V1.Registry.Types (InvestorId(..))
-#else
 type InvestorId = Address
-#endif
 
 -- | A `Set` of allowed senders
 type Whitelist = Set InvestorId
@@ -53,7 +49,7 @@ data Parameter
 instance ParameterHasEntryPoints Parameter where
   type ParameterEntryPointsDerivation Parameter = EpdPlain -- None
 
--- | The Address of the associated DS Token contract, a `Whitelist` of allowed
+-- | The Address of the associated Token contract, a `Whitelist` of allowed
 -- sending users and how many tokens may be forwarded.
 data Storage = Storage
   { whitelist :: !Whitelist

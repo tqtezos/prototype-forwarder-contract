@@ -2,17 +2,16 @@
 
 ## Building
 
-To build without `DS Token`:
-
 ```bash
 stack build
 ```
 
-To build with `DS Token`:
+To install binaries to your `PATH` so that `stack exec` is not needed, run:
 
 ```bash
-stack build --stack-yaml stack-dstoken.yaml --flag prototype-forwarder-contract:dstoken
+stack install
 ```
+
 
 ## Introduction
 

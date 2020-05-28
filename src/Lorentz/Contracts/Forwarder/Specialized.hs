@@ -41,7 +41,7 @@ import Michelson.Typed.Value.Orphans ()
 type Parameter = Natural
 
 -- | We have the addresses of:
--- - The sub-token contract, assumed to accept `DS.Parameter`
+-- - The sub-token contract, assumed to accept `Parameter`
 -- - The central wallet to transfer sub-tokens to
 type Storage = ()
 
