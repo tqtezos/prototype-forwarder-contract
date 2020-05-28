@@ -1,5 +1,7 @@
 # prototype-forwarder-contract
 
+For the specialized forwarder contract, see [here](README_SPECIALIZED.md)
+
 ## Building
 
 ```bash
