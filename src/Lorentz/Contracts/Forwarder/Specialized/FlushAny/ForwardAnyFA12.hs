@@ -62,7 +62,9 @@ runSpecializedAnyTezTransfer centralWalletAddr' = do
   ifNone nil $ do
        dip dup
        FlushAny.unParameter
-       unpair
+       dup
+       car
+       dip cdr
        dig @2
        FlushAny.toTransferParameter
        dip . push $ toEnum @Mutez 0
@@ -128,4 +130,3 @@ verifyForwarderContract centralWalletAddr' (SomeContract (contract' :: ContractC
            forceOneline
            (specializedAnyFA12ForwarderContract
               centralWalletAddr')
-

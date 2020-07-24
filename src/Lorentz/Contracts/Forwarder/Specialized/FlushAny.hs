@@ -119,7 +119,9 @@ specializedAnyForwarderContract :: Address -> ContractCode Parameter Storage
 specializedAnyForwarderContract centralWalletAddr' = do
   car
   unParameter
-  unpair
+  dup
+  car
+  dip cdr
   runSpecializedAnyTransfer centralWalletAddr'
   dip nil
   cons

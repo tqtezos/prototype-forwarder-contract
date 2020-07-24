@@ -81,7 +81,9 @@ specializedAnyTezForwarderContract :: Address -> ContractCode Parameter Storage
 specializedAnyTezForwarderContract centralWalletAddr' = do
   car
   FlushAny.unParameter
-  unpair
+  dup
+  car
+  dip cdr
   runSpecializedAnyTezTransfer centralWalletAddr'
   dip unit
   pair
@@ -115,4 +117,3 @@ verifyForwarderContract centralWalletAddr' (SomeContract (contract' :: ContractC
            forceOneline
            (specializedAnyTezForwarderContract
               centralWalletAddr')
-
