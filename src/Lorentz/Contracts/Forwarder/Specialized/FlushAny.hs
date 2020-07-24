@@ -29,7 +29,6 @@ import Lorentz.Base (SomeContract(..))
 import Michelson.Analyzer (AnalyzerRes)
 import Michelson.Typed.EntryPoints
 
-import Lorentz.Contracts.Spec.AbstractLedgerInterface (TransferParams)
 import qualified Lorentz.Contracts.Spec.AbstractLedgerInterface as AL
 import qualified Lorentz.Contracts.Forwarder.Specialized as Specialized
 
@@ -39,6 +38,7 @@ import Prelude (Show(..), Enum(..), Eq(..), ($), String, show)
 
 import Michelson.Typed.Value.Orphans ()
 
+type TransferParams = (Address,Address,Natural)
 
 -- | The number of sub-tokens to forward and the typed contract address of the
 -- token to forward it on
@@ -104,15 +104,6 @@ toTransferParameter = do
   pair
   forcedCoerce_ @(Address, (Address, Natural)) @TransferParams
 
--- | Run a transfer to the given central wallet `Address`, given the token
--- contract `Address` and the number of tokens to transfer
-runSpecializedAnyTransfer :: Address -> (Natural & ContractRef TransferParams & s) :-> (Operation & s)
-runSpecializedAnyTransfer centralWalletAddr' = do
-  push centralWalletAddr'
-  toTransferParameter
-  dip . push $ toEnum @Mutez 0
-  transferTokens
-
 -- | Forwarder contract: forwards the given number of sub-tokens
 -- from its own address to the central wallet.
 specializedAnyForwarderContract :: Address -> ContractCode Parameter Storage
@@ -121,11 +112,17 @@ specializedAnyForwarderContract centralWalletAddr' = do
   unParameter
   dup
   car
-  dip cdr
-  runSpecializedAnyTransfer centralWalletAddr'
-  dip nil
+  dip $ do
+    cdr
+    push $ toEnum @Mutez 0
+  push centralWalletAddr'
+  toTransferParameter
+  transferTokens @TransferParams
+  nil
+  swap
   cons
-  dip unit
+  unit
+  swap
   pair
 
 -- | `analyzeLorentz` specialized to the `specializedAnyForwarderContract`
