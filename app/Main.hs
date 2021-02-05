@@ -41,12 +41,14 @@ import qualified Tezos.Address as Tezos
 import qualified Tezos.Core as Core (parseTimestamp)
 import Lorentz (Timestamp, ToT, IsoValue)
 import qualified Lorentz as L
+import Lorentz.Run
 import Util.IO (hSetTranslit, writeFileUtf8)
 import Universum.Print
 import Universum.String
 import Universum.Lifted
 import Universum.Exception
 
+import Michelson.Printer
 import Michelson.TypeCheck
 import Michelson.Typed.Instr (FullContract(..))
 import Michelson.Typed.Scope
@@ -315,9 +317,11 @@ main = do
             fa12ContractAddr'
       PrintSpecializedAnyFA12 centralWalletAddr' mOutput forceOneline ->
         writeFunc mOutput $
-          L.printLorentzContract
+          printTypedFullContract
             forceOneline $
+            compileLorentzContractWithOptions (CompilationOptions { coDisableInitialCast = True }) $
             Specialized.specializedAnyForwarderContract centralWalletAddr'
+            --
       PrintSpecializedAnyTezFA12 centralWalletAddr' mOutput forceOneline ->
         writeFunc mOutput $
           L.printLorentzContract
@@ -332,4 +336,3 @@ main = do
         writeFunc mOutput $
         L.printLorentzValue True $
         Specialized.mkParameter amountToFlush tokenContract
-

@@ -28,9 +28,9 @@ import Lorentz.Base (SomeContract(..))
 import Michelson.Analyzer (AnalyzerRes)
 import Michelson.Text
 
-import Lorentz.Contracts.Spec.AbstractLedgerInterface (TransferParams)
 import Lorentz.Contracts.Forwarder.Specialized.FlushAny (Parameter(..))
 import qualified Lorentz.Contracts.Forwarder.Specialized as Specialized
+import Lorentz.Contracts.Forwarder.Specialized.FlushAny (TransferParams)
 import qualified Lorentz.Contracts.Forwarder.Specialized.FlushAny as FlushAny
 
 import Data.Type.Equality
@@ -81,7 +81,9 @@ specializedAnyTezForwarderContract :: Address -> ContractCode Parameter Storage
 specializedAnyTezForwarderContract centralWalletAddr' = do
   car
   FlushAny.unParameter
-  unpair
+  dup
+  car
+  dip cdr
   runSpecializedAnyTezTransfer centralWalletAddr'
   dip unit
   pair
@@ -115,4 +117,3 @@ verifyForwarderContract centralWalletAddr' (SomeContract (contract' :: ContractC
            forceOneline
            (specializedAnyTezForwarderContract
               centralWalletAddr')
-
