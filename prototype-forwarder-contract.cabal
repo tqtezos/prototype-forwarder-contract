@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.2.
+-- This file has been generated from package.yaml by hpack version 0.33.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e3bc4f283843e54c6ae715ff6a2fd8848e7dca8f04594175d4876acf128ee13a
+-- hash: 221846fe27548d22739321d09f28a9496dcdf050c9bdf3c52c3b8de25d4f09e2
 
 name:           prototype-forwarder-contract
 version:        1.0.0.0
@@ -33,6 +33,8 @@ library
       Lorentz.Contracts.Forwarder.Specialized.FlushAny
       Lorentz.Contracts.Forwarder.Specialized.FlushAny.ForwardAnyFA12
       Lorentz.Contracts.Forwarder.Specialized.FlushAny.Tez
+      Lorentz.Contracts.Forwarder.Specialized.Tez
+      Lorentz.Contracts.Forwarder.Specialized.Tez.Flush
       Lorentz.Contracts.Product
       Lorentz.Contracts.View
       Michelson.Typed.Value.Orphans
